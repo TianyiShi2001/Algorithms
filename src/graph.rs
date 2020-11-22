@@ -1,5 +1,6 @@
 pub mod bfs;
 pub mod dfs;
+pub mod tree;
 
 #[derive(Copy, Clone)]
 pub struct Edge {
