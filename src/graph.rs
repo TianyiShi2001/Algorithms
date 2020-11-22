@@ -54,3 +54,39 @@ impl std::ops::Index<usize> for AdjacencyList {
         &self.edges[index]
     }
 }
+
+pub struct UnweightedAdjacencyList {
+    edges: Vec<Vec<usize>>,
+}
+
+impl UnweightedAdjacencyList {
+    /// Initialize an empty adjacency list that can hold up to n nodes.
+    pub fn with_size(n: usize) -> Self {
+        Self {
+            edges: vec![vec![]; n],
+        }
+    }
+    /// Number of nodes
+    pub fn len(&self) -> usize {
+        self.edges.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty()
+    }
+    /// Add a directed edge from node `u` to node `v`
+    pub fn add_directed_edge(&mut self, u: usize, v: usize) {
+        self.edges[u].push(v)
+    }
+    /// Add an undirected edge between nodes `u` and `v`.
+    pub fn add_undirected_edge(&mut self, u: usize, v: usize) {
+        self.add_directed_edge(u, v);
+        self.add_directed_edge(v, u);
+    }
+}
+
+impl std::ops::Index<usize> for UnweightedAdjacencyList {
+    type Output = Vec<usize>;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.edges[index]
+    }
+}

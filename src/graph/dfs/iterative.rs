@@ -63,3 +63,33 @@ mod tests {
         println!("DFS node count starting at node 4: {}", count);
     }
 }
+
+use crate::graph::UnweightedAdjacencyList;
+
+impl UnweightedAdjacencyList {
+    /// Perform a depth first search on a graph with n nodes
+    /// from a starting point to count the number of nodes
+    /// in a given component.
+    fn dfs(&self, start: usize) -> usize {
+        let mut count = 0;
+        let mut visited = vec![false; self.len()];
+        let mut stack = Vec::new();
+
+        // start by visiting the start node
+        stack.push(start);
+        visited[start] = true;
+
+        while let Some(node) = stack.pop() {
+            count += 1;
+            let neighbours = &self[node];
+            for &edge in neighbours {
+                if !visited[edge] {
+                    stack.push(edge);
+                    visited[edge] = true;
+                }
+            }
+        }
+
+        count
+    }
+}
