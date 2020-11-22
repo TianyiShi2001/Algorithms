@@ -2,18 +2,22 @@
 
 This repository presents the Rust implementation of the provided Algorithms and data structures from William Fiset at: https://github.com/williamfiset/Algorithms
 
-I also highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), which explains many of these algorithms in detail.
+I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail.
 
 ## Usage
 
-The implementation details are explained in comments and docs and the example usage can be found in unit tests.
-
-The output of tests are implied in `assert_eq!`s, but in case you really want to see the output, I also preserved `println!`. To make the ouput appear on the console, use:
+The implementation details are explained in comments and docs and the example usage is implied in unit tests. To run tests:
 
 ```
-cargo test [name_of_the_test] -- --nocapture
+cargo test
 ```
 
+## Recommended Environment
+
+- Editor: Visual Studio Code
+  - Extension: [rust-analyzer](https://github.com/rust-analyzer/rust-analyzer)
+
+This simple setup provides most features a decent IDE would provide (importantly, jump to definition and type labelling)
 
 ## Rusticity
 

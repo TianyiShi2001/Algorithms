@@ -11,8 +11,8 @@ use crate::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct TreeNode {
-    id: usize,
-    children: Vec<TreeNode>,
+    pub id: usize,
+    pub children: Vec<TreeNode>,
 }
 
 impl TreeNode {

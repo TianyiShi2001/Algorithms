@@ -14,8 +14,12 @@ pub enum Center {
     Two(usize, usize),
 }
 
-impl UnweightedAdjacencyList {
-    pub fn center(&self) -> Center {
+pub trait TreeCenter {
+    fn center(&self) -> Center;
+}
+
+impl TreeCenter for UnweightedAdjacencyList {
+    fn center(&self) -> Center {
         let n = self.len();
         let mut degrees = vec![0; n];
         let mut leaves = Vec::new();
