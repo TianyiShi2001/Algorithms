@@ -1,3 +1,12 @@
+//! Often when working with trees we are given them as a graph with undirected edges, however
+//! sometimes a better representation is a rooted tree.
+//!
+//! - Time Complexity: O(V+E)
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=2FFq2_je7Lg&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=9)
+
 use crate::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
