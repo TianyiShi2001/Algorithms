@@ -1,3 +1,11 @@
+//! # Tree Sum Example
+//!
+//! - Time Complexity: O(n)
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=0qgaIMqOEVs&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=8)
+
 // making the tree generic over all summable types, e.g. `f64`, `i32`, or your own
 // `Complex` type (as long as it implements these traits)
 pub trait Summable: std::ops::AddAssign<Self> + Copy + num_traits::Zero {}
