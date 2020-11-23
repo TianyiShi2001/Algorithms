@@ -1,3 +1,3 @@
+pub mod algo;
 pub mod data_structures;
-pub mod graph;
-pub mod math;
+pub mod problems;

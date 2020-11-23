@@ -7,7 +7,7 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=2FFq2_je7Lg&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=9)
 
-use crate::graph::UnweightedAdjacencyList;
+use crate::algo::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct TreeNode {

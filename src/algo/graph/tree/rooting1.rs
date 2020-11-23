@@ -1,6 +1,6 @@
 //! An improved implementation of Tree Rooting, in which each node has an pointer to its parent.
 
-use crate::graph::UnweightedAdjacencyList;
+use crate::algo::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct TreeNode {

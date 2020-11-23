@@ -1,4 +1,4 @@
-use crate::graph::AdjacencyList;
+use crate::algo::graph::AdjacencyList;
 
 impl AdjacencyList {
     /// Perform a depth first search on a graph with n nodes
@@ -64,7 +64,7 @@ mod tests {
     }
 }
 
-use crate::graph::UnweightedAdjacencyList;
+use crate::algo::graph::UnweightedAdjacencyList;
 
 impl UnweightedAdjacencyList {
     /// Perform a depth first search on a graph with n nodes

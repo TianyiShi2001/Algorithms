@@ -6,7 +6,7 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=nzF_9bjDzdc&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=10)
 
-use crate::graph::UnweightedAdjacencyList;
+use crate::algo::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Center {

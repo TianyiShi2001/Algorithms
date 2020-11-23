@@ -1,5 +1,5 @@
+use crate::algo::graph::AdjacencyList;
 use crate::data_structures::queue::Queue;
-use crate::graph::AdjacencyList;
 
 impl AdjacencyList {
     /// Perform a breadth first search on a graph a starting node `start`.

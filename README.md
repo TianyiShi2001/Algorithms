@@ -1,8 +1,8 @@
-# Rusty Implementations of William Fiset's Algorithms
+# Rusty Algorithms and Data Structures
 
-This repository presents the Rust implementation of the provided Algorithms and data structures from William Fiset at: https://github.com/williamfiset/Algorithms
+This repository presents Rust implementation of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
 
-I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail.
+In addition to re-implementing W. Fiset's algorithms, I also add original content that might be helpful, such as solutions of classical puzzles e.g. N-Queens and Sudoku.
 
 ## Usage
 
@@ -11,6 +11,8 @@ The implementation details are explained in comments and docs and the example us
 ```
 cargo test
 ```
+
+These algorithms and data structures are not designed for production usage, but might be directly applicable in competitve programming.
 
 ## Recommended Environment
 
@@ -21,14 +23,14 @@ This simple setup provides most features a decent IDE would provide (importantly
 
 ## Rusticity
 
-This is not a verbatim translation of the original implementation in Java. Instead, I try to make the code idiomatic in Rust, according to these rules
+This is not a verbatim translation of W. Fiset's Java implementation. Instead, I try to make the code idiomatic in Rust, according to these rules:
 
 ### Avoid Long Names Using `mod`s
 
 For example, perfer
 
 ```
-crate::graph::bfs::adjacency_list_iterative::fast_deque
+crate::algo::graph::bfs::adjacency_list_iterative::fast_deque
 ```
 
 over
@@ -58,6 +60,6 @@ pub fn offer(&mut self, value: T);
 pub fn poll(&mut self) -> T;
 ```
 
-### Use `Option<T>` to Represent `Nullable Values
+### Use `Option<T>` to Represent Nullable Values
 
 Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes the code work better with the standard library and cause less surprises.
