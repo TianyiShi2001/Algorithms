@@ -1,17 +1,10 @@
-use crate::data_structures::queue::{FixedCapacityQueue, Queue};
+use crate::data_structures::queue::Queue;
 use crate::graph::AdjacencyList;
-use std::collections::VecDeque;
-use std::marker::PhantomData;
 
-#[derive(Default)]
-pub struct BfsIterativeSolver<T: Queue<usize>> {
-    phantom: PhantomData<T>,
-}
-
-impl<T: Queue<usize>> BfsIterativeSolver<T> {
+impl AdjacencyList {
     /// Perform a breadth first search on a graph a starting node `start`.
-    pub fn bfs(graph: &AdjacencyList, start: usize) -> Vec<Option<usize>> {
-        let n = graph.len();
+    pub fn bfs<T: Queue<usize>>(&self, start: usize) -> Vec<Option<usize>> {
+        let n = self.len();
         // tracks who the parent of `i` was
         let mut prev = vec![None; n];
         let mut visited = vec![false; n];
@@ -23,7 +16,7 @@ impl<T: Queue<usize>> BfsIterativeSolver<T> {
 
         // Continue until the BFS is donw.
         while let Some(node) = queue.pop_front() {
-            let neighbours = &graph.edges[node];
+            let neighbours = &self.edges[node];
 
             // Loop through all edges attached to this node. Mark nodes as visited once they`re
             // in the queue. This will prevent having duplicate nodes in the queue and speedup the BFS.
@@ -39,8 +32,8 @@ impl<T: Queue<usize>> BfsIterativeSolver<T> {
         prev
     }
 
-    pub fn reconstruct_path(graph: &AdjacencyList, start: usize, end: usize) -> Vec<usize> {
-        let prev = Self::bfs(graph, start);
+    pub fn reconstruct_path<T: Queue<usize>>(&self, start: usize, end: usize) -> Vec<usize> {
+        let prev = self.bfs::<T>(start);
         let mut path = Vec::new();
         let mut at = end;
         while let Some(prev_parent) = prev[at] {
@@ -52,16 +45,11 @@ impl<T: Queue<usize>> BfsIterativeSolver<T> {
     }
 }
 
-fn format_path(path: &Vec<usize>) -> String {
-    path.iter()
-        .map(|&x| x.to_string())
-        .collect::<Vec<_>>()
-        .join(" -> ")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::data_structures::queue::FixedCapacityQueue;
+    use std::collections::VecDeque;
     #[test]
     fn test_bfs_adjacency_list_iterative() {
         const N: usize = 13;
@@ -84,7 +72,7 @@ mod tests {
 
         let (start, end) = (10, 5);
 
-        let path = BfsIterativeSolver::<VecDeque<_>>::reconstruct_path(&graph, start, end);
+        let path = graph.reconstruct_path::<VecDeque<usize>>(start, end);
         let fmtpath = format_path(&path);
         println!(
             "The shortest path from {} to {} is: {}\n",
@@ -92,13 +80,18 @@ mod tests {
         );
         assert_eq!(&fmtpath, "10 -> 9 -> 0 -> 7 -> 6");
 
-        let path =
-            BfsIterativeSolver::<FixedCapacityQueue<_>>::reconstruct_path(&graph, start, end);
+        let path = graph.reconstruct_path::<FixedCapacityQueue<usize>>(start, end);
         let fmtpath = format_path(&path);
         println!(
             "The shortest path from {} to {} is: {}\n",
             start, end, fmtpath
         );
         assert_eq!(&fmtpath, "10 -> 9 -> 0 -> 7 -> 6");
+    }
+    fn format_path(path: &Vec<usize>) -> String {
+        path.iter()
+            .map(|&x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(" -> ")
     }
 }

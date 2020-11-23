@@ -4,7 +4,7 @@ impl AdjacencyList {
     /// Perform a depth first search on a graph with n nodes
     /// from a starting point to count the number of nodes
     /// in a given component.
-    fn dfs(&self, start: usize) -> usize {
+    pub fn dfs(&self, start: usize) -> usize {
         let mut count = 0;
         let mut visited = vec![false; self.len()];
         let mut stack = Vec::new();
@@ -70,7 +70,7 @@ impl UnweightedAdjacencyList {
     /// Perform a depth first search on a graph with n nodes
     /// from a starting point to count the number of nodes
     /// in a given component.
-    fn dfs(&self, start: usize) -> usize {
+    pub fn dfs(&self, start: usize) -> usize {
         let mut count = 0;
         let mut visited = vec![false; self.len()];
         let mut stack = Vec::new();
