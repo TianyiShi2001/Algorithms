@@ -1,8 +1,10 @@
 # Rusty Algorithms and Data Structures
 
+![lines of code](https://img.shields.io/badge/line%20of%20code-1484-blue)
+
 This repository presents Rust implementation of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
 
-In addition to re-implementing W. Fiset's algorithms, I also add original content that might be helpful, such as solutions of classical puzzles e.g. N-Queens and Sudoku.
+In addition to implementing W. Fiset's algorithms, I also add original content that might be helpful, such as solutions of classical puzzles e.g. N-Queens and Sudoku.
 
 ## Usage
 
