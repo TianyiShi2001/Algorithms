@@ -94,16 +94,16 @@ impl<T: Clone> std::ops::IndexMut<std::ops::Range<usize>> for HeapArray<T> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_heaparray() {
-        let mut arr = HeapArray::init_with(10, |x| x);
-        assert_eq!(arr[1], 1);
-        let slc = &mut arr[5..10];
-        slc[2] = 100;
-        assert_eq!(slc, &[5, 6, 100, 8, 9]);
-        println!("{:?}", arr[9]);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[test]
+//     fn test_heaparray() {
+//         let mut arr = HeapArray::init_with(10, |x| x);
+//         assert_eq!(arr[1], 1);
+//         let slc = &mut arr[5..10];
+//         slc[2] = 100;
+//         assert_eq!(slc, &[5, 6, 100, 8, 9]);
+//         println!("{:?}", arr[9]);
+//     }
+// }
