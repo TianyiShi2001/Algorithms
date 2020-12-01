@@ -41,15 +41,20 @@ impl<T: PartialOrd> BinaryHeap<T> {
     fn remove_at(&mut self, i: usize) -> Option<T> {
         let end = self.heap.len() - 1;
         self.heap.swap(i, end);
-        let item = self.heap.pop();
-        self.sink(i);
-        item
+        let removed = self.heap.pop();
+        // Try sinking element
+        let i_ = self.sink(i);
+        // If sinking did not work try swimming
+        if i_ == i {
+            self.swim(i);
+        }
+        removed
     }
 
     /// Perform bottom up node swim, O(log(n))
-    fn swim(&mut self, mut k: usize) {
+    fn swim(&mut self, mut k: usize) -> usize {
         // Grab the index of the next parent node WRT to k
-        let mut parent = (k - 1) / 2;
+        let mut parent = (k.saturating_sub(1)) / 2;
 
         // Keep swimming while we have not reached the
         // root and while we're less than our parent.
@@ -59,12 +64,13 @@ impl<T: PartialOrd> BinaryHeap<T> {
             k = parent;
 
             // Grab the index of the next parent node WRT to k
-            parent = (k - 1) / 2;
+            parent = (k.saturating_sub(1)) / 2;
         }
+        k
     }
 
     // Top down node sink, O(log(n))
-    fn sink(&mut self, mut k: usize) {
+    fn sink(&mut self, mut k: usize) -> usize {
         let heap_size = self.heap.len();
         loop {
             let left = 2 * k + 1; // Left  node
@@ -87,5 +93,23 @@ impl<T: PartialOrd> BinaryHeap<T> {
             self.heap.swap(smallest, k);
             k = smallest;
         }
+        k
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_priority_queue_binary_heap() {
+        let mut pq = BinaryHeap::with_capacity(8);
+        pq.insert(5);
+        pq.insert(7);
+        pq.insert(3);
+        pq.insert(8);
+        pq.insert(2);
+        pq.insert(1);
+        assert_eq!(pq.poll().unwrap(), 1);
+        pq.remove(&2);
+        assert_eq!(pq.poll().unwrap(), 3);
     }
 }
