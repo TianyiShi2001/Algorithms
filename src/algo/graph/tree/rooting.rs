@@ -61,10 +61,10 @@ mod tests {
         graph.add_undirected_edge(6, 8);
         let tree = TreeNode::from_adjacency_list(&graph, 6);
         // Rooted at 6 the tree should look like:
-        //           6
-        //      2    7     8
-        //    1   3
-        //  0    4 5
+        //         6
+        //      2  7  8
+        //    1  3
+        //  0   4 5
         println!("{:?}", &tree);
         assert_eq!(
             tree,
@@ -91,10 +91,10 @@ mod tests {
         );
         let tree = TreeNode::from_adjacency_list(&graph, 3);
         // Rooted at 3 the tree should look like:
-        //               3
-        //     2         4        5
-        //  6     1
-        // 7 8    0
+        //       3
+        //    2  4  5
+        //  6  1
+        // 7 8  0
         println!("{:?}", &tree);
         assert_eq!(
             tree,
