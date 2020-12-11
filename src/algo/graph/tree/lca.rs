@@ -1,3 +1,12 @@
+//! Implementation of finding the Lowest Common Ancestor (LCA) of a tree. This impl first finds an
+//! Euler tour from the root node which visits all the nodes in the tree. The node height values
+//! obtained from the Euler tour can then be used in combination with a sparse table to find the LCA
+//! in O(1).
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=sD1IoalFomA)
+
 use super::rooting::TreeNode;
 
 pub struct Tree {
@@ -14,7 +23,7 @@ pub struct LcaSolver {
 }
 
 impl LcaSolver {
-    fn new(tree: &Tree) -> Self {
+    pub fn new(tree: &Tree) -> Self {
         let mut node_depth = vec![0usize; tree.size * 2 - 1]; // Vec::<usize>::new();
         let mut node_order = vec![0usize; tree.size * 2 - 1]; // Vec::<usize>::new();
         let mut last = vec![0usize; tree.size];

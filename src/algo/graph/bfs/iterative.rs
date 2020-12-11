@@ -1,7 +1,7 @@
-use crate::algo::graph::AdjacencyList;
+use crate::algo::graph::UnweightedAdjacencyList;
 use crate::data_structures::queue::Queue;
 
-impl AdjacencyList {
+impl UnweightedAdjacencyList {
     /// Perform a breadth first search on a graph a starting node `start`.
     pub fn bfs<T: Queue<usize>>(&self, start: usize) -> Vec<Option<usize>> {
         let n = self.len();
@@ -21,10 +21,10 @@ impl AdjacencyList {
             // Loop through all edges attached to this node. Mark nodes as visited once they`re
             // in the queue. This will prevent having duplicate nodes in the queue and speedup the BFS.
             for &edge in neighbours {
-                if !visited[edge.to] {
-                    visited[edge.to] = true;
-                    prev[edge.to] = Some(node);
-                    queue.push_back(edge.to);
+                if !visited[edge] {
+                    visited[edge] = true;
+                    prev[edge] = Some(node);
+                    queue.push_back(edge);
                 }
             }
         }
@@ -53,22 +53,22 @@ mod tests {
     #[test]
     fn test_bfs_adjacency_list_iterative() {
         const N: usize = 13;
-        let mut graph = AdjacencyList::with_size(N);
-        graph.add_unweighted_undirected_edge(0, 7);
-        graph.add_unweighted_undirected_edge(0, 9);
-        graph.add_unweighted_undirected_edge(0, 11);
-        graph.add_unweighted_undirected_edge(7, 11);
-        graph.add_unweighted_undirected_edge(7, 6);
-        graph.add_unweighted_undirected_edge(7, 3);
-        graph.add_unweighted_undirected_edge(6, 5);
-        graph.add_unweighted_undirected_edge(3, 4);
-        graph.add_unweighted_undirected_edge(2, 3);
-        graph.add_unweighted_undirected_edge(2, 12);
-        graph.add_unweighted_undirected_edge(12, 8);
-        graph.add_unweighted_undirected_edge(8, 1);
-        graph.add_unweighted_undirected_edge(1, 10);
-        graph.add_unweighted_undirected_edge(10, 9);
-        graph.add_unweighted_undirected_edge(9, 8);
+        let mut graph = UnweightedAdjacencyList::with_size(N);
+        graph.add_undirected_edge(0, 7);
+        graph.add_undirected_edge(0, 9);
+        graph.add_undirected_edge(0, 11);
+        graph.add_undirected_edge(7, 11);
+        graph.add_undirected_edge(7, 6);
+        graph.add_undirected_edge(7, 3);
+        graph.add_undirected_edge(6, 5);
+        graph.add_undirected_edge(3, 4);
+        graph.add_undirected_edge(2, 3);
+        graph.add_undirected_edge(2, 12);
+        graph.add_undirected_edge(12, 8);
+        graph.add_undirected_edge(8, 1);
+        graph.add_undirected_edge(1, 10);
+        graph.add_undirected_edge(10, 9);
+        graph.add_undirected_edge(9, 8);
 
         let (start, end) = (10, 5);
 
