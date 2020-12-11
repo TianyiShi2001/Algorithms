@@ -1,11 +1,12 @@
-use crate::algo::graph::AdjacencyList;
+use crate::algo::graph::WeightedAdjacencyList;
 
-impl AdjacencyList {
+impl WeightedAdjacencyList {
     /// Perform a depth first search on a graph with n nodes
     /// from a starting point to count the number of nodes
     /// in a given component.
-    pub fn dfs(&self, start: usize) -> usize {
+    pub fn dfs(&self, start: usize) -> (usize, i32) {
         let mut count = 0;
+        let mut cost = 0;
         let mut visited = vec![false; self.len()];
         let mut stack = Vec::new();
 
@@ -18,13 +19,14 @@ impl AdjacencyList {
             let neighbours = &self[node];
             for &edge in neighbours {
                 if !visited[edge.to] {
+                    cost += edge.cost;
                     stack.push(edge.to);
                     visited[edge.to] = true;
                 }
             }
         }
 
-        count
+        (count, cost)
     }
 }
 
@@ -46,7 +48,7 @@ mod tests {
         //           > <
         //           (3)
         const N: usize = 5;
-        let mut graph = AdjacencyList::with_size(N);
+        let mut graph = WeightedAdjacencyList::with_size(N);
         graph.add_directed_edge(0, 1, 4);
         graph.add_directed_edge(0, 2, 5);
         graph.add_directed_edge(1, 2, -2);
@@ -54,11 +56,11 @@ mod tests {
         graph.add_directed_edge(2, 3, 1);
         graph.add_directed_edge(2, 2, 10); // Self loop
 
-        let count = graph.dfs(0);
+        let (count, _cost) = graph.dfs(0);
         assert_eq!(count, 4);
         println!("DFS node count starting at node 0: {}", count);
 
-        let count = graph.dfs(4);
+        let (count, _cost) = graph.dfs(4);
         assert_eq!(count, 1);
         println!("DFS node count starting at node 4: {}", count);
     }

@@ -14,11 +14,11 @@ impl Edge {
     }
 }
 
-pub struct AdjacencyList {
+pub struct WeightedAdjacencyList {
     edges: Vec<Vec<Edge>>,
 }
 
-impl AdjacencyList {
+impl WeightedAdjacencyList {
     /// Initialize an empty adjacency list that can hold up to n nodes.
     pub fn with_size(n: usize) -> Self {
         Self {
@@ -41,14 +41,14 @@ impl AdjacencyList {
         self.add_directed_edge(u, v, cost);
         self.add_directed_edge(v, u, cost);
     }
-    /// Add an undirected unweighted edge between nodes `u` and `v`. The edge added
-    /// will have a weight of 1 since its intended to be unweighted.
-    pub fn add_unweighted_undirected_edge(&mut self, u: usize, v: usize) {
-        self.add_undirected_edge(u, v, 1);
-    }
+    // /// Add an undirected unweighted edge between nodes `u` and `v`. The edge added
+    // /// will have a weight of 1 since its intended to be unweighted.
+    // pub fn add_unweighted_undirected_edge(&mut self, u: usize, v: usize) {
+    //     self.add_undirected_edge(u, v, 1);
+    // }
 }
 
-impl std::ops::Index<usize> for AdjacencyList {
+impl std::ops::Index<usize> for WeightedAdjacencyList {
     type Output = Vec<Edge>;
     fn index(&self, index: usize) -> &Self::Output {
         &self.edges[index]
