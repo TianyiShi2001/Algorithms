@@ -6,13 +6,12 @@ pub mod tree;
 
 #[derive(Copy, Clone)]
 pub struct Edge {
-    pub from: usize,
     pub to: usize,
     pub cost: f32,
 }
 impl Edge {
-    pub fn new(from: usize, to: usize, cost: f32) -> Self {
-        Self { from, to, cost }
+    pub fn new(to: usize, cost: f32) -> Self {
+        Self { to, cost }
     }
 }
 
@@ -36,7 +35,7 @@ impl WeightedAdjacencyList {
     }
     /// Add a directed edge from node `u` to node `v` with cost `cost`.
     pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: f32) {
-        self.edges[u].push(Edge::new(u, v, cost))
+        self.edges[u].push(Edge::new(v, cost))
     }
     /// Add an undirected edge between nodes `u` and `v`.
     pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: f32) {
@@ -70,6 +69,12 @@ impl WeightedAdjacencyList {
             graph.add_undirected_edge(a, b, 1.);
         }
         graph
+    }
+    pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f32)> + '_ {
+        self.edges
+            .iter()
+            .enumerate()
+            .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.cost)))
     }
 }
 
@@ -121,11 +126,33 @@ impl UnweightedAdjacencyList {
         }
         graph
     }
+    pub fn edges(&self) -> impl Iterator<Item = [usize; 2]> + '_ {
+        self.edges
+            .iter()
+            .enumerate()
+            .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
+    }
 }
 
 impl std::ops::Index<usize> for UnweightedAdjacencyList {
     type Output = Vec<usize>;
     fn index(&self, index: usize) -> &Self::Output {
         &self.edges[index]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    #[test]
+    fn test_graph_adj_list() {
+        let mut edges = vec![[0, 1], [1, 2], [0, 2], [1, 1]];
+        let g = UnweightedAdjacencyList::new_directed(3, &edges);
+        for edge in g.edges() {
+            let i = edges.iter().position(|e| *e == edge).unwrap();
+            edges.remove(i);
+        }
+        assert!(edges.is_empty());
     }
 }

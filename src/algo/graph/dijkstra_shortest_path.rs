@@ -22,7 +22,14 @@ impl WeightedAdjacencyList {
         // `priority_queue::PriorityQueue` requires that the priority implements `Ord`,
         // but the std floats implement only `PartialOrd`
         pq.push(start, OrderedFloat::from(-0f32));
+        dists[start] = 0f32;
         while let Some((node, cur_dist)) = pq.pop() {
+            // Once we've visited all the nodes spanning from the end
+            // node we know we can return the minimum distance value to
+            // the end node because it cannot get any better after this point.
+            if node == end {
+                break;
+            };
             // `priority_queue::PriorityQueue` is a max priority queue, but we want the min.
             // Negating the priority (dist) immediately before pushing and after popping will do.
             let cur_dist = -cur_dist.into_inner();
@@ -50,17 +57,14 @@ impl WeightedAdjacencyList {
                     }
                 }
             }
-
-            // Once we've visited all the nodes spanning from the end
-            // node we know we can return the minimum distance value to
-            // the end node because it cannot get any better after this point.
-            if node == end {
-                break;
-            };
         }
 
         if prev[end].is_none() {
-            None
+            if start == end {
+                Some((dists[start], vec![start]))
+            } else {
+                None
+            }
         } else {
             // reconstruct path
             let mut path = vec![end];
@@ -102,5 +106,6 @@ mod tests {
         let (dist, path) = graph.dijkstra(0, 5).unwrap();
         assert_eq!(&path, &[0, 2, 1, 3, 4, 5]);
         assert_eq!(dist, 10.);
+        assert_eq!(graph.dijkstra(1, 1).unwrap(), (0.0, vec![1]));
     }
 }

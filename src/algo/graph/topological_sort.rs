@@ -53,21 +53,15 @@ impl WeightedAdjacencyList {
         let n = self.len();
         // `dependencies[i]` is the number of nodes pointing to node `i`
         let mut dependencies = vec![0; n];
+        // identify all dependencies
+        for dependents in &self.edges {
+            for dependent in dependents {
+                dependencies[dependent.to] += 1;
+            }
+        }
         // a "buildable" is not pointed to by other nodes
-        let mut buildables = Vec::new();
-        // identify all nodes
-        for targets in &self.edges {
-            for edge in targets {
-                dependencies[edge.to] += 1;
-            }
-        }
-        for i in 0..n {
-            if dependencies[i] == 0 {
-                buildables.push(i);
-            }
-        }
+        let mut buildables: Vec<_> = (0..n).filter(|&i| dependencies[i] == 0).collect();
         let mut i = 0;
-
         // Remove buildable nodes and decrease the degree of each node adding new buildable nodes progressively
         // until only the centers remain.
         let mut ordering = vec![0; n];
@@ -76,14 +70,13 @@ impl WeightedAdjacencyList {
             for &buildable in &buildables {
                 ordering[i] = buildable;
                 i += 1;
-                for &neighbour in &self[buildable] {
-                    let x = &mut dependencies[neighbour.to];
+                for &dependent in &self[buildable] {
+                    let x = &mut dependencies[dependent.to];
                     *x -= 1;
                     if *x == 0 {
-                        new_buildables.push(neighbour.to);
+                        new_buildables.push(dependent.to);
                     }
                 }
-                // degrees[buildable] = 0; // prune this buildable (not necessary?)
             }
             buildables = new_buildables;
         }
