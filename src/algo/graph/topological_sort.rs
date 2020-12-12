@@ -56,11 +56,11 @@ impl WeightedAdjacencyList {
         // a "buildable" is not pointed to by other nodes
         let mut buildables = Vec::new();
         // identify all nodes
-        self.edges.iter().enumerate().for_each(|(i, targets)| {
-            for &edge in targets {
+        for targets in &self.edges {
+            for edge in targets {
                 dependencies[edge.to] += 1;
             }
-        });
+        }
         for i in 0..n {
             if dependencies[i] == 0 {
                 buildables.push(i);

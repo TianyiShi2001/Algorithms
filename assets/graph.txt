@@ -1,0 +1,15 @@
+graph TD;
+    dfs(Depth First Search)
+    bfs(Breadth First Search)
+    rt(Rooting Tree)
+    tc(Tree Center)
+    ti(Tree Isomorphism)
+    tpls(Topological Sort)
+    sparse(Sparse Table)
+    lca(Lowest Common Ancestor)
+    sparse-->lca;
+    dfs-->lca;
+    rt-->ti;
+    tc-->ti;
+    dfs-->tpls;
+    tc-->tpls;
