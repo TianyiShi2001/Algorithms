@@ -38,7 +38,7 @@ impl TreeCenter for UnweightedAdjacencyList {
             let mut new_leaves = Vec::new();
             for &leaf in &leaves {
                 for &neighbour in &self[leaf] {
-                    degrees[neighbour] = degrees[neighbour].wrapping_sub(1);
+                    degrees[neighbour] = degrees[neighbour].saturating_sub(1);
                     if degrees[neighbour] == 1 {
                         new_leaves.push(neighbour);
                     }

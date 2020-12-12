@@ -55,16 +55,20 @@ mod tests {
 
     #[test]
     fn test_tree_encoding() {
-        let mut adj = UnweightedAdjacencyList::with_size(10);
-        adj.add_undirected_edge(0, 2);
-        adj.add_undirected_edge(0, 1);
-        adj.add_undirected_edge(0, 3);
-        adj.add_undirected_edge(2, 6);
-        adj.add_undirected_edge(2, 7);
-        adj.add_undirected_edge(1, 4);
-        adj.add_undirected_edge(1, 5);
-        adj.add_undirected_edge(5, 9);
-        adj.add_undirected_edge(3, 8);
+        let adj = UnweightedAdjacencyList::new_undirected(
+            10,
+            &[
+                [0, 2],
+                [0, 1],
+                [0, 3],
+                [2, 6],
+                [2, 7],
+                [1, 4],
+                [1, 5],
+                [5, 9],
+                [3, 8],
+            ],
+        );
         let tree = TreeNode::from_adjacency_list(&adj, 0);
         let encoded = tree.encode();
         let encoded = String::from_utf8(encoded).unwrap();
@@ -73,16 +77,8 @@ mod tests {
 
     #[test]
     fn test_tree_isomorphism() {
-        let mut tree1 = UnweightedAdjacencyList::with_size(5);
-        tree1.add_undirected_edge(2, 0);
-        tree1.add_undirected_edge(3, 4);
-        tree1.add_undirected_edge(2, 1);
-        tree1.add_undirected_edge(2, 3);
-        let mut tree2 = UnweightedAdjacencyList::with_size(5);
-        tree2.add_undirected_edge(1, 0);
-        tree2.add_undirected_edge(2, 4);
-        tree2.add_undirected_edge(1, 3);
-        tree2.add_undirected_edge(1, 2);
+        let tree1 = UnweightedAdjacencyList::new_undirected(5, &[[2, 0], [3, 4], [2, 1], [2, 3]]);
+        let tree2 = UnweightedAdjacencyList::new_undirected(5, &[[1, 0], [2, 4], [1, 3], [1, 2]]);
         assert!(tree1.is_isomorphic_with(&tree2));
     }
 }

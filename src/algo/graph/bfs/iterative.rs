@@ -6,7 +6,7 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=oDqjPvD54Ss&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=5)
 
-use crate::{algo::graph::UnweightedAdjacencyList, data_structures::queue};
+use crate::algo::graph::UnweightedAdjacencyList;
 use std::collections::VecDeque;
 
 impl UnweightedAdjacencyList {

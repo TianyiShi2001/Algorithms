@@ -1,15 +1,17 @@
 pub mod bfs;
 pub mod dfs;
+pub mod dijkstra_shortest_path;
+pub mod topological_sort;
 pub mod tree;
 
 #[derive(Copy, Clone)]
 pub struct Edge {
     pub from: usize,
     pub to: usize,
-    pub cost: i32,
+    pub cost: f32,
 }
 impl Edge {
-    pub fn new(from: usize, to: usize, cost: i32) -> Self {
+    pub fn new(from: usize, to: usize, cost: f32) -> Self {
         Self { from, to, cost }
     }
 }
@@ -33,19 +35,42 @@ impl WeightedAdjacencyList {
         self.edges.is_empty()
     }
     /// Add a directed edge from node `u` to node `v` with cost `cost`.
-    pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: i32) {
+    pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: f32) {
         self.edges[u].push(Edge::new(u, v, cost))
     }
     /// Add an undirected edge between nodes `u` and `v`.
-    pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: i32) {
+    pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: f32) {
         self.add_directed_edge(u, v, cost);
         self.add_directed_edge(v, u, cost);
     }
-    // /// Add an undirected unweighted edge between nodes `u` and `v`. The edge added
-    // /// will have a weight of 1 since its intended to be unweighted.
-    // pub fn add_unweighted_undirected_edge(&mut self, u: usize, v: usize) {
-    //     self.add_undirected_edge(u, v, 1);
-    // }
+    pub fn new_directed(size: usize, edges: &[(usize, usize, f32)]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &(a, b, c) in edges.iter() {
+            graph.add_directed_edge(a, b, c);
+        }
+        graph
+    }
+    pub fn new_undirected(size: usize, edges: &[(usize, usize, f32)]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &(a, b, c) in edges.iter() {
+            graph.add_undirected_edge(a, b, c);
+        }
+        graph
+    }
+    pub fn new_directed_unweighted(size: usize, edges: &[[usize; 2]]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &[a, b] in edges.iter() {
+            graph.add_directed_edge(a, b, 1.);
+        }
+        graph
+    }
+    pub fn new_undirected_unweighted(size: usize, edges: &[[usize; 2]]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &[a, b] in edges.iter() {
+            graph.add_undirected_edge(a, b, 1.);
+        }
+        graph
+    }
 }
 
 impl std::ops::Index<usize> for WeightedAdjacencyList {
@@ -81,6 +106,20 @@ impl UnweightedAdjacencyList {
     pub fn add_undirected_edge(&mut self, u: usize, v: usize) {
         self.add_directed_edge(u, v);
         self.add_directed_edge(v, u);
+    }
+    pub fn new_directed(size: usize, edges: &[[usize; 2]]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &[a, b] in edges.iter() {
+            graph.add_directed_edge(a, b);
+        }
+        graph
+    }
+    pub fn new_undirected(size: usize, edges: &[[usize; 2]]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &[a, b] in edges.iter() {
+            graph.add_undirected_edge(a, b);
+        }
+        graph
     }
 }
 

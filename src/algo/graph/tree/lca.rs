@@ -132,23 +132,27 @@ mod tests {
     use crate::algo::graph::UnweightedAdjacencyList;
     #[test]
     fn test_tree_lowest_commmon_ancestor() {
-        let mut tree = UnweightedAdjacencyList::with_size(17);
-        tree.add_undirected_edge(0, 1);
-        tree.add_undirected_edge(0, 2);
-        tree.add_undirected_edge(1, 3);
-        tree.add_undirected_edge(1, 4);
-        tree.add_undirected_edge(2, 5);
-        tree.add_undirected_edge(2, 6);
-        tree.add_undirected_edge(2, 7);
-        tree.add_undirected_edge(3, 8);
-        tree.add_undirected_edge(3, 9);
-        tree.add_undirected_edge(5, 10);
-        tree.add_undirected_edge(5, 11);
-        tree.add_undirected_edge(7, 12);
-        tree.add_undirected_edge(7, 13);
-        tree.add_undirected_edge(11, 14);
-        tree.add_undirected_edge(11, 15);
-        tree.add_undirected_edge(11, 16);
+        let tree = UnweightedAdjacencyList::new_undirected(
+            17,
+            &[
+                [0, 1],
+                [0, 2],
+                [1, 3],
+                [1, 4],
+                [2, 5],
+                [2, 6],
+                [2, 7],
+                [3, 8],
+                [3, 9],
+                [5, 10],
+                [5, 11],
+                [7, 12],
+                [7, 13],
+                [11, 14],
+                [11, 15],
+                [11, 16],
+            ],
+        );
         let size = tree.len();
         let root = TreeNode::from_adjacency_list(&tree, 0);
         let tree = Tree { root, size };

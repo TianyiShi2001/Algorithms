@@ -78,7 +78,6 @@ impl WeightedAdjacencyList {
 mod tests {
 
     use super::*;
-    use crate::data_structures::priority_queue::binary_heap::BinaryHeap;
     #[test]
     fn test_dijkstra() {
         // example from https://www.youtube.com/watch?v=pSqmAO-m7Lk&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=18

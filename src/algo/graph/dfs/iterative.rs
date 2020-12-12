@@ -4,9 +4,9 @@ impl WeightedAdjacencyList {
     /// Perform a depth first search on a graph with n nodes
     /// from a starting point to count the number of nodes
     /// in a given component.
-    pub fn dfs(&self, start: usize) -> (usize, i32) {
+    pub fn dfs(&self, start: usize) -> (usize, f32) {
         let mut count = 0;
-        let mut cost = 0;
+        let mut cost = 0.;
         let mut visited = vec![false; self.len()];
         let mut stack = Vec::new();
 
@@ -49,12 +49,12 @@ mod tests {
         //           (3)
         const N: usize = 5;
         let mut graph = WeightedAdjacencyList::with_size(N);
-        graph.add_directed_edge(0, 1, 4);
-        graph.add_directed_edge(0, 2, 5);
-        graph.add_directed_edge(1, 2, -2);
-        graph.add_directed_edge(1, 3, 6);
-        graph.add_directed_edge(2, 3, 1);
-        graph.add_directed_edge(2, 2, 10); // Self loop
+        graph.add_directed_edge(0, 1, 4.);
+        graph.add_directed_edge(0, 2, 5.);
+        graph.add_directed_edge(1, 2, -2.);
+        graph.add_directed_edge(1, 3, 6.);
+        graph.add_directed_edge(2, 3, 1.);
+        graph.add_directed_edge(2, 2, 10.); // Self loop
 
         let (count, _cost) = graph.dfs(0);
         assert_eq!(count, 4);

@@ -2,10 +2,15 @@
 
 use super::PriorityQueue;
 
-struct BinaryHeap<T: PartialOrd> {
+pub struct BinaryHeap<T: PartialOrd> {
     heap: Vec<T>,
 }
 impl<T: PartialOrd> PriorityQueue<T> for BinaryHeap<T> {
+    fn with_capacity(sz: usize) -> Self {
+        Self {
+            heap: Vec::with_capacity(sz),
+        }
+    }
     /// Adds an element to the priority queue, O(log(n))
     fn insert(&mut self, el: T) {
         self.heap.push(el);
@@ -28,11 +33,6 @@ impl<T: PartialOrd> PriorityQueue<T> for BinaryHeap<T> {
 }
 
 impl<T: PartialOrd> BinaryHeap<T> {
-    pub fn with_capacity(sz: usize) -> Self {
-        Self {
-            heap: Vec::with_capacity(sz),
-        }
-    }
     pub fn swap(&mut self, i: usize, j: usize) {
         self.heap.swap(i, j);
     }
