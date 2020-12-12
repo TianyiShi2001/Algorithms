@@ -80,30 +80,3 @@ mod tests {
         );
     }
 }
-//    * @param graph - An adjacency list containing directed edges forming the graph
-//    * @param V - The number of vertices in the graph.
-//    * @param start - The id of the starting node
-//    */
-//    public static double[] bellmanFord(List<Edge>[] graph, int V, int start) {
-
-//     // Initialize the distance to all nodes to be infinity
-//     // except for the start node which is zero.
-//     double[] dist = new double[V];
-//     java.util.Arrays.fill(dist, Double.POSITIVE_INFINITY);
-//     dist[start] = 0;
-
-//     // For each vertex, apply relaxation for all the edges
-//     for (int i = 0; i < V - 1; i++)
-//       for (List<Edge> edges : graph)
-//         for (Edge edge : edges)
-//           if (dist[edge.from] + edge.cost < dist[edge.to])
-//             dist[edge.to] = dist[edge.from] + edge.cost;
-
-//     for (int i = 0; i < V - 1; i++)
-//       for (List<Edge> edges : graph)
-//         for (Edge edge : edges)
-//           if (dist[edge.from] + edge.cost < dist[edge.to]) dist[edge.to] = Double.NEGATIVE_INFINITY;
-
-//     // Return the array containing the shortest distance to every node
-//     return dist;
-//   }

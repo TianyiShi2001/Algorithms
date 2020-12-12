@@ -2,6 +2,7 @@ pub mod bellman_ford;
 pub mod bfs;
 pub mod dfs;
 pub mod dijkstra_shortest_path;
+pub mod floyd_warshall;
 pub mod topological_sort;
 pub mod tree;
 
@@ -142,6 +143,43 @@ impl std::ops::Index<usize> for UnweightedAdjacencyList {
     type Output = Vec<usize>;
     fn index(&self, index: usize) -> &Self::Output {
         &self.edges[index]
+    }
+}
+
+pub struct WeightedAdjacencyMatrix {
+    inner: Vec<Vec<f32>>,
+}
+
+impl WeightedAdjacencyMatrix {
+    pub fn with_size(n: usize) -> Self {
+        let mut inner = vec![vec![f32::INFINITY; n]; n];
+        // distance of each vertex to itself defaults to zero.
+        for i in 0..n {
+            inner[i][i] = 0.;
+        }
+        Self { inner }
+    }
+    pub fn vertices_count(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
+    fn from(inp: WeightedAdjacencyList) -> Self {
+        let mut res = Self::with_size(inp.len());
+        for (from, edges) in inp.iter().enumerate() {
+            for &Edge { to, cost } in edges {
+                res.inner[from][to] = cost;
+            }
+        }
+        res
+    }
+}
+
+impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
+    type Output = Vec<f32>;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.inner[index]
     }
 }
 
