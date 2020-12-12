@@ -9,7 +9,7 @@ impl WeightedAdjacencyList {
     pub fn bellman_ford(&self, start: usize) -> Vec<f32> {
         // Initialize the distance to all nodes to be infinity
         // except for the start node which is zero.
-        let n = self.len();
+        let n = self.vertices_count();
         let mut dists = vec![f32::INFINITY; n];
         dists[start] = 0.;
 

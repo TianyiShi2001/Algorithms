@@ -13,12 +13,12 @@
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=eL-KzMXSXXI&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=15)
 //! - [W. Fiset's video (Khan's algorithm)](https://www.youtube.com/watch?v=cIBFEhD77b4&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=16)
 
-use crate::algo::graph::WeightedAdjacencyList;
+use crate::algo::graph::{Edge, WeightedAdjacencyList};
 use partial_min_max::min;
 
 impl WeightedAdjacencyList {
     pub fn toposort(&self) -> Vec<usize> {
-        let n = self.len();
+        let n = self.vertices_count();
         let mut visited = vec![false; n];
         let mut ordering = vec![0usize; n];
         let mut i = n - 1;
@@ -50,14 +50,12 @@ impl WeightedAdjacencyList {
     }
     /// Imagine building a program with dependencies
     pub fn toposort_khan(&self) -> Vec<usize> {
-        let n = self.len();
+        let n = self.vertices_count();
         // `dependencies[i]` is the number of nodes pointing to node `i`
         let mut dependencies = vec![0; n];
         // identify all dependencies
-        for dependents in &self.edges {
-            for dependent in dependents {
-                dependencies[dependent.to] += 1;
-            }
+        for (_dependency, dependent, _cost) in self.edges() {
+            dependencies[dependent] += 1;
         }
         // a "buildable" is not pointed to by other nodes
         let mut buildables: Vec<_> = (0..n).filter(|&i| dependencies[i] == 0).collect();
@@ -93,9 +91,9 @@ impl WeightedAdjacencyList {
         toposort.into_iter().skip(i).for_each(|node_id| {
             let cur_dist = dists[node_id];
             if cur_dist.is_finite() {
-                for &edge in &self[node_id] {
-                    let new_dist = cur_dist + edge.cost;
-                    let dist = &mut dists[edge.to];
+                for &Edge { to, cost } in &self[node_id] {
+                    let new_dist = cur_dist + cost;
+                    let dist = &mut dists[to];
                     *dist = min(*dist, new_dist);
                 }
             }

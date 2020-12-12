@@ -8,13 +8,13 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=pSqmAO-m7Lk&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=18)
 
-use crate::algo::graph::WeightedAdjacencyList;
+use crate::algo::graph::{Edge, WeightedAdjacencyList};
 use ordered_float::OrderedFloat;
 use priority_queue::PriorityQueue;
 
 impl WeightedAdjacencyList {
     pub fn dijkstra(&self, start: usize, end: usize) -> Option<(f32, Vec<usize>)> {
-        let n = self.len();
+        let n = self.vertices_count();
         let mut dists = vec![f32::INFINITY; n];
         let mut prev = vec![None; n];
         let mut vis = vec![false; n];
@@ -44,16 +44,16 @@ impl WeightedAdjacencyList {
                 continue;
             }
             *dist = cur_dist;
-            for &edge in &self[node] {
+            for &Edge { to, cost } in &self[node] {
                 // You cannot get a shorter path by revisiting
                 // a node you have already visited before.
-                if !vis[edge.to] {
+                if !vis[to] {
                     // Relax edge by updating minimum cost if applicable.
-                    let new_dist = cur_dist + edge.cost;
-                    if new_dist < dists[edge.to] {
-                        prev[edge.to] = Some(node);
-                        dists[edge.to] = new_dist;
-                        pq.push(edge.to, (-new_dist).into());
+                    let new_dist = cur_dist + cost;
+                    if new_dist < dists[to] {
+                        prev[to] = Some(node);
+                        dists[to] = new_dist;
+                        pq.push(to, (-new_dist).into());
                     }
                 }
             }

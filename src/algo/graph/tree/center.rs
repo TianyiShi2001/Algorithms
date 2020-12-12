@@ -20,7 +20,7 @@ pub trait TreeCenter {
 
 impl TreeCenter for UnweightedAdjacencyList {
     fn center(&self) -> Center {
-        let n = self.len();
+        let n = self.vertices_count();
         let mut degrees = vec![0; n];
         let mut leaves = Vec::new();
         // identify all leaves

@@ -81,6 +81,9 @@ impl WeightedAdjacencyList {
     pub fn iter(&self) -> impl Iterator<Item = &Vec<Edge>> {
         self.edges.iter()
     }
+    pub fn vertices_count(&self) -> usize {
+        self.edges.len()
+    }
 }
 
 impl std::ops::Index<usize> for WeightedAdjacencyList {
@@ -136,6 +139,12 @@ impl UnweightedAdjacencyList {
             .iter()
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
+    }
+    pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
+        self.edges.iter().enumerate()
+    }
+    pub fn vertices_count(&self) -> usize {
+        self.edges.len()
     }
 }
 

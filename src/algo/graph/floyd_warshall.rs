@@ -72,6 +72,7 @@ impl FloydWarshall {
         while let Some(at) = self.next[prev][end] {
             path.push(prev);
             if at == end {
+                // produce `[i]` instead of `[i, i]` when constructing the path from `i` to itself
                 if at != prev {
                     path.push(at);
                 }
@@ -79,6 +80,7 @@ impl FloydWarshall {
             }
             prev = at;
         }
+        // if `None` is encountered it must be a negative cycle
         Err(ShortestPathError::NegativeCycle)
     }
 }
