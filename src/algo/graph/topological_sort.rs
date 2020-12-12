@@ -1,7 +1,18 @@
+//! # Topological Sort
+//!
+//! This topological sort implementation takes an adjacency list of an acyclic graph and returns an
+//! array with the indexes of the nodes in a (non unique) topological order which tells you how to
+//! process the nodes in the graph. More precisely from wiki: A topological ordering is a linear
+//! ordering of its vertices such that for every directed edge uv from vertex u to vertex v, u comes
+//! before v in the ordering.
+//!
+//! - Time Complexity: O(V + E)
+//!
 //! # Resources
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=eL-KzMXSXXI&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=15)
 //! - [W. Fiset's video (Khan's algorithm)](https://www.youtube.com/watch?v=cIBFEhD77b4&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=16)
+
 use crate::algo::graph::WeightedAdjacencyList;
 use partial_min_max::min;
 
@@ -141,7 +152,9 @@ mod tests {
                 .iter()
                 .all(|&[dependency, dependent]| rank[dependency] < rank[dependent])
         }
-
+    }
+    #[test]
+    fn test_dag_shortest_path() {
         let edges = &[
             (0, 1, 3.),
             (0, 2, 2.),
