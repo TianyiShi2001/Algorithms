@@ -12,7 +12,6 @@ pub struct BinaryTree<T> {
 }
 
 impl<T> BinaryTree<T> {
-    //pub fn new() -> Self
     pub fn height(&self) -> Option<usize> {
         fn height<T>(opt_node: &Option<Box<TreeNode<T>>>) -> i32 {
             match opt_node {
@@ -22,7 +21,7 @@ impl<T> BinaryTree<T> {
         }
         match height(&self.root) {
             -1 => None,
-            h @ _ => Some(h as usize),
+            h => Some(h as usize),
         }
     }
 }

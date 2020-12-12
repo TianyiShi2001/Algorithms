@@ -1,3 +1,4 @@
+pub mod bit;
 pub mod heaparray;
 pub mod priority_queue;
 pub mod queue;
