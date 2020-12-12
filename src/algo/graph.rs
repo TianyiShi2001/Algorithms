@@ -1,3 +1,4 @@
+pub mod bellman_ford;
 pub mod bfs;
 pub mod dfs;
 pub mod dijkstra_shortest_path;
@@ -75,6 +76,9 @@ impl WeightedAdjacencyList {
             .iter()
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.cost)))
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &Vec<Edge>> {
+        self.edges.iter()
     }
 }
 
