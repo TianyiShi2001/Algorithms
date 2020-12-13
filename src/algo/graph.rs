@@ -224,9 +224,9 @@ impl fmt::Display for WeightedAdjacencyMatrix {
             for j in 0..n {
                 let x = self[i][j];
                 if x == f32::INFINITY {
-                    write!(f, " ∞ ");
+                    write!(f, " ∞ ")?;
                 } else if x == f32::NEG_INFINITY {
-                    write!(f, "-∞ ");
+                    write!(f, "-∞ ")?;
                 } else {
                     write!(f, "{:>2} ", self[i][j])?;
                 }

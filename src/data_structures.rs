@@ -1,4 +1,5 @@
 pub mod bit;
+pub mod disjoint_set;
 pub mod heaparray;
 pub mod priority_queue;
 pub mod queue;

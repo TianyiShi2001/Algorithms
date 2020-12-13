@@ -5,6 +5,8 @@
 //!
 //! - [W. Fiset's video 1](https://www.youtube.com/watch?v=jsmMtJpPnhU&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=30)
 //! - [W. Fiset's video 2](https://www.youtube.com/watch?v=xq3ABa-px_g&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=31)
+//! - [W. Fiset's video 3](https://www.youtube.com/watch?v=CI5Fvk-dGVs&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=32)
+//! - [Wikipedia](https://www.wikiwand.com/en/Prim%27s_algorithm)
 
 use crate::algo::graph::{Edge, WeightedAdjacencyList};
 use ordered_float::OrderedFloat;
