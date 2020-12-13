@@ -1,5 +1,6 @@
 use std::cmp::min;
 
+#[allow(clippy::needless_range_loop)]
 pub fn edit_distance(s1: &[u8], s2: &[u8]) -> u32 {
     let (m, n) = (s1.len(), s2.len());
     let mut dp_matrix = vec![vec![0u32; n + 1]; m + 1];

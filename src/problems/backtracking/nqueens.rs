@@ -50,7 +50,7 @@ impl Board {
         self.solutions.insert(
             self.matrix
                 .iter()
-                .map(|x| x.iter().map(|x| *x).collect())
+                .map(|x| x.iter().copied().collect())
                 .collect(),
         );
     }

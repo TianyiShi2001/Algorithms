@@ -10,8 +10,8 @@ pub struct IntVector {
     capacity: usize,
 }
 
-impl IntVector {
-    pub fn new() -> Self {
+impl Default for IntVector {
+    fn default() -> Self {
         let ptr = unsafe {
             let layout = Self::layout(DEFAULT_CAPACITY);
             alloc(layout) as *mut i32
@@ -21,6 +21,12 @@ impl IntVector {
             len: 0,
             capacity: DEFAULT_CAPACITY,
         }
+    }
+}
+
+impl IntVector {
+    pub fn new() -> Self {
+        Default::default()
     }
     pub fn push(&mut self, v: i32) {
         unsafe {

@@ -14,10 +14,10 @@ macro_rules! impl_bit {
     ($type:ty) => {
         impl Bit for $type {
             fn set_bit(&mut self, pos: usize) {
-                *self = *self | (1 << pos);
+                *self |= (1 << pos);
             }
             fn clear_bit(&mut self, pos: usize) {
-                *self = *self & !(1 << pos);
+                *self &= !(1 << pos);
             }
             fn get_bit(&self, pos: usize) -> bool {
                 (self >> pos) % 2 != 0

@@ -160,6 +160,7 @@ pub struct WeightedAdjacencyMatrix {
 }
 
 impl WeightedAdjacencyMatrix {
+    #[allow(clippy::needless_range_loop)]
     pub fn with_size(n: usize) -> Self {
         let mut inner = vec![vec![f32::INFINITY; n]; n];
         // distance of each vertex to itself defaults to zero.

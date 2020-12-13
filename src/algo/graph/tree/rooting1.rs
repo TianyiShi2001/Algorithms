@@ -3,6 +3,7 @@
 use crate::algo::graph::UnweightedAdjacencyList;
 
 #[derive(Debug, Eq, PartialEq)]
+#[allow(clippy::vec_box)]
 pub struct TreeNode {
     id: usize,
     parent: *const TreeNode,
