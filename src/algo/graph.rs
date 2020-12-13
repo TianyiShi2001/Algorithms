@@ -1,5 +1,6 @@
 pub mod bfs;
 pub mod dfs;
+pub mod eulerian_path;
 pub mod shortest_path;
 pub mod tarjan_scc;
 pub mod topological_sort;
@@ -77,8 +78,14 @@ impl WeightedAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.cost)))
     }
-    pub fn iter(&self) -> impl Iterator<Item = &Vec<Edge>> {
-        self.edges.iter()
+    pub fn edges_count(&self) -> usize {
+        self.edges().count()
+    }
+    // pub fn iter(&self) -> impl Iterator<Item = &Vec<Edge>> {
+    //     self.edges.iter()
+    // }
+    pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
+        self.edges.iter().enumerate()
     }
     pub fn vertices_count(&self) -> usize {
         self.edges.len()
@@ -94,6 +101,7 @@ impl std::ops::Index<usize> for WeightedAdjacencyList {
 
 pub struct UnweightedAdjacencyList {
     edges: Vec<Vec<usize>>,
+    // is_directed: bool,
 }
 
 impl UnweightedAdjacencyList {
@@ -101,6 +109,7 @@ impl UnweightedAdjacencyList {
     pub fn with_size(n: usize) -> Self {
         Self {
             edges: vec![vec![]; n],
+            //is_directed: true,
         }
     }
     /// Number of nodes
@@ -139,6 +148,9 @@ impl UnweightedAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
     }
+    pub fn edges_count(&self) -> usize {
+        self.edges().count()
+    }
     pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
         self.edges.iter().enumerate()
     }
@@ -176,7 +188,7 @@ impl WeightedAdjacencyMatrix {
 impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
     fn from(inp: WeightedAdjacencyList) -> Self {
         let mut res = Self::with_size(inp.len());
-        for (from, edges) in inp.iter().enumerate() {
+        for (from, edges) in inp.vertices() {
             for &Edge { to, cost } in edges {
                 res.inner[from][to] = cost;
             }

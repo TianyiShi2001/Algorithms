@@ -1,3 +1,11 @@
+//! An implementation of Tarjan's Strongly Connected Components algorithm using an adjacency list.
+//!
+//! - Time complexity: $O(V+E)$
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=wUgWX0nc4NY&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=23)
+
 use crate::algo::graph::UnweightedAdjacencyList;
 use std::cmp::min;
 

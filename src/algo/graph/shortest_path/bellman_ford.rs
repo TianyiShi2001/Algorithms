@@ -15,7 +15,7 @@ impl WeightedAdjacencyList {
 
         // For each vertex, apply relaxation for all the edges
         for _ in 1..n {
-            for (from, edges) in self.iter().enumerate() {
+            for (from, edges) in self.vertices() {
                 for &Edge { to, cost } in edges {
                     let new_cost = dists[from] + cost;
                     if new_cost < dists[to] {
@@ -29,7 +29,7 @@ impl WeightedAdjacencyList {
         // of a negative cycle. A negative cycle has occurred if we
         // can find a better path beyond the optimal solution.
         for _ in 1..n {
-            for (from, edges) in self.iter().enumerate() {
+            for (from, edges) in self.vertices() {
                 for &Edge { to, cost } in edges {
                     if dists[from] + cost < dists[to] {
                         dists[to] = f32::NEG_INFINITY;
