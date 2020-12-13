@@ -1,6 +1,7 @@
 pub mod bfs;
 pub mod dfs;
 pub mod shortest_path;
+pub mod tarjan_scc;
 pub mod topological_sort;
 pub mod tree;
 
