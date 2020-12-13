@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cmp::Ordering::*;
 
 /// Vector-based union-find representing a set of disjoint sets.
 #[derive(Clone)]
@@ -44,13 +44,13 @@ impl UnionFind {
         let rank_a = self.ranks[rep_a];
         let rank_b = self.ranks[rep_b];
 
-        if rank_a > rank_b {
-            self.set_parent(rep_b, rep_a);
-        } else if rank_b > rank_a {
-            self.set_parent(rep_a, rep_b);
-        } else {
-            self.set_parent(rep_a, rep_b);
-            self.increment_rank(rep_b);
+        match rank_a.cmp(&rank_b) {
+            Greater => self.set_parent(rep_b, rep_a),
+            Less => self.set_parent(rep_a, rep_b),
+            Equal => {
+                self.set_parent(rep_a, rep_b);
+                self.increment_rank(rep_b);
+            }
         }
 
         true

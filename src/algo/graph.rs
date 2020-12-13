@@ -2,6 +2,7 @@ pub mod bfs;
 pub mod dfs;
 pub mod eulerian_path;
 pub mod minimum_spanning_tree;
+pub mod network_flow;
 pub mod shortest_path;
 pub mod tarjan_scc;
 pub mod topological_sort;
@@ -31,10 +32,6 @@ impl WeightedAdjacencyList {
         Self {
             edges: vec![vec![]; n],
         }
-    }
-    /// Number of nodes
-    pub fn len(&self) -> usize {
-        self.edges.len()
     }
     pub fn is_empty(&self) -> bool {
         self.edges.is_empty()
@@ -85,9 +82,6 @@ impl WeightedAdjacencyList {
     pub fn edges_count(&self) -> usize {
         self.edges().count()
     }
-    // pub fn iter(&self) -> impl Iterator<Item = &Vec<Edge>> {
-    //     self.edges.iter()
-    // }
     pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
         self.edges.iter().enumerate()
     }
@@ -115,10 +109,6 @@ impl UnweightedAdjacencyList {
             edges: vec![vec![]; n],
             //is_directed: true,
         }
-    }
-    /// Number of nodes
-    pub fn len(&self) -> usize {
-        self.edges.len()
     }
     pub fn is_empty(&self) -> bool {
         self.edges.is_empty()

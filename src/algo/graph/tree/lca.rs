@@ -153,7 +153,7 @@ mod tests {
                 [11, 16],
             ],
         );
-        let size = tree.len();
+        let size = tree.vertices_count();
         let root = TreeNode::from_adjacency_list(&tree, 0);
         let tree = Tree { root, size };
         let lca_solver = LcaSolver::new(&tree);

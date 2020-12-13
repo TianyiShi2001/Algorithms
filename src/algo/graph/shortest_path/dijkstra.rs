@@ -18,7 +18,7 @@ impl WeightedAdjacencyList {
         let mut dists = vec![f32::INFINITY; n];
         let mut prev = vec![None; n];
         let mut vis = vec![false; n];
-        let mut pq = PriorityQueue::with_capacity(self.len());
+        let mut pq = PriorityQueue::with_capacity(self.vertices_count());
         // `priority_queue::PriorityQueue` requires that the priority implements `Ord`,
         // but the std floats implement only `PartialOrd`
         pq.push(start, OrderedFloat::from(-0f32));

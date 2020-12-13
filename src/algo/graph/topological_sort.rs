@@ -82,7 +82,7 @@ impl WeightedAdjacencyList {
     }
     pub fn dag_shortest_path(&self, start: usize) -> Vec<f32> {
         let toposort = self.toposort_khan();
-        let mut dists = vec![f32::INFINITY; self.len()];
+        let mut dists = vec![f32::INFINITY; self.vertices_count()];
         dists[start] = 0.;
         let i = toposort
             .iter()
