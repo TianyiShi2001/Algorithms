@@ -1,12 +1,15 @@
 pub mod bfs;
 pub mod dfs;
 pub mod eulerian_path;
+pub mod minimum_spanning_tree;
 pub mod shortest_path;
 pub mod tarjan_scc;
 pub mod topological_sort;
 pub mod tree;
 
-#[derive(Copy, Clone)]
+use std::fmt;
+
+#[derive(Debug, Copy, Clone)]
 pub struct Edge {
     pub to: usize,
     pub cost: f32,
@@ -17,6 +20,7 @@ impl Edge {
     }
 }
 
+#[derive(Debug)]
 pub struct WeightedAdjacencyList {
     edges: Vec<Vec<Edge>>,
 }
@@ -183,11 +187,8 @@ impl WeightedAdjacencyMatrix {
     pub fn vertices_count(&self) -> usize {
         self.inner.len()
     }
-}
-
-impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
-    fn from(inp: WeightedAdjacencyList) -> Self {
-        let mut res = Self::with_size(inp.len());
+    pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
+        let mut res = Self::with_size(inp.vertices_count());
         for (from, edges) in inp.vertices() {
             for &Edge { to, cost } in edges {
                 res.inner[from][to] = cost;
@@ -197,10 +198,48 @@ impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
     }
 }
 
+impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
+    fn from(inp: WeightedAdjacencyList) -> Self {
+        Self::from_adjacency_list(&inp)
+    }
+}
+
 impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
     type Output = Vec<f32>;
     fn index(&self, index: usize) -> &Self::Output {
         &self.inner[index]
+    }
+}
+
+impl fmt::Display for WeightedAdjacencyMatrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let n = self.vertices_count();
+        write!(f, "   ")?;
+        for i in 0..n {
+            write!(f, "{:>2} ", i)?;
+        }
+        writeln!(f)?;
+        for i in 0..n {
+            write!(f, "{:>2} ", i)?;
+            for j in 0..n {
+                let x = self[i][j];
+                if x == f32::INFINITY {
+                    write!(f, " ∞ ");
+                } else if x == f32::NEG_INFINITY {
+                    write!(f, "-∞ ");
+                } else {
+                    write!(f, "{:>2} ", self[i][j])?;
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for WeightedAdjacencyList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", WeightedAdjacencyMatrix::from_adjacency_list(self))
     }
 }
 

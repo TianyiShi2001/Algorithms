@@ -53,7 +53,7 @@ impl UnweightedAdjacencyList {
             if start.is_some() ^ has_end {
                 None
             } else {
-                Some(start.unwrap_or(start_default.unwrap()))
+                Some(start.unwrap_or_else(|| start_default.unwrap()))
             }
         };
         let [i, mut o] = self.count_in_out_degrees();
@@ -125,13 +125,17 @@ mod tests {
         assert_eq!(&path, &[0, 1, 4, 1, 2, 1, 3]);
     }
     #[test]
-    fn test_eulerian_path_invalid() {
+    fn test_eulerian_path_invalid1() {
         let g = UnweightedAdjacencyList::new_directed(2, &[[0, 1], [0, 1]]);
         assert!(g.eulerian_path().is_none());
-
+    }
+    #[test]
+    fn test_eulerian_path_invalid2() {
         let g = UnweightedAdjacencyList::new_directed(3, &[[0, 1], [1, 0], [1, 2], [2, 0], [2, 0]]);
         assert!(g.eulerian_path().is_none());
-
+    }
+    #[test]
+    fn test_eulerian_path_invalid3() {
         let g = UnweightedAdjacencyList::new_directed(
             4,
             &[
