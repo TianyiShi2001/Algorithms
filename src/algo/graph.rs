@@ -1,8 +1,6 @@
-pub mod bellman_ford;
 pub mod bfs;
 pub mod dfs;
-pub mod dijkstra_shortest_path;
-pub mod floyd_warshall;
+pub mod shortest_path;
 pub mod topological_sort;
 pub mod tree;
 
