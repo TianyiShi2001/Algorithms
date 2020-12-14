@@ -1,23 +1,26 @@
-use crate::algo::graph::network_flow::NetworkFlowAdjacencyList;
-
+use crate::algo::graph::network_flow::{
+    EdmondsKarpSolver, MaxFlowSolver, NetworkFlowAdjacencyList,
+};
+#[allow(clippy::many_single_char_names)]
+#[allow(clippy::needless_range_loop)]
 pub fn mice_and_owls(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
     let m = mice.len();
     let h = holes.len();
-    let s = m + h;
-    let t = s + 1;
-    let n = t + 1;
+    let n = m + h + 2;
 
     let mut g = NetworkFlowAdjacencyList::with_size(n);
+    let s = g.source;
+    let t = g.sink;
 
     for mouse in 0..m {
         g.add_edge(s, mouse, 1);
     }
 
     // Hook up each mouse with the holes they are able to reach
-    for mouse_id in 0..m {
-        for j in 0..h {
+    for (mouse_id, mouse) in mice.iter().enumerate() {
+        for (j, hole) in holes.iter().enumerate() {
             let hole_id = m + j;
-            if mice[mouse_id].position.distance(&holes[j].position) <= radius {
+            if mouse.position.distance(&hole.position) <= radius {
                 g.add_edge(mouse_id, hole_id, 1);
             }
         }
@@ -27,7 +30,7 @@ pub fn mice_and_owls(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
         g.add_edge(m + i, t, holes[i].capacity);
     }
 
-    g.edmonds_karp(s, t)
+    EdmondsKarpSolver::max_flow(&mut g)
 }
 
 #[derive(Copy, Clone)]

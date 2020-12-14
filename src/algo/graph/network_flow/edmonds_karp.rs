@@ -1,22 +1,24 @@
-use super::NetworkFlowAdjacencyList;
+use super::{MaxFlowSolver, NetworkFlowAdjacencyList};
 use std::collections::VecDeque;
 
-impl NetworkFlowAdjacencyList {
-    pub fn edmonds_karp(&self, source: usize, sink: usize) -> i32 {
-        let n = self.vertices_count();
+pub struct EdmondsKarpSolver {}
+
+impl MaxFlowSolver for EdmondsKarpSolver {
+    fn max_flow(graph: &mut NetworkFlowAdjacencyList) -> i32 {
+        let n = graph.vertices_count();
         let mut visited = vec![0; n];
         let mut visited_token = 1;
 
         let mut bfs = |visited_token| {
             let mut q = VecDeque::with_capacity(n);
             let mut prev = vec![None; n];
-            visited[source] = visited_token;
-            q.push_back(source);
+            visited[graph.source] = visited_token;
+            q.push_back(graph.source);
             while let Some(node) = q.pop_front() {
-                if node == sink {
+                if node == graph.sink {
                     break;
                 }
-                for edge in &self[node] {
+                for edge in &graph[node] {
                     let _edge = edge.borrow();
                     if _edge.reamaining_capacity() > 0 && visited[_edge.to] != visited_token {
                         visited[_edge.to] = visited_token;
@@ -25,19 +27,19 @@ impl NetworkFlowAdjacencyList {
                     }
                 }
             }
-            if prev[sink].is_none() {
+            if prev[graph.sink].is_none() {
                 return 0;
             }
 
             let mut bottleneck = i32::MAX;
-            let mut node = sink;
+            let mut node = graph.sink;
 
             while let Some(prev_edge) = &prev[node] {
                 bottleneck = std::cmp::min(bottleneck, prev_edge.borrow().reamaining_capacity());
                 node = prev_edge.borrow().from;
             }
 
-            node = sink;
+            node = graph.sink;
 
             while let Some(prev_edge) = &prev[node] {
                 prev_edge.borrow_mut().augment(bottleneck);
@@ -63,8 +65,8 @@ mod tests {
     use super::*;
 
     fn test_max_flow(n: usize, edges: &[(usize, usize, i32)], expected_max_flow: i32) {
-        let graph = NetworkFlowAdjacencyList::from_edges(n, edges);
-        let max_flow = graph.edmonds_karp(n - 1, n - 2);
+        let mut graph = NetworkFlowAdjacencyList::from_edges(n, edges);
+        let max_flow = EdmondsKarpSolver::max_flow(&mut graph);
         assert_eq!(max_flow, expected_max_flow);
     }
 

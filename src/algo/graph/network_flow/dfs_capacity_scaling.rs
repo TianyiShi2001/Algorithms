@@ -1,58 +1,52 @@
-//! An implementation of the Ford-Fulkerson (FF) method with a DFS as a method of finding augmenting
-//! paths. FF allows you to find the max flow through a directed graph as well as the min cut as a
-//! byproduct.
+//! Implementation of the Capacity Scaling algorithm using a DFS as a method of finding augmenting
+//! paths.
 //!
-//! - Time Complexity: O(fV^2), where f is the max flow
+//! - Time Complexity: O(E^2log(U)), where E = num edges, U = max capacity
 //!
 //! # Resources
 //!
-//! - [W. Fiset's video 1](https://www.youtube.com/watch?v=LdOnanfc5TM&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=33)
-//! - [W. Fiset's video 2](https://www.youtube.com/watch?v=Xu8jjJnwvxE&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=34)
-//! - [Wikipedia](https://www.wikiwand.com/en/Ford%E2%80%93Fulkerson_algorithm)
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=1ewLrXUz4kk&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=40)
 
 use super::{Edge, MaxFlowSolver, NetworkFlowAdjacencyList};
 
-struct FordFulkersonDfsSolver<'a> {
+pub struct DfsCapacityScalingSolver<'a> {
     g: &'a mut NetworkFlowAdjacencyList,
-    s: usize,
-    t: usize,
     visited: Vec<u32>,
     visited_token: u32,
+    delta: i32,
 }
 
-impl<'a> MaxFlowSolver for FordFulkersonDfsSolver<'a> {
-    fn max_flow(graph: &mut NetworkFlowAdjacencyList) -> i32 {
-        let mut s = FordFulkersonDfsSolver::init(graph);
-        s.solve()
-    }
-}
-
-impl<'a> FordFulkersonDfsSolver<'a> {
+impl<'a> DfsCapacityScalingSolver<'a> {
     pub fn init(g: &'a mut NetworkFlowAdjacencyList) -> Self {
         let n = g.vertices_count();
-        let s = g.source;
-        let t = g.sink;
+        let max_capacity = g.edges().map(|e| e.1.borrow().capacity).max().unwrap();
+        let delta = 1 << (31 - max_capacity.leading_zeros());
+        // equivalent to 1 << ((max_capacity as f64).log2().floor() as i32);
         Self {
             g,
-            s,
-            t,
             visited: vec![0; n],
             visited_token: 1,
+            delta,
         }
     }
     pub fn solve(&mut self) -> i32 {
         let mut flow = 0;
-        let mut f = -1;
-        while f != 0 {
-            f = self.dfs(self.s, i32::MAX);
-            flow += f;
-            self.visited_token += 1;
+
+        while self.delta > 0 {
+            let mut f = -1;
+            while f != 0 {
+                f = self.dfs(self.g.source, i32::MAX);
+                flow += f;
+                self.visited_token += 1;
+            }
+            self.delta >>= 1;
         }
+
         flow
     }
     pub fn dfs(&mut self, node: usize, flow: i32) -> i32 {
         // at sink node, return augmented path flow
-        if node == self.t {
+        if node == self.g.sink {
             return flow;
         }
         self.visited[node] = self.visited_token;
@@ -60,7 +54,7 @@ impl<'a> FordFulkersonDfsSolver<'a> {
             unsafe { &mut *(&mut self.g[node] as *mut Vec<std::rc::Rc<std::cell::RefCell<Edge>>>) }
         {
             let rcap = edge.borrow().reamaining_capacity();
-            if self.visited[edge.borrow().to] != self.visited_token && rcap > 0 {
+            if self.visited[edge.borrow().to] != self.visited_token && rcap >= self.delta {
                 let bottleneck = self.dfs(edge.borrow().to, std::cmp::min(flow, rcap));
                 // if we made it from s --> t (a.k.a bottleneck > 0) then augment flow with the bottleneck value
                 if bottleneck > 0 {
@@ -73,19 +67,20 @@ impl<'a> FordFulkersonDfsSolver<'a> {
     }
 }
 
-impl NetworkFlowAdjacencyList {
-    pub fn ford_fulkerson(&mut self) -> i32 {
-        let mut s = FordFulkersonDfsSolver::init(self);
+impl<'a> MaxFlowSolver for DfsCapacityScalingSolver<'a> {
+    fn max_flow(graph: &mut NetworkFlowAdjacencyList) -> i32 {
+        let mut s = DfsCapacityScalingSolver::init(graph);
         s.solve()
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn test_max_flow(n: usize, edges: &[(usize, usize, i32)], expected_max_flow: i32) {
         let mut graph = NetworkFlowAdjacencyList::from_edges(n, edges);
-        let max_flow = graph.ford_fulkerson();
+        let max_flow = DfsCapacityScalingSolver::max_flow(&mut graph);
         assert_eq!(max_flow, expected_max_flow);
     }
 

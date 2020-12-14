@@ -1,5 +1,10 @@
 pub mod bipartite_check;
+pub mod dfs_capacity_scaling;
+pub use dfs_capacity_scaling::DfsCapacityScalingSolver;
+pub mod dinic;
+pub use dinic::DinicSolver;
 pub mod edmonds_karp;
+pub use edmonds_karp::EdmondsKarpSolver;
 pub mod ford_fulkerson_dfs;
 
 use std::cell::RefCell;
@@ -64,6 +69,8 @@ impl Edge {
 #[derive(Debug)]
 pub struct NetworkFlowAdjacencyList {
     edges: Vec<Vec<Rc<RefCell<Edge>>>>,
+    pub source: usize,
+    pub sink: usize,
 }
 
 impl NetworkFlowAdjacencyList {
@@ -71,7 +78,14 @@ impl NetworkFlowAdjacencyList {
     pub fn with_size(n: usize) -> Self {
         Self {
             edges: vec![vec![]; n],
+            source: n - 1,
+            sink: n - 2,
         }
+    }
+    pub fn and_source_sink(mut self, source: usize, sink: usize) -> Self {
+        self.source = source;
+        self.sink = sink;
+        self
     }
     pub fn is_empty(&self) -> bool {
         self.edges.is_empty()
@@ -126,4 +140,8 @@ impl std::ops::IndexMut<usize> for NetworkFlowAdjacencyList {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.edges[index]
     }
+}
+
+pub trait MaxFlowSolver {
+    fn max_flow(graph: &mut NetworkFlowAdjacencyList) -> i32;
 }
