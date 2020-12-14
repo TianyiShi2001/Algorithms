@@ -5,15 +5,50 @@ pub mod ford_fulkerson_dfs;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
+/// This edge type is designed specifically for networkflow graphs.
 #[derive(Debug, Clone)]
 pub struct Edge {
     pub from: usize,
     pub to: usize,
     pub flow: i32,
     pub capacity: i32,
+    /// a weak reference to the residual edge that's pointing in the opposite direction
     pub residual: Weak<RefCell<Edge>>,
+    pub cost: i32,
+    pub original_cost: i32,
 }
 impl Edge {
+    pub fn new(from: usize, to: usize, capacity: i32) -> [Rc<RefCell<Self>>; 2] {
+        Self::new_with_cost(from, to, capacity, 0)
+    }
+    pub fn new_with_cost(
+        from: usize,
+        to: usize,
+        capacity: i32,
+        cost: i32,
+    ) -> [Rc<RefCell<Self>>; 2] {
+        let e1 = Rc::new(RefCell::new(Edge {
+            from,
+            to,
+            capacity,
+            flow: 0,
+            residual: Weak::default(),
+            cost: cost,
+            original_cost: cost,
+        }));
+        let e2 = Rc::new(RefCell::new(Edge {
+            from: to,
+            to: from,
+            capacity: 0,
+            flow: 0,
+            residual: Weak::default(),
+            cost: -cost,
+            original_cost: -cost,
+        }));
+        e1.borrow_mut().residual = Rc::downgrade(&e2);
+        e2.borrow_mut().residual = Rc::downgrade(&e1);
+        [e1, e2]
+    }
     pub fn is_residual(&self) -> bool {
         self.capacity == 0
     }
@@ -42,28 +77,12 @@ impl NetworkFlowAdjacencyList {
         self.edges.is_empty()
     }
     pub fn add_edge(&mut self, from: usize, to: usize, capacity: i32) {
-        let e1 = Rc::new(RefCell::new(Edge {
-            from,
-            to,
-            capacity,
-            flow: 0,
-            residual: Weak::default(),
-        }));
-        let e2 = Rc::new(RefCell::new(Edge {
-            from: to,
-            to: from,
-            capacity: 0,
-            flow: 0,
-            residual: Weak::default(),
-        }));
-        e1.borrow_mut().residual = Rc::downgrade(&e2);
-        e2.borrow_mut().residual = Rc::downgrade(&e1);
-
+        self.add_edge_with_cost(from, to, capacity, 0);
+    }
+    pub fn add_edge_with_cost(&mut self, from: usize, to: usize, capacity: i32, cost: i32) {
+        let [e1, e2] = Edge::new_with_cost(from, to, capacity, cost);
         self.edges[from].push(e1);
         self.edges[to].push(e2);
-    }
-    pub fn add_unweighted_edge(&mut self, from: usize, to: usize) {
-        self.add_edge(from, to, 1);
     }
     pub fn from_edges(size: usize, edges: &[(usize, usize, i32)]) -> Self {
         let mut graph = Self::with_size(size);
@@ -72,12 +91,18 @@ impl NetworkFlowAdjacencyList {
         }
         graph
     }
-    pub fn edges(&self) -> impl Iterator<Item = (usize, usize, i32, i32)> + '_ {
-        self.edges.iter().enumerate().flat_map(|(a, edges)| {
-            edges
-                .iter()
-                .map(move |b| (a, b.borrow().to, b.borrow().flow, b.borrow().capacity))
-        })
+    pub fn from_edges_with_cost(size: usize, edges: &[(usize, usize, i32, i32)]) -> Self {
+        let mut graph = Self::with_size(size);
+        for &(a, b, c, d) in edges.iter() {
+            graph.add_edge_with_cost(a, b, c, d);
+        }
+        graph
+    }
+    pub fn edges(&self) -> impl Iterator<Item = (usize, &Rc<RefCell<Edge>>)> {
+        self.edges
+            .iter()
+            .enumerate()
+            .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b)))
     }
     pub fn edges_count(&self) -> usize {
         self.edges().count()
