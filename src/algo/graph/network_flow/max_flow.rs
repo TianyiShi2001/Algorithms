@@ -12,8 +12,6 @@
 
 use super::{Edge, NetworkFlowAdjacencyList};
 
-const INF: i32 = i32::MAX / 2;
-
 struct FordFulkersonSolver<'a> {
     g: &'a mut NetworkFlowAdjacencyList,
     s: usize,
@@ -37,7 +35,7 @@ impl<'a> FordFulkersonSolver<'a> {
         let mut flow = 0;
         let mut f = -1;
         while f != 0 {
-            f = self.dfs(self.s, INF);
+            f = self.dfs(self.s, i32::MAX);
             flow += f;
             self.visited_token += 1;
         }

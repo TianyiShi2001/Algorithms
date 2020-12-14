@@ -1,9 +1,11 @@
+pub mod edmonds_karp;
 pub mod max_flow;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 #[derive(Debug, Clone)]
 pub struct Edge {
+    pub from: usize,
     pub to: usize,
     pub flow: i32,
     pub capacity: i32,
@@ -39,12 +41,14 @@ impl NetworkFlowAdjacencyList {
     }
     pub fn add_edge(&mut self, from: usize, to: usize, capacity: i32) {
         let e1 = Rc::new(RefCell::new(Edge {
+            from,
             to,
             capacity,
             flow: 0,
             residual: Weak::default(),
         }));
         let e2 = Rc::new(RefCell::new(Edge {
+            from: to,
             to: from,
             capacity: 0,
             flow: 0,
@@ -55,6 +59,9 @@ impl NetworkFlowAdjacencyList {
 
         self.edges[from].push(e1);
         self.edges[to].push(e2);
+    }
+    pub fn add_unweighted_edge(&mut self, from: usize, to: usize) {
+        self.add_edge(from, to, 1);
     }
     pub fn from_edges(size: usize, edges: &[(usize, usize, i32)]) -> Self {
         let mut graph = Self::with_size(size);
