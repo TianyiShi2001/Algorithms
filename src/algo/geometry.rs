@@ -17,7 +17,7 @@ pub struct Vec3D {
 }
 
 impl Vec2D {
-    pub fn new(&self, x: f64, y: f64) -> Self {
+    pub fn new(x: f64, y: f64) -> Self {
         Self { x, y }
     }
     pub fn magnitude(&self) -> f64 {
@@ -30,7 +30,7 @@ impl Vec2D {
 }
 
 impl Vec3D {
-    pub fn new(&self, x: f64, y: f64, z: f64) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
     pub fn magnitude(&self) -> f64 {
@@ -42,6 +42,7 @@ impl Vec3D {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Point2D {
     x: f64,
     y: f64,
@@ -77,7 +78,7 @@ impl Point3D {
         Self { x, y, z }
     }
     pub fn distance_to_point(&self, other: &Self) -> f64 {
-        Vec2D::new(self.x - other.x, self.y - other.y, self.z - other.z).magnitude()
+        Vec3D::new(self.x - other.x, self.y - other.y, self.z - other.z).magnitude()
     }
 }
 

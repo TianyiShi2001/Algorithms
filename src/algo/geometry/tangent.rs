@@ -1,20 +1,20 @@
 use super::{Circle, Point2D, SafeArcSinCos, EPS};
 
-pub enum TangentPointsError {
+pub enum TangentError {
     PointInsideCircle,
     PointOnBorder,
 }
 
 impl Circle {
-    pub fn tangent_points(&self, point: &Point2D) -> Result<[Point2D; 2], TangentPointsError> {
+    pub fn tangent_points(&self, point: &Point2D) -> Result<[Point2D; 2], TangentError> {
         let d = self.center - point;
         // the distance to the circle center
         let dist = d.magnitude();
         if dist < self.radius + EPS {
-            return Err(TangentPointsError::PointInsideCircle);
+            return Err(TangentError::PointInsideCircle);
         }
         if dist < self.radius + EPS {
-            return Err(TangentPointsError::PointOnBorder);
+            return Err(TangentError::PointOnBorder);
         }
 
         let angle1 = (self.radius / dist).acos_safe();
@@ -32,4 +32,5 @@ impl Circle {
 
         Ok([p1, p2])
     }
+    // pub fn tangents(&self, point: &Point2D) -> Result<>
 }
