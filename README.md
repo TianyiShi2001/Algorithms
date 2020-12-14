@@ -25,7 +25,7 @@ These algorithms and data structures are not designed for production usage, but 
 
 This simple setup provides most features a decent IDE would provide (importantly, jump to definition and type labelling)
 
-## Rusticity
+<!-- ## Rusticity
 
 This is not a verbatim translation of W. Fiset's Java implementation. Instead, I try to make the code idiomatic in Rust, according to these rules:
 
@@ -66,4 +66,4 @@ pub fn poll(&mut self) -> T;
 
 ### Use `Option<T>` to Represent Nullable Values
 
-Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes the code work better with the standard library and cause less surprises.
+Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes the code work better with the standard library and cause less surprises. -->

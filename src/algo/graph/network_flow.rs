@@ -1,5 +1,7 @@
+pub mod bipartite_check;
 pub mod edmonds_karp;
 pub mod ford_fulkerson_dfs;
+
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
