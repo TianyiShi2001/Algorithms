@@ -1,5 +1,6 @@
 # Rusty Algorithms and Data Structures
 
+![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 ![lines of code](https://img.shields.io/badge/lines%20of%20code-3399-blue)
 
 This repository presents Rust implementation of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.

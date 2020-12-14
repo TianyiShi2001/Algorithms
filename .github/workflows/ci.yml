@@ -7,7 +7,7 @@
 
 on: [push, pull_request]
 
-name: Quickstart
+name: CI
 
 jobs:
   check:

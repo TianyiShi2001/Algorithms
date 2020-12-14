@@ -1,4 +1,4 @@
-use super::{Edge, NetworkFlowAdjacencyList};
+use super::NetworkFlowAdjacencyList;
 use std::collections::VecDeque;
 
 impl NetworkFlowAdjacencyList {
