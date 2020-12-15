@@ -44,8 +44,8 @@ impl Vec3D {
 
 #[derive(Copy, Clone)]
 pub struct Point2D {
-    x: f64,
-    y: f64,
+    pub x: f64,
+    pub y: f64,
 }
 
 impl Sub<&Self> for Point2D {

@@ -1,9 +1,9 @@
-use crate::algo::graph::network_flow::{
-    EdmondsKarpSolver, MaxFlowSolver, NetworkFlowAdjacencyList,
-};
+use crate::algo::geometry::Point2D;
+use crate::algo::graph::network_flow::{MaxFlowSolver, NetworkFlowAdjacencyList};
+
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::needless_range_loop)]
-pub fn mice_and_owls(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
+pub fn mice_and_owls<S: MaxFlowSolver>(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
     let m = mice.len();
     let h = holes.len();
     let n = m + h + 2;
@@ -20,7 +20,7 @@ pub fn mice_and_owls(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
     for (mouse_id, mouse) in mice.iter().enumerate() {
         for (j, hole) in holes.iter().enumerate() {
             let hole_id = m + j;
-            if mouse.position.distance(&hole.position) <= radius {
+            if mouse.position.distance_to_point(&hole.position) <= radius {
                 g.add_edge(mouse_id, hole_id, 1);
             }
         }
@@ -30,23 +30,19 @@ pub fn mice_and_owls(mice: &[Mouse], holes: &[Hole], radius: f64) -> i32 {
         g.add_edge(m + i, t, holes[i].capacity);
     }
 
-    EdmondsKarpSolver::max_flow(&mut g)
-}
-
-#[derive(Copy, Clone)]
-pub struct Point2D {
-    x: f64,
-    y: f64,
-}
-
-impl Point2D {
-    fn distance(&self, other: &Point2D) -> f64 {
-        ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
-    }
+    S::max_flow(&mut g)
 }
 
 pub struct Mouse {
     position: Point2D,
+}
+
+impl Mouse {
+    pub fn new(x: f64, y: f64) -> Self {
+        Self {
+            position: Point2D { x, y },
+        }
+    }
 }
 
 pub struct Hole {
@@ -54,47 +50,35 @@ pub struct Hole {
     capacity: i32,
 }
 
+impl Hole {
+    pub fn new(x: f64, y: f64, capacity: i32) -> Self {
+        Self {
+            position: Point2D { x, y },
+            capacity,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algo::graph::network_flow::EdmondsKarpSolver;
     #[test]
     fn test_mice_and_owls() {
         let mice = &[
-            Mouse {
-                position: Point2D { x: 1., y: 0. },
-            },
-            Mouse {
-                position: Point2D { x: 0., y: 1. },
-            },
-            Mouse {
-                position: Point2D { x: 8., y: 1. },
-            },
-            Mouse {
-                position: Point2D { x: 12., y: 0. },
-            },
-            Mouse {
-                position: Point2D { x: 12., y: 4. },
-            },
-            Mouse {
-                position: Point2D { x: 15., y: 5. },
-            },
+            Mouse::new(1., 0.),
+            Mouse::new(8., 1.),
+            Mouse::new(12., 0.),
+            Mouse::new(12., 4.),
+            Mouse::new(15., 5.),
         ];
         let holes = &[
-            Hole {
-                position: Point2D { x: 1., y: 1. },
-                capacity: 1,
-            },
-            Hole {
-                position: Point2D { x: 10., y: 2. },
-                capacity: 2,
-            },
-            Hole {
-                position: Point2D { x: 14., y: 5. },
-                capacity: 1,
-            },
+            Hole::new(1., 1., 1),
+            Hole::new(10., 2., 2),
+            Hole::new(14., 5., 1),
         ];
 
-        let res = mice_and_owls(mice, holes, 3.);
+        let res = mice_and_owls::<EdmondsKarpSolver>(mice, holes, 3.);
         assert_eq!(res, 4)
     }
 }

@@ -38,7 +38,7 @@ impl Edge {
             capacity,
             flow: 0,
             residual: Weak::default(),
-            cost: cost,
+            cost,
             original_cost: cost,
         }));
         let e2 = Rc::new(RefCell::new(Edge {
