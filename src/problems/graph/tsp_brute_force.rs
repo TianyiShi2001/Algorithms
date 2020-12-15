@@ -1,4 +1,4 @@
-use crate::algo::graph::{WeightedAdjacencyList, WeightedAdjacencyMatrix};
+use crate::algo::graph::WeightedAdjacencyMatrix;
 use crate::algo::math::permutations::*;
 
 pub fn tsp(g: &WeightedAdjacencyMatrix) -> Vec<usize> {
@@ -27,6 +27,7 @@ fn compute_tour_cost(g: &WeightedAdjacencyMatrix, tour: &[usize]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::algo::graph::WeightedAdjacencyList;
     #[test]
     fn test_tsp_brute_force() {
         let g: WeightedAdjacencyMatrix = WeightedAdjacencyList::new_undirected(

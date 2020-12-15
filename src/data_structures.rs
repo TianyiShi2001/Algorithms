@@ -1,3 +1,4 @@
+pub mod balanced_tree;
 pub mod bit;
 pub mod disjoint_set;
 pub mod heaparray;
