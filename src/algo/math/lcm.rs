@@ -1,21 +1,29 @@
-use super::gcd::{gcd, gcd_unsigned};
-use num_traits::{Signed, Unsigned};
+use super::gcd::*;
 
-pub fn lcm<T: Signed + Copy>(a: T, b: T) -> T {
-    ((a / gcd(a, b)) * b).abs()
+pub trait Lcm: Gcd {
+    fn lcm(self, other: Self) -> Self {
+        (self / self.gcd(other) * other).abs()
+    }
 }
-pub fn lcm_unsigned<T: Unsigned + Copy>(a: T, b: T) -> T {
-    (a / gcd_unsigned(a, b)) * b
+
+pub trait LcmUnsigned: GcdUnsigned {
+    fn lcm(self, other: Self) -> Self {
+        (self / self.gcd(other)) * other
+    }
 }
+
+impl<I: Gcd> Lcm for I {}
+
+impl<I: GcdUnsigned> LcmUnsigned for I {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn test_lcm() {
-        assert_eq!(lcm(12, 18), 36);
-        assert_eq!(lcm(-12, 18), 36);
-        assert_eq!(lcm(12, -18), 36);
-        assert_eq!(lcm(-12, -18), 36);
+        assert_eq!(12i32.lcm(18), 36);
+        assert_eq!((-12i32).lcm(18), 36);
+        assert_eq!((12i32).lcm(-18), 36);
+        assert_eq!((-12i32).lcm(-18), 36);
     }
 }

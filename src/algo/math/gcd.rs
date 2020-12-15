@@ -1,34 +1,46 @@
-use num_traits::{Signed, Unsigned};
+use num_traits::{PrimInt, Signed, Unsigned};
 
-pub fn gcd<T: Signed + Copy>(a: T, b: T) -> T {
-    if b == T::zero() {
-        a.abs()
-    } else {
-        gcd(b, a % b)
+pub trait Gcd: PrimInt + Signed {
+    fn gcd(self, other: Self) -> Self {
+        if other == Self::zero() {
+            self.abs()
+        } else {
+            other.gcd(self % other)
+        }
     }
 }
 
-pub fn gcd_unsigned<T: Unsigned + Copy>(a: T, b: T) -> T {
-    if b == T::zero() {
-        a
-    } else {
-        gcd_unsigned(b, a % b)
+pub trait GcdUnsigned: PrimInt + Unsigned {
+    fn gcd(self, other: Self) -> Self {
+        if other == Self::zero() {
+            self
+        } else {
+            other.gcd(self % other)
+        }
     }
 }
+
+impl<I: Signed + PrimInt> Gcd for I {}
+
+impl<I: Unsigned + PrimInt> GcdUnsigned for I {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn test_gcd() {
-        assert_eq!(gcd(12, 18), 6);
-        assert_eq!(gcd(-12, 18), 6);
-        assert_eq!(gcd(12, -18), 6);
-        assert_eq!(gcd(-12, -18), 6);
-        assert_eq!(gcd(5, 0), 5);
-        assert_eq!(gcd(0, 5), 5);
-        assert_eq!(gcd(-5, 0), 5);
-        assert_eq!(gcd(0, -5), 5);
-        assert_eq!(gcd(0, 0), 0);
+        assert_eq!(12i32.gcd(18), 6);
+        assert_eq!((-12i32).gcd(18), 6);
+        assert_eq!(12i32.gcd(-18), 6);
+        assert_eq!((-12i32).gcd(-18), 6);
+        assert_eq!((5i32).gcd(0), 5);
+        assert_eq!((0i32).gcd(5), 5);
+        assert_eq!((-5i32).gcd(0), 5);
+        assert_eq!((0i32).gcd(-5), 5);
+        assert_eq!((0i32).gcd(0), 0);
+
+        assert_eq!(12u32.gcd(18), 6);
+        assert_eq!(12u128.gcd(18), 6);
+        assert_eq!(12i128.gcd(18), 6);
     }
 }
