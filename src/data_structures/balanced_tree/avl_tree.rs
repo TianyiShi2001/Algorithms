@@ -12,7 +12,6 @@
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::mem;
-use std::ptr::null_mut;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 struct Node<T: Ord + Debug + PartialEq + Eq + Clone> {
@@ -228,13 +227,13 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         self.root = _remove(root, elem);
     }
 
-    fn find_min(mut node: &Box<Node<T>>) -> &T {
+    fn find_min(mut node: &Node<T>) -> &T {
         while let Some(next_node) = node.left.as_ref() {
             node = &next_node;
         }
         &node.value
     }
-    fn find_max(mut node: &Box<Node<T>>) -> &T {
+    fn find_max(mut node: &Node<T>) -> &T {
         while let Some(next_node) = node.right.as_ref() {
             node = &next_node;
         }

@@ -1,7 +1,5 @@
 //! - [Wikipedia](https://www.wikiwand.com/en/Tower_of_Hanoi)
 
-use std::char::ToLowercase;
-
 #[derive(Debug)]
 pub struct TowerOfHanoi {
     a: Vec<usize>,
