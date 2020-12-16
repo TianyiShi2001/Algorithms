@@ -10,6 +10,12 @@
 
 use crate::algo::graph::UnweightedAdjacencyList;
 
+#[derive(Debug)]
+pub enum EulerianPathError {
+    DisconnectedGraph,
+    InvalidDegrees,
+}
+
 impl UnweightedAdjacencyList {
     fn count_in_out_degrees(&self) -> [Vec<usize>; 2] {
         let mut in_degrees = vec![0; self.vertices_count()];
@@ -22,7 +28,7 @@ impl UnweightedAdjacencyList {
     }
     /// Returns a list of `edges_count + 1` node ids that give the Eulerian path or
     /// `None` if no path exists or the graph is disconnected.
-    pub fn eulerian_path(&self) -> Option<Vec<usize>> {
+    pub fn eulerian_path(&self) -> Result<Vec<usize>, EulerianPathError> {
         let n = self.vertices_count();
         let has_eulerian_path = |[in_degrees, out_degrees]: [&[usize]; 2]| {
             let mut start = None;
@@ -73,22 +79,19 @@ impl UnweightedAdjacencyList {
             // add current node to solution.
             path.push(at);
         };
-        match has_eulerian_path([&i, &o]) {
-            None => None,
-            Some(start) => {
-                let mut path = Vec::with_capacity(n);
-                _dfs(self, &mut o, &mut path, start);
-                path.reverse();
-                // Make sure all edges of the graph were traversed. It could be the
-                // case that the graph is disconnected in which case return `None`.
-                if path.len() == self.edges_count() + 1 {
-                    Some(path)
-                } else {
-                    // disconnected graph
-                    None
-                }
+        has_eulerian_path([&i, &o]).map_or(Err(EulerianPathError::InvalidDegrees), |start| {
+            let mut path = Vec::with_capacity(n);
+            _dfs(self, &mut o, &mut path, start);
+            path.reverse();
+            // Make sure all edges of the graph were traversed. It could be the
+            // case that the graph is disconnected in which case return `None`.
+            if path.len() == self.edges_count() + 1 {
+                Ok(path)
+            } else {
+                // disconnected graph
+                Err(EulerianPathError::DisconnectedGraph)
             }
-        }
+        })
     }
 }
 #[cfg(test)]
@@ -127,12 +130,18 @@ mod tests {
     #[test]
     fn test_eulerian_path_invalid1() {
         let g = UnweightedAdjacencyList::new_directed(2, &[[0, 1], [0, 1]]);
-        assert!(g.eulerian_path().is_none());
+        assert!(matches!(
+            g.eulerian_path(),
+            Err(EulerianPathError::InvalidDegrees)
+        ));
     }
     #[test]
     fn test_eulerian_path_invalid2() {
         let g = UnweightedAdjacencyList::new_directed(3, &[[0, 1], [1, 0], [1, 2], [2, 0], [2, 0]]);
-        assert!(g.eulerian_path().is_none());
+        assert!(matches!(
+            g.eulerian_path(),
+            Err(EulerianPathError::InvalidDegrees)
+        ));
     }
     #[test]
     fn test_eulerian_path_invalid3() {
@@ -151,6 +160,30 @@ mod tests {
                 [2, 0],
             ],
         );
-        assert!(g.eulerian_path().is_none());
+        assert!(matches!(
+            g.eulerian_path(),
+            Err(EulerianPathError::InvalidDegrees)
+        ));
+    }
+
+    #[test]
+    fn test_eulerian_path_invalid4() {
+        let g = UnweightedAdjacencyList::new_directed(
+            8,
+            &[
+                [0, 1],
+                [1, 2],
+                [2, 3],
+                [3, 1],
+                [4, 5],
+                [5, 6],
+                [6, 7],
+                [7, 4],
+            ],
+        );
+        assert!(matches!(
+            g.eulerian_path(),
+            Err(EulerianPathError::DisconnectedGraph)
+        ));
     }
 }
