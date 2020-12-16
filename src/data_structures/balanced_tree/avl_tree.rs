@@ -157,7 +157,6 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         node.right.as_mut().unwrap().update();
     }
 
-    // TODO: This method needs substantial optimisation
     pub fn remove(&mut self, elem: &T) {
         fn _remove<T: Ord + Debug + Clone>(
             node: Option<Box<Node<T>>>,
@@ -226,6 +225,46 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         let root = mem::replace(&mut self.root, None);
         self.root = _remove(root, elem);
     }
+    pub fn remove_efficient(&mut self, elem: &T) {
+        fn _remove<T: Ord + Debug + Clone>(_node: &mut Option<Box<Node<T>>>, elem: &T) {
+            match _node {
+                None => {}
+                Some(node) => {
+                    match elem.cmp(&node.value) {
+                        Ordering::Less => {
+                            _remove(&mut node.left, elem);
+                        }
+                        Ordering::Greater => {
+                            _remove(&mut node.right, elem);
+                        }
+                        Ordering::Equal => {
+                            // if the target is found, replace this node with a successor
+                            *_node = match (node.left.take(), node.right.take()) {
+                                (None, None) => None,
+                                (None, Some(right)) => Some(right),
+                                (Some(left), None) => Some(left),
+                                (Some(left), Some(right)) => {
+                                    if left.height >= right.height {
+                                        let mut x = AvlTree::remove_max(left);
+                                        x.right = Some(right);
+                                        Some(x)
+                                    } else {
+                                        let mut x = AvlTree::remove_min(right);
+                                        x.left = Some(left);
+                                        Some(x)
+                                    }
+                                }
+                            };
+                        }
+                    }
+                    let mut node = _node.as_mut().unwrap();
+                    node.update();
+                    AvlTree::balance(&mut node);
+                }
+            }
+        }
+        _remove(&mut self.root, elem);
+    }
 
     fn find_min(mut node: &Node<T>) -> &T {
         while let Some(next_node) = node.left.as_ref() {
@@ -238,6 +277,82 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
             node = &next_node;
         }
         &node.value
+    }
+    fn remove_min(mut node: Box<Node<T>>) -> Box<Node<T>> {
+        fn _remove_min<T: Ord + Debug + PartialEq + Eq + Clone>(
+            node: &mut Node<T>,
+        ) -> Option<Box<Node<T>>> {
+            if let Some(next_node) = node.left.as_mut() {
+                let res = _remove_min(next_node);
+                if res.is_none() {
+                    node.left.take()
+                } else {
+                    res
+                }
+            } else {
+                None
+            }
+        }
+        _remove_min(&mut node).unwrap_or(node)
+    }
+    fn remove_max(mut node: Box<Node<T>>) -> Box<Node<T>> {
+        fn _remove_max<T: Ord + Debug + PartialEq + Eq + Clone>(
+            node: &mut Node<T>,
+        ) -> Option<Box<Node<T>>> {
+            if let Some(next_node) = node.right.as_mut() {
+                let res = _remove_max(next_node);
+                if res.is_none() {
+                    node.right.take()
+                } else {
+                    res
+                }
+            } else {
+                None
+            }
+        }
+        _remove_max(&mut node).unwrap_or(node)
+    }
+
+    fn iter(&self) -> AvlIter<T> {
+        if let Some(trav) = self.root.as_ref() {
+            AvlIter {
+                stack: Some(vec![trav]),
+                trav: Some(trav),
+            }
+        } else {
+            AvlIter {
+                stack: None,
+                trav: None,
+            }
+        }
+    }
+}
+
+// TODO: better ergonomics?
+struct AvlIter<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> {
+    stack: Option<Vec<&'a Box<Node<T>>>>,
+    trav: Option<&'a Box<Node<T>>>,
+}
+
+impl<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> Iterator for AvlIter<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        if let (Some(stack), Some(trav)) = (self.stack.as_mut(), self.trav.as_mut()) {
+            while let Some(left) = trav.left.as_ref() {
+                stack.push(left);
+                *trav = left;
+            }
+
+            stack.pop().map(|curr| {
+                if let Some(right) = curr.right.as_ref() {
+                    stack.push(right);
+                    *trav = right;
+                }
+                &curr.value
+            })
+        } else {
+            None
+        }
     }
 }
 
@@ -278,7 +393,7 @@ mod tests {
         //     10
         //   2    15
         //     7
-        avl.remove(&5);
+        avl.remove_efficient(&5);
         let root = avl.root.as_ref().unwrap();
         assert_eq!(root.value, 10);
         let n2 = root.left.as_ref().unwrap();
@@ -287,5 +402,20 @@ mod tests {
         assert_eq!(n15.value, 15);
         assert!(n2.left.as_ref().is_none());
         assert_eq!(n2.right.as_ref().unwrap().value, 7);
+    }
+
+    #[test]
+    fn test_avl_iter() {
+        let mut avl = AvlTree::new();
+        avl.insert(2);
+        avl.insert(5);
+        avl.insert(7);
+        avl.insert(10);
+        avl.insert(15);
+        //     5
+        //   2   10
+        //      7  15
+        let v = avl.iter().cloned().collect::<Vec<_>>();
+        assert_eq!(&v, &[2, 5, 7, 10, 15]);
     }
 }
