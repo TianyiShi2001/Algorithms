@@ -1,14 +1,14 @@
 use crate::algo::graph::WeightedAdjacencyMatrix;
 use crate::algo::math::permutations::*;
 
-pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
+pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f64, Vec<usize>) {
     let n = g.vertices_count();
     let permutations = (0..n)
         .filter(|&i| i != start)
         .collect::<Vec<_>>()
         .permutations();
     let mut tour = vec![];
-    let mut best_tour_cost = f32::INFINITY;
+    let mut best_tour_cost = f64::INFINITY;
     for perm in permutations {
         let perm = unsafe { &*perm };
         let cost = compute_tour_cost(g, perm, start);
@@ -21,7 +21,7 @@ pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
     (best_tour_cost, tour)
 }
 
-fn compute_tour_cost(g: &WeightedAdjacencyMatrix, tour: &[usize], start: usize) -> f32 {
+fn compute_tour_cost(g: &WeightedAdjacencyMatrix, tour: &[usize], start: usize) -> f64 {
     tour.windows(2)
         .fold(0., |cost, step| cost + g[step[0]][step[1]])
         + g[start][*tour.first().unwrap()]

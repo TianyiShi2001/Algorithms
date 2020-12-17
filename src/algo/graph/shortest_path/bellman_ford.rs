@@ -1,16 +1,16 @@
 //! An implementation of the Bellman-Ford algorithm. The algorithm finds the shortest path between
 //! a starting node and all other nodes in the graph. The algorithm also detects negative cycles.
 //! If a node is part of a negative cycle then the minimum cost for that node is set to
-//! `f32::NEG_INFINITY`
+//! `f64::NEG_INFINITY`
 
 use crate::algo::graph::{Edge, WeightedAdjacencyList};
 
 impl WeightedAdjacencyList {
-    pub fn bellman_ford(&self, start: usize) -> Vec<f32> {
+    pub fn bellman_ford(&self, start: usize) -> Vec<f64> {
         // Initialize the distance to all nodes to be infinity
         // except for the start node which is zero.
         let n = self.vertices_count();
-        let mut dists = vec![f32::INFINITY; n];
+        let mut dists = vec![f64::INFINITY; n];
         dists[start] = 0.;
 
         // For each vertex, apply relaxation for all the edges
@@ -32,7 +32,7 @@ impl WeightedAdjacencyList {
             for (from, edges) in self.vertices() {
                 for &Edge { to, cost } in edges {
                     if dists[from] + cost < dists[to] {
-                        dists[to] = f32::NEG_INFINITY;
+                        dists[to] = f64::NEG_INFINITY;
                     }
                 }
             }
@@ -69,13 +69,13 @@ mod tests {
             &[
                 0.00,           // 0 -> 0
                 1.00,           // 0 -> 1
-                -f32::INFINITY, // 0 -> 2
-                -f32::INFINITY, // 0 -> 3
-                -f32::INFINITY, // 0 -> 4
+                -f64::INFINITY, // 0 -> 2
+                -f64::INFINITY, // 0 -> 3
+                -f64::INFINITY, // 0 -> 4
                 5.00,           // 0 -> 5
                 5.00,           // 0 -> 6
                 8.00,           // 0 -> 7
-                f32::INFINITY,  // 0 -> 8
+                f64::INFINITY,  // 0 -> 8
             ]
         );
     }

@@ -17,7 +17,7 @@ pub enum ShortestPathError {
 }
 
 pub struct FloydWarshall {
-    dp: Vec<Vec<f32>>,
+    dp: Vec<Vec<f64>>,
     next: Vec<Vec<Option<usize>>>,
 }
 
@@ -29,7 +29,7 @@ impl FloydWarshall {
         let mut next = vec![vec![None; n]; n];
         for i in 0..n {
             for j in 0..n {
-                if graph[i][j] != f32::INFINITY {
+                if graph[i][j] != f64::INFINITY {
                     next[i][j] = Some(j);
                 }
             }
@@ -47,13 +47,13 @@ impl FloydWarshall {
             }
         }
 
-        // Identify negative cycles by propagating the value 'f32::NEG_INFINITY'
+        // Identify negative cycles by propagating the value 'f64::NEG_INFINITY'
         // to every edge that is part of or reaches into a negative cycle.
         for k in 0..n {
             for i in 0..n {
                 for j in 0..n {
                     if dp[i][k] + dp[k][j] < dp[i][j] {
-                        dp[i][j] = f32::NEG_INFINITY;
+                        dp[i][j] = f64::NEG_INFINITY;
                         next[i][j] = None;
                     }
                 }
@@ -63,14 +63,14 @@ impl FloydWarshall {
         Self { dp, next }
     }
 
-    pub fn distance(&self, start: usize, end: usize) -> f32 {
+    pub fn distance(&self, start: usize, end: usize) -> f64 {
         self.dp[start][end]
     }
 
     /// Reconstructs the shortest path (of nodes) from `start` to `end` inclusive.
     pub fn path(&self, start: usize, end: usize) -> Result<Vec<usize>, ShortestPathError> {
         let mut path = Vec::new();
-        if self.dp[start][end] == f32::INFINITY {
+        if self.dp[start][end] == f64::INFINITY {
             return Err(ShortestPathError::Unreachable);
         };
         let mut prev = start;
@@ -116,14 +116,14 @@ mod tests {
         assert_eq!(result.distance(0, 0), 0.0);
         assert_eq!(result.distance(0, 1), 2.000);
         assert_eq!(result.distance(0, 2), 4.000);
-        assert_eq!(result.distance(0, 3), f32::INFINITY);
-        assert_eq!(result.distance(0, 4), f32::NEG_INFINITY);
-        assert_eq!(result.distance(0, 5), f32::NEG_INFINITY);
+        assert_eq!(result.distance(0, 3), f64::INFINITY);
+        assert_eq!(result.distance(0, 4), f64::NEG_INFINITY);
+        assert_eq!(result.distance(0, 5), f64::NEG_INFINITY);
         assert_eq!(result.distance(0, 6), 6.000);
-        assert_eq!(result.distance(1, 0), f32::INFINITY);
+        assert_eq!(result.distance(1, 0), f64::INFINITY);
         assert_eq!(result.distance(1, 1), 0.000);
         assert_eq!(result.distance(1, 2), 2.000);
-        assert_eq!(result.distance(1, 3), f32::INFINITY);
+        assert_eq!(result.distance(1, 3), f64::INFINITY);
 
         assert_eq!(result.path(0, 0), Ok(vec![0]));
         assert_eq!(result.path(0, 1), Ok(vec![0, 1]));

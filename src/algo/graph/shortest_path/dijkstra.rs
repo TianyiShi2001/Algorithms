@@ -13,16 +13,16 @@ use ordered_float::OrderedFloat;
 use priority_queue::PriorityQueue;
 
 impl WeightedAdjacencyList {
-    pub fn dijkstra(&self, start: usize, end: usize) -> Option<(f32, Vec<usize>)> {
+    pub fn dijkstra(&self, start: usize, end: usize) -> Option<(f64, Vec<usize>)> {
         let n = self.vertices_count();
-        let mut dists = vec![f32::INFINITY; n];
+        let mut dists = vec![f64::INFINITY; n];
         let mut prev = vec![None; n];
         let mut vis = vec![false; n];
         let mut pq = PriorityQueue::with_capacity(self.vertices_count());
         // `priority_queue::PriorityQueue` requires that the priority implements `Ord`,
         // but the std floats implement only `PartialOrd`
-        pq.push(start, OrderedFloat::from(-0f32));
-        dists[start] = 0f32;
+        pq.push(start, OrderedFloat::from(-0f64));
+        dists[start] = 0f64;
         while let Some((node, cur_dist)) = pq.pop() {
             // Once we've visited all the nodes spanning from the end
             // node we know we can return the minimum distance value to

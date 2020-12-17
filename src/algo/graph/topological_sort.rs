@@ -80,9 +80,9 @@ impl WeightedAdjacencyList {
         }
         ordering
     }
-    pub fn dag_shortest_path(&self, start: usize) -> Vec<f32> {
+    pub fn dag_shortest_path(&self, start: usize) -> Vec<f64> {
         let toposort = self.toposort_khan();
-        let mut dists = vec![f32::INFINITY; self.vertices_count()];
+        let mut dists = vec![f64::INFINITY; self.vertices_count()];
         dists[start] = 0.;
         let i = toposort
             .iter()
@@ -159,6 +159,6 @@ mod tests {
         ];
         let graph = WeightedAdjacencyList::new_directed(7, edges);
         let dists = graph.dag_shortest_path(0);
-        assert_eq!(&dists, &[0., 3., 2., 3., 8., 3., f32::INFINITY])
+        assert_eq!(&dists, &[0., 3., 2., 3., 8., 3., f64::INFINITY])
     }
 }

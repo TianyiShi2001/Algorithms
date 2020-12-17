@@ -1,4 +1,5 @@
 pub mod angle_between_vectors;
+pub mod geographical_coordinate;
 pub mod tangent;
 
 use std::ops::Sub;
@@ -111,9 +112,9 @@ pub trait SafeArcSinCos: Float {
 impl SafeArcSinCos for f64 {
     fn asin_safe(self) -> Self {
         if self <= -1.0 {
-            -std::f64::consts::PI / 2.0
+            -std::f64::consts::FRAC_PI_2
         } else if self >= 1.0 {
-            std::f64::consts::PI / 2.0
+            std::f64::consts::FRAC_PI_2
         } else {
             self.asin()
         }

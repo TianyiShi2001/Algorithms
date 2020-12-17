@@ -20,15 +20,15 @@ pub struct TspSolver {}
 
 impl TspSolver {
     #[allow(clippy::needless_range_loop)]
-    pub fn solve(distance: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
+    pub fn solve(distance: &WeightedAdjacencyMatrix, start: usize) -> (f64, Vec<usize>) {
         let n = distance.vertices_count();
-        let mut memo = vec![vec![f32::INFINITY; 1 << n]; n];
+        let mut memo = vec![vec![f64::INFINITY; 1 << n]; n];
         // store the optimal distance from the start node to each node `i`
         for i in 0..n {
             memo[i][1 << i | 1 << start] = distance[start][i];
         }
 
-        let mut memo = vec![vec![f32::INFINITY; 1 << n]; n];
+        let mut memo = vec![vec![f64::INFINITY; 1 << n]; n];
         // store the optimal distance from the start node to each node `i`
         for i in 0..n {
             memo[i][1 << i | 1 << start] = distance[start][i];
@@ -38,7 +38,7 @@ impl TspSolver {
                 for next in (0..n).filter(|&node| state.get_bit(node) && node != start) {
                     // the state without the next node
                     let prev_state = state ^ (1 << next);
-                    let mut min_dist = f32::INFINITY;
+                    let mut min_dist = f64::INFINITY;
                     for prev_end in
                         (0..n).filter(|&node| state.get_bit(node) && node != start && node != next)
                     {
@@ -54,7 +54,7 @@ impl TspSolver {
 
         // the end state is the bit mask with `n` bits set to 1
         let end_state = (1 << n) - 1;
-        let mut min_dist = f32::INFINITY;
+        let mut min_dist = f64::INFINITY;
         for e in (0..start).chain(start + 1..n) {
             let dist = memo[e][end_state] + distance[e][start];
             if dist < min_dist {
@@ -67,7 +67,7 @@ impl TspSolver {
         let mut tour = vec![start];
         for _ in 1..n {
             let mut best_j = usize::MAX;
-            let mut best_dist = f32::MAX;
+            let mut best_dist = f64::MAX;
             for j in (0..n).filter(|&j| state.get_bit(j) && j != start) {
                 let dist = memo[j][state] + distance[j][last_index];
                 if dist < best_dist {

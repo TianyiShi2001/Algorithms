@@ -13,7 +13,7 @@ use ordered_float::OrderedFloat;
 use priority_queue::PriorityQueue;
 
 impl WeightedAdjacencyList {
-    pub fn prim(&self) -> Option<(f32, WeightedAdjacencyList)> {
+    pub fn prim(&self) -> Option<(f64, WeightedAdjacencyList)> {
         let n = self.vertices_count();
         // the number of edges in the MST (a tree with `n` vertices has `n - 1` edges)
         let m = n - 1;
@@ -34,7 +34,7 @@ impl WeightedAdjacencyList {
             }
         };
 
-        let mut min_mst_cost = f32::INFINITY;
+        let mut min_mst_cost = f64::INFINITY;
         let mut best_mst_edges = Vec::new();
         for i in 0..n {
             let mut mst_cost = 0.;
@@ -61,7 +61,7 @@ impl WeightedAdjacencyList {
                 best_mst_edges = mst_edges
             }
         }
-        if min_mst_cost == f32::INFINITY {
+        if min_mst_cost == f64::INFINITY {
             None
         } else {
             Some((

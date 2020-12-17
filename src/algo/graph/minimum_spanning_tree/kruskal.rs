@@ -16,7 +16,7 @@ use crate::data_structures::disjoint_set::UnionFind;
 use ordered_float::OrderedFloat;
 
 impl WeightedAdjacencyList {
-    pub fn kruskal(&self) -> Option<(f32, WeightedAdjacencyList)> {
+    pub fn kruskal(&self) -> Option<(f64, WeightedAdjacencyList)> {
         let n = self.vertices_count();
         let mut edges = self.edges().collect::<Vec<_>>();
         edges.sort_by_key(|(_f, _t, cost)| OrderedFloat(*cost));

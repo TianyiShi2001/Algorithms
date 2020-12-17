@@ -4,7 +4,7 @@ impl WeightedAdjacencyList {
     /// Perform a depth first search on a graph with n nodes
     /// from a starting point to count the number of nodes
     /// in a given component.
-    pub fn dfs(&self, start: usize) -> (usize, f32) {
+    pub fn dfs(&self, start: usize) -> (usize, f64) {
         let mut count = 0;
         let mut cost = 0.;
         let mut visited = vec![false; self.vertices_count()];

@@ -1,4 +1,5 @@
 pub mod bfs;
+pub mod clustering;
 pub mod dfs;
 pub mod eulerian_path;
 pub mod minimum_spanning_tree;
@@ -13,10 +14,10 @@ use std::fmt;
 #[derive(Debug, Copy, Clone)]
 pub struct Edge {
     pub to: usize,
-    pub cost: f32,
+    pub cost: f64,
 }
 impl Edge {
-    pub fn new(to: usize, cost: f32) -> Self {
+    pub fn new(to: usize, cost: f64) -> Self {
         Self { to, cost }
     }
 }
@@ -37,22 +38,22 @@ impl WeightedAdjacencyList {
         self.edges.is_empty()
     }
     /// Add a directed edge from node `u` to node `v` with cost `cost`.
-    pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: f32) {
+    pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: f64) {
         self.edges[u].push(Edge::new(v, cost))
     }
     /// Add an undirected edge between nodes `u` and `v`.
-    pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: f32) {
+    pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: f64) {
         self.add_directed_edge(u, v, cost);
         self.add_directed_edge(v, u, cost);
     }
-    pub fn new_directed(size: usize, edges: &[(usize, usize, f32)]) -> Self {
+    pub fn new_directed(size: usize, edges: &[(usize, usize, f64)]) -> Self {
         let mut graph = Self::with_size(size);
         for &(a, b, c) in edges.iter() {
             graph.add_directed_edge(a, b, c);
         }
         graph
     }
-    pub fn new_undirected(size: usize, edges: &[(usize, usize, f32)]) -> Self {
+    pub fn new_undirected(size: usize, edges: &[(usize, usize, f64)]) -> Self {
         let mut graph = Self::with_size(size);
         for &(a, b, c) in edges.iter() {
             graph.add_undirected_edge(a, b, c);
@@ -73,7 +74,7 @@ impl WeightedAdjacencyList {
         }
         graph
     }
-    pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f32)> + '_ {
+    pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f64)> + '_ {
         self.edges
             .iter()
             .enumerate()
@@ -162,13 +163,13 @@ impl std::ops::Index<usize> for UnweightedAdjacencyList {
 }
 
 pub struct WeightedAdjacencyMatrix {
-    inner: Vec<Vec<f32>>,
+    inner: Vec<Vec<f64>>,
 }
 
 impl WeightedAdjacencyMatrix {
     #[allow(clippy::needless_range_loop)]
     pub fn with_size(n: usize) -> Self {
-        let mut inner = vec![vec![f32::INFINITY; n]; n];
+        let mut inner = vec![vec![f64::INFINITY; n]; n];
         // distance of each vertex to itself defaults to zero.
         for i in 0..n {
             inner[i][i] = 0.;
@@ -195,14 +196,14 @@ impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
     }
 }
 
-impl From<Vec<Vec<f32>>> for WeightedAdjacencyMatrix {
-    fn from(inner: Vec<Vec<f32>>) -> Self {
+impl From<Vec<Vec<f64>>> for WeightedAdjacencyMatrix {
+    fn from(inner: Vec<Vec<f64>>) -> Self {
         Self { inner }
     }
 }
 
 impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
-    type Output = Vec<f32>;
+    type Output = Vec<f64>;
     fn index(&self, index: usize) -> &Self::Output {
         &self.inner[index]
     }
@@ -220,9 +221,9 @@ impl fmt::Display for WeightedAdjacencyMatrix {
             write!(f, "{:>2} ", i)?;
             for j in 0..n {
                 let x = self[i][j];
-                if x == f32::INFINITY {
+                if x == f64::INFINITY {
                     write!(f, " ∞ ")?;
-                } else if x == f32::NEG_INFINITY {
+                } else if x == f64::NEG_INFINITY {
                     write!(f, "-∞ ")?;
                 } else {
                     write!(f, "{:>2} ", self[i][j])?;
@@ -240,6 +241,104 @@ impl fmt::Display for WeightedAdjacencyList {
     }
 }
 
+#[derive(Debug)]
+pub struct WeightedUndirectedAdjacencyMatrixCondensed {
+    inner: Vec<f64>,
+    n: usize,
+}
+
+impl WeightedUndirectedAdjacencyMatrixCondensed {
+    pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
+        let n = inp.vertices_count();
+        let mut m = Self {
+            inner: vec![f64::INFINITY; n * (n - 1) / 2],
+            n,
+        };
+        for (i, j, weight) in inp.edges() {
+            let w = &mut m[(i, j)];
+            if w.is_finite() {
+                assert_eq!(*w, weight, "Graph contains directed edge(s)!");
+            } else {
+                *w = weight;
+            }
+        }
+        m
+    }
+    pub fn from_slice(inp: &[f64]) -> Self {
+        assert!(!inp.is_empty(), "Inpud cannot be empty.");
+        let mut n = 2;
+        loop {
+            n += 1;
+            let len = n * (n - 1) / 2;
+            if len == inp.len() {
+                return Self {
+                    inner: inp.to_owned(),
+                    n,
+                };
+            }
+            if len > inp.len() {
+                panic!("Invalid input length.")
+            }
+        }
+    }
+    pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f64)> + '_ {
+        (0..self.n - 1)
+            .flat_map(move |i| (i + 1..self.n).map(move |j| (i, j)))
+            .zip(self.inner.iter())
+            .map(|((i, j), w)| (i, j, *w))
+    }
+}
+
+impl std::ops::Index<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCondensed {
+    type Output = f64;
+
+    fn index(&self, (i, j): (usize, usize)) -> &Self::Output {
+        use std::cmp::Ordering::*;
+        match i.cmp(&j) {
+            Less => {
+                let (mut _i, mut _j, mut j, mut k) = (i, self.n, j - 1, 0);
+                while _i > 0 {
+                    j -= 1;
+                    _j -= i;
+                    k += _j;
+                    _i -= 1;
+                }
+                k += j;
+                &self.inner[k]
+            }
+            Greater => self.index((j, i)),
+            Equal => &0.,
+        }
+    }
+}
+
+impl std::ops::IndexMut<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCondensed {
+    fn index_mut(&mut self, (i, j): (usize, usize)) -> &mut Self::Output {
+        use std::cmp::Ordering::*;
+        match i.cmp(&j) {
+            Less => {
+                let (mut _i, mut _j, mut j, mut k) = (i, self.n, j - 1, 0);
+                while _i > 0 {
+                    j -= 1;
+                    _j -= 1;
+                    k += _j;
+                    _i -= 1;
+                }
+                k += j;
+                &mut self.inner[k]
+            }
+            Greater => self.index_mut((j, i)),
+            Equal => panic!("Not allowed to assign a weight from a vetex to itself!"),
+        }
+    }
+}
+
+impl From<WeightedAdjacencyList> for WeightedUndirectedAdjacencyMatrixCondensed {
+    fn from(inp: WeightedAdjacencyList) -> Self {
+        Self::from_adjacency_list(&inp)
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -253,5 +352,28 @@ mod tests {
             edges.remove(i);
         }
         assert!(edges.is_empty());
+    }
+
+    #[test]
+    fn test_weighted_undirected_condensed() {
+        let edges = &[
+            (0, 1, 1.),
+            (0, 2, 2.),
+            (0, 3, 3.),
+            (1, 2, 4.),
+            (1, 3, 5.),
+            (2, 3, 6.),
+        ];
+        let g = WeightedAdjacencyList::new_undirected(4, edges);
+        let m = WeightedAdjacencyMatrix::from_adjacency_list(&g);
+        let g1 = WeightedUndirectedAdjacencyMatrixCondensed::from_adjacency_list(&g);
+        let g2 = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&[1., 2., 3., 4., 5., 6.]);
+        for i in 0..3 {
+            for j in 0..3 {
+                assert_eq!(m[i][j], g1[(i, j)]);
+                assert_eq!(m[i][j], g2[(i, j)]);
+            }
+        }
+        assert_eq!(&g1.edges().collect::<Vec<_>>(), edges);
     }
 }

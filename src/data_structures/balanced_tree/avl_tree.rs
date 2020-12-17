@@ -46,15 +46,12 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> Node<T> {
 #[derive(Default, Debug, Clone, Eq, PartialEq)]
 pub struct AvlTree<T: Ord + Debug + PartialEq + Eq + Clone> {
     root: Option<Box<Node<T>>>,
-    size: usize,
+    len: usize,
 }
 
 impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
     pub fn new() -> Self {
-        Self {
-            root: None,
-            size: 0,
-        }
+        Self { root: None, len: 0 }
     }
     // the height of a rooted tree is the number of edges between the tree's
     // root and its furthest leaf. This means that a tree containing a single
@@ -63,7 +60,7 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         self.root.as_ref().map(|node| node.height)
     }
     pub fn len(&self) -> usize {
-        self.size
+        self.len
     }
     pub fn is_empty(&self) -> bool {
         self.len() == 0
@@ -87,7 +84,7 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
     /// Otherwise, do not insert and return `false`.
     pub fn insert(&mut self, value: T) -> bool {
         fn _insert<T: Ord + Debug + Clone>(node: &mut Option<Box<Node<T>>>, value: T) -> bool {
-            let sucess = match node.as_mut() {
+            let success = match node.as_mut() {
                 None => {
                     *node = Some(Box::new(Node::new(value)));
                     return true;
@@ -106,9 +103,14 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
             let node = node.as_mut().unwrap();
             node.update();
             AvlTree::balance(node);
-            sucess
+
+            success
         }
-        _insert(&mut self.root, value)
+        let success = _insert(&mut self.root, value);
+        if success {
+            self.len += 1;
+        }
+        success
     }
 
     /// re-balance a node if its balance factor is +2 or -2
@@ -157,87 +159,105 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         node.update();
     }
 
-    pub fn remove(&mut self, elem: &T) {
+    // pub fn remove(&mut self, elem: &T) {
+    //     fn _remove<T: Ord + Debug + Clone>(
+    //         node: Option<Box<Node<T>>>,
+    //         elem: &T,
+    //     ) -> Option<Box<Node<T>>> {
+    //         match node {
+    //             None => None,
+    //             Some(mut node) => {
+    //                 // compare the current value to the value of the node.
+    //                 match elem.cmp(&node.value) {
+    //                     // Dig into left subtree, the value we're looking
+    //                     // for is smaller than the current value.
+    //                     Ordering::Less => node.left = _remove(node.left, elem),
+    //                     // Dig into right subtree, the value we're looking
+    //                     // for is greater than the current value.
+    //                     Ordering::Greater => node.right = _remove(node.right, elem),
+    //                     Ordering::Equal => {
+    //                         // This is the case with only a right subtree or no subtree at all.
+    //                         // In this situation just swap the node we wish to remove
+    //                         // with its right child.
+    //                         if node.left.is_none() {
+    //                             return node.right;
+    //                         }
+    //                         // This is the case with only a left subtree or
+    //                         // no subtree at all. In this situation just
+    //                         // swap the node we wish to remove with its left child.
+    //                         else if node.right.is_none() {
+    //                             return node.left;
+    //                         }
+    //                         // When removing a node from a binary tree with two links the
+    //                         // successor of the node being removed can either be the largest
+    //                         // value in the left subtree or the smallest value in the right
+    //                         // subtree. As a heuristic, I will remove from the subtree with
+    //                         // the greatest hieght in hopes that this may help with balancing.
+    //                         else {
+    //                             let left = node.left.as_ref().unwrap();
+    //                             let right = node.right.as_ref().unwrap();
+
+    //                             // Choose to remove from left subtree
+    //                             if left.height >= right.height {
+    //                                 // Swap the value of the successor into the node.
+    //                                 let successor_value = AvlTree::find_max(&left).clone();
+    //                                 node.value = successor_value.clone();
+
+    //                                 // Find the largest node in the left subtree.
+    //                                 node.left = _remove(node.left, &successor_value);
+    //                             } else {
+    //                                 // Swap the value of the successor into the node.
+    //                                 let successor_value = AvlTree::find_min(&right).clone();
+    //                                 node.value = successor_value.clone();
+
+    //                                 // Go into the right subtree and remove the leftmost node we
+    //                                 // found and swapped data with. This prevents us from having
+    //                                 // two nodes in our tree with the same value.
+    //                                 node.right = _remove(node.right, &successor_value);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //                 node.update();
+    //                 AvlTree::balance(&mut node);
+    //                 Some(node)
+    //             }
+    //         }
+    //     }
+    //     let root = mem::replace(&mut self.root, None);
+    //     self.root = _remove(root, elem);
+    // }
+
+    // fn find_min(mut node: &Node<T>) -> &T {
+    //     while let Some(next_node) = node.left.as_ref() {
+    //         node = &next_node;
+    //     }
+    //     &node.value
+    // }
+    // fn find_max(mut node: &Node<T>) -> &T {
+    //     while let Some(next_node) = node.right.as_ref() {
+    //         node = &next_node;
+    //     }
+    //     &node.value
+    // }
+    pub fn remove(&mut self, elem: &T) -> bool {
         fn _remove<T: Ord + Debug + Clone>(
-            node: Option<Box<Node<T>>>,
+            _node: &mut Option<Box<Node<T>>>,
             elem: &T,
-        ) -> Option<Box<Node<T>>> {
-            match node {
-                None => None,
-                Some(mut node) => {
-                    // compare the current value to the value of the node.
-                    match elem.cmp(&node.value) {
-                        // Dig into left subtree, the value we're looking
-                        // for is smaller than the current value.
-                        Ordering::Less => node.left = _remove(node.left, elem),
-                        // Dig into right subtree, the value we're looking
-                        // for is greater than the current value.
-                        Ordering::Greater => node.right = _remove(node.right, elem),
-                        Ordering::Equal => {
-                            // This is the case with only a right subtree or no subtree at all.
-                            // In this situation just swap the node we wish to remove
-                            // with its right child.
-                            if node.left.is_none() {
-                                return node.right;
-                            }
-                            // This is the case with only a left subtree or
-                            // no subtree at all. In this situation just
-                            // swap the node we wish to remove with its left child.
-                            else if node.right.is_none() {
-                                return node.left;
-                            }
-                            // When removing a node from a binary tree with two links the
-                            // successor of the node being removed can either be the largest
-                            // value in the left subtree or the smallest value in the right
-                            // subtree. As a heuristic, I will remove from the subtree with
-                            // the greatest hieght in hopes that this may help with balancing.
-                            else {
-                                let left = node.left.as_ref().unwrap();
-                                let right = node.right.as_ref().unwrap();
-
-                                // Choose to remove from left subtree
-                                if left.height >= right.height {
-                                    // Swap the value of the successor into the node.
-                                    let successor_value = AvlTree::find_max(&left).clone();
-                                    node.value = successor_value.clone();
-
-                                    // Find the largest node in the left subtree.
-                                    node.left = _remove(node.left, &successor_value);
-                                } else {
-                                    // Swap the value of the successor into the node.
-                                    let successor_value = AvlTree::find_min(&right).clone();
-                                    node.value = successor_value.clone();
-
-                                    // Go into the right subtree and remove the leftmost node we
-                                    // found and swapped data with. This prevents us from having
-                                    // two nodes in our tree with the same value.
-                                    node.right = _remove(node.right, &successor_value);
-                                }
-                            }
-                        }
-                    }
-                    node.update();
-                    AvlTree::balance(&mut node);
-                    Some(node)
-                }
-            }
-        }
-        let root = mem::replace(&mut self.root, None);
-        self.root = _remove(root, elem);
-    }
-    pub fn remove_efficient(&mut self, elem: &T) {
-        fn _remove<T: Ord + Debug + Clone>(_node: &mut Option<Box<Node<T>>>, elem: &T) {
+            success: &mut bool,
+        ) {
             match _node {
                 None => {}
                 Some(node) => {
                     match elem.cmp(&node.value) {
                         Ordering::Less => {
-                            _remove(&mut node.left, elem);
+                            _remove(&mut node.left, elem, success);
                         }
                         Ordering::Greater => {
-                            _remove(&mut node.right, elem);
+                            _remove(&mut node.right, elem, success);
                         }
                         Ordering::Equal => {
+                            *success = true;
                             // if the target is found, replace this node with a successor
                             *_node = match (node.left.take(), node.right.take()) {
                                 (None, None) => None,
@@ -263,21 +283,14 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
                 }
             }
         }
-        _remove(&mut self.root, elem);
+        let mut success = false;
+        _remove(&mut self.root, elem, &mut success);
+        if success {
+            self.len -= 1;
+        }
+        success
     }
 
-    fn find_min(mut node: &Node<T>) -> &T {
-        while let Some(next_node) = node.left.as_ref() {
-            node = &next_node;
-        }
-        &node.value
-    }
-    fn find_max(mut node: &Node<T>) -> &T {
-        while let Some(next_node) = node.right.as_ref() {
-            node = &next_node;
-        }
-        &node.value
-    }
     fn remove_min(mut node: Box<Node<T>>) -> Box<Node<T>> {
         fn _remove_min<T: Ord + Debug + PartialEq + Eq + Clone>(
             node: &mut Node<T>,
@@ -367,11 +380,13 @@ mod tests {
             //   2   10
             //      7  15
             let mut avl = AvlTree::new();
+            assert!(avl.is_empty());
             avl.insert(2);
             avl.insert(5);
             avl.insert(7);
             avl.insert(10);
             avl.insert(15);
+            assert_eq!(avl.len(), 5);
             avl
         };
     }
@@ -379,7 +394,6 @@ mod tests {
     #[test]
     fn test_avl() {
         let mut avl = AVL.clone();
-        println!("{:?}", &avl);
         assert_eq!(avl.height().unwrap(), 2);
         assert!(avl.contains(&2));
         assert!(avl.contains(&5));
@@ -412,7 +426,7 @@ mod tests {
         //     10
         //   2    15
         //     7
-        avl.remove_efficient(&5);
+        avl.remove(&5);
         let root = avl.root.as_ref().unwrap();
         assert_eq!(root.value, 10);
         let n2 = root.left.as_ref().unwrap();
@@ -431,20 +445,19 @@ mod tests {
         //   2   10
         //      7  15
         assert_eq!(&avl, &*AVL);
+
+        // will not insert an element that's already in the tree
+        assert!(!avl.insert(5));
+        // will not remove an element that's not in the tree
+        assert!(!avl.remove(&100));
     }
 
     #[test]
     fn test_avl_iter() {
-        let mut avl = AvlTree::new();
-        avl.insert(2);
-        avl.insert(5);
-        avl.insert(7);
-        avl.insert(10);
-        avl.insert(15);
         //     5
         //   2   10
         //      7  15
-        let v = avl.iter().cloned().collect::<Vec<_>>();
+        let v = AVL.iter().cloned().collect::<Vec<_>>();
         assert_eq!(&v, &[2, 5, 7, 10, 15]);
     }
 }
