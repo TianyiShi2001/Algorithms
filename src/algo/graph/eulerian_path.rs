@@ -27,7 +27,7 @@ impl UnweightedAdjacencyList {
         [in_degrees, out_degrees]
     }
     /// Returns a list of `edges_count + 1` node ids that give the Eulerian path or
-    /// `None` if no path exists or the graph is disconnected.
+    /// an `EulerianPathError` if no path exists or the graph is disconnected.
     pub fn eulerian_path(&self) -> Result<Vec<usize>, EulerianPathError> {
         let n = self.vertices_count();
         let has_eulerian_path = |[in_degrees, out_degrees]: [&[usize]; 2]| {
@@ -84,7 +84,7 @@ impl UnweightedAdjacencyList {
             _dfs(self, &mut o, &mut path, start);
             path.reverse();
             // Make sure all edges of the graph were traversed. It could be the
-            // case that the graph is disconnected in which case return `None`.
+            // case that the graph is disconnected.
             if path.len() == self.edges_count() + 1 {
                 Ok(path)
             } else {
