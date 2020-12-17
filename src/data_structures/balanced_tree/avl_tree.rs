@@ -313,7 +313,7 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         _remove_max(&mut node).unwrap_or(node)
     }
 
-    fn iter(&self) -> AvlIter<T> {
+    pub fn iter(&self) -> AvlIter<T> {
         if let Some(trav) = self.root.as_ref() {
             AvlIter {
                 stack: Some(vec![trav]),
@@ -329,9 +329,9 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
 }
 
 // TODO: better ergonomics?
-struct AvlIter<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> {
-    stack: Option<Vec<&'a Box<Node<T>>>>,
-    trav: Option<&'a Box<Node<T>>>,
+pub struct AvlIter<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> {
+    stack: Option<Vec<&'a Node<T>>>,
+    trav: Option<&'a Node<T>>,
 }
 
 impl<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> Iterator for AvlIter<'a, T> {

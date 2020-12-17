@@ -7,6 +7,7 @@ pub struct TspSolver<'a> {
 }
 
 impl<'a> TspSolver<'a> {
+    #[allow(clippy::needless_range_loop)]
     pub fn solve(distance: &'a WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
         let n = distance.vertices_count();
         let mut memo = vec![vec![f32::INFINITY; 1 << n]; n];
@@ -62,7 +63,7 @@ impl<'a> TspSolver<'a> {
                 }
             }
             tour.push(best_j);
-            state = state ^ (1 << best_j);
+            state ^= 1 << best_j;
             last_index = best_j;
         }
 
