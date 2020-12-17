@@ -80,7 +80,7 @@ mod tests {
 
     const SAMPLE_SIZE: usize = 10;
     lazy_static! {
-        static ref TEST_DATA: Vec<u32> = {
+        static ref TEST_DATA: Vec<u128> = {
             let mut rng = thread_rng();
             (0..SAMPLE_SIZE).map(|_| rng.gen_range(1, 20)).collect()
         };
@@ -88,7 +88,7 @@ mod tests {
 
     fn validate<F>(f: F, overlap_ok: bool)
     where
-        F: Fn(u32, u32) -> u32,
+        F: Fn(u128, u128) -> u128,
     {
         let sparse_table = SparseTable::new(&TEST_DATA, f, overlap_ok);
         for i in 0..SAMPLE_SIZE - 1 {
@@ -146,7 +146,7 @@ mod tests {
     fn test_sparse_table_matrix_add_mul() {
         let mut rng = thread_rng();
         let data: Vec<Matrix2x2> = (0..SAMPLE_SIZE * 4)
-            .map(|_| rng.gen_range(-10, 10))
+            .map(|_| rng.gen_range(-10i128, 10))
             .collect::<Vec<_>>()
             .chunks_exact(4)
             .map(|x| [[x[0], x[1]], [x[2], x[3]]])
@@ -173,7 +173,7 @@ mod tests {
         }
     }
 
-    type Matrix2x2 = [[i32; 2]; 2];
+    type Matrix2x2 = [[i128; 2]; 2];
     fn matrix_addition_2x2(a: Matrix2x2, b: Matrix2x2) -> Matrix2x2 {
         [
             [a[0][0] + b[0][0], a[0][1] + b[0][1]],
