@@ -75,7 +75,7 @@ jobs:
           command: clippy
           args: -- -D warnings
 
-Coverage:
+  Coverage:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
