@@ -7,7 +7,7 @@ pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
         .filter(|&i| i != start)
         .collect::<Vec<_>>()
         .permutations();
-    let mut tour = Vec::new();
+    let mut tour = vec![];
     let mut best_tour_cost = f32::INFINITY;
     for perm in permutations {
         let perm = unsafe { &*perm };
@@ -17,7 +17,7 @@ pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
             tour = perm.to_owned();
         }
     }
-    tour.push(tour[0]);
+    tour.insert(0, start);
     (best_tour_cost, tour)
 }
 
