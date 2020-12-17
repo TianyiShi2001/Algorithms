@@ -18,18 +18,18 @@ pub enum EulerianPathError {
 
 impl UnweightedAdjacencyList {
     fn count_in_out_degrees(&self) -> [Vec<usize>; 2] {
-        let mut in_degrees = vec![0; self.vertices_count()];
-        let mut out_degrees = vec![0; self.vertices_count()];
+        let mut in_degrees = vec![0; self.node_count()];
+        let mut out_degrees = vec![0; self.node_count()];
         for [from, to] in self.edges() {
             out_degrees[from] += 1;
             in_degrees[to] += 1;
         }
         [in_degrees, out_degrees]
     }
-    /// Returns a list of `edges_count + 1` node ids that give the Eulerian path or
+    /// Returns a list of `edge_count + 1` node ids that give the Eulerian path or
     /// an `EulerianPathError` if no path exists or the graph is disconnected.
     pub fn eulerian_path(&self) -> Result<Vec<usize>, EulerianPathError> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         let has_eulerian_path = |[in_degrees, out_degrees]: [&[usize]; 2]| {
             let mut start = None;
             let mut has_end = false;
@@ -85,7 +85,7 @@ impl UnweightedAdjacencyList {
             path.reverse();
             // Make sure all edges of the graph were traversed. It could be the
             // case that the graph is disconnected.
-            if path.len() == self.edges_count() + 1 {
+            if path.len() == self.edge_count() + 1 {
                 Ok(path)
             } else {
                 // disconnected graph

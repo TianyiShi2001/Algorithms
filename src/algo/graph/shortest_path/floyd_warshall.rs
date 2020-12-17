@@ -23,7 +23,7 @@ pub struct FloydWarshall {
 
 impl FloydWarshall {
     pub fn new(graph: &WeightedAdjacencyMatrix) -> Self {
-        let n = graph.vertices_count();
+        let n = graph.node_count();
         // Copy input matrix and setup 'next' matrix for path reconstruction.
         let mut dp = graph.inner.clone();
         let mut next = vec![vec![None; n]; n];

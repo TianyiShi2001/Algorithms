@@ -21,7 +21,7 @@ pub struct TspSolver {}
 impl TspSolver {
     #[allow(clippy::needless_range_loop)]
     pub fn solve(distance: &WeightedAdjacencyMatrix, start: usize) -> (f64, Vec<usize>) {
-        let n = distance.vertices_count();
+        let n = distance.node_count();
         let mut memo = vec![vec![f64::INFINITY; 1 << n]; n];
         // store the optimal distance from the start node to each node `i`
         for i in 0..n {

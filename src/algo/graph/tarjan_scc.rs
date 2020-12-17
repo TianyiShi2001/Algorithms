@@ -22,7 +22,7 @@ struct SccSolver<'a> {
 
 impl<'a> SccSolver<'a> {
     fn new(g: &'a UnweightedAdjacencyList) -> Self {
-        let n = g.vertices_count();
+        let n = g.node_count();
         Self {
             g,
             ids: vec![UNVISITED; n],
@@ -37,7 +37,7 @@ impl<'a> SccSolver<'a> {
 
 impl UnweightedAdjacencyList {
     pub fn scc(&self) -> SccResult {
-        let n = self.vertices_count();
+        let n = self.node_count();
         let mut s = SccSolver::new(self);
 
         fn _dfs(s: &mut SccSolver, at: usize) {

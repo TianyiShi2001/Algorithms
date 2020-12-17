@@ -6,7 +6,7 @@
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=OCKvEMF0Xac&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=11)
 
 use crate::algo::graph::tree::center::{Center, TreeCenter};
-use crate::algo::graph::tree::rooting::TreeNode;
+use crate::algo::graph::tree::tree::{Node, Tree};
 use crate::algo::graph::UnweightedAdjacencyList;
 
 impl From<Center> for Vec<usize> {
@@ -18,7 +18,7 @@ impl From<Center> for Vec<usize> {
     }
 }
 
-impl TreeNode {
+impl Node {
     pub fn encode(&self) -> Vec<u8> {
         let mut labels: Vec<_> = self.children.iter().map(|node| node.encode()).collect();
         labels.sort();
@@ -32,14 +32,20 @@ impl TreeNode {
     }
 }
 
+impl Tree {
+    pub fn encode(&self) -> Vec<u8> {
+        self.root.encode()
+    }
+}
+
 impl UnweightedAdjacencyList {
     pub fn is_isomorphic_with(&self, other: &UnweightedAdjacencyList) -> bool {
         let this_centers: Vec<usize> = self.center().into();
         let other_centers: Vec<usize> = other.center().into();
         for &c1 in &this_centers {
-            let tree1 = TreeNode::from_adjacency_list(&self, c1);
+            let tree1 = Tree::from_adjacency_list(&self, c1);
             for &c2 in &other_centers {
-                let tree2 = TreeNode::from_adjacency_list(&self, c2);
+                let tree2 = Tree::from_adjacency_list(&self, c2);
                 if tree1.encode() == tree2.encode() {
                     return true;
                 }
@@ -69,7 +75,7 @@ mod tests {
                 [3, 8],
             ],
         );
-        let tree = TreeNode::from_adjacency_list(&adj, 0);
+        let tree = Tree::from_adjacency_list(&adj, 0);
         let encoded = tree.encode();
         let encoded = String::from_utf8(encoded).unwrap();
         assert_eq!(&encoded, "(((())())(()())(()))")

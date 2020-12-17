@@ -21,7 +21,7 @@ impl WeightedAdjacencyList {
     // indicating which color node i was colored.
     // If the graph is not bipartite, a `BipartiteCheckError` is returned.
     pub fn two_color(&self) -> Result<Vec<i8>, BipartiteCheckError> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         let mut colors = vec![EMPTY; n];
         // Do a depth first search coloring the nodes of the graph as we go.
         // This method returns the count of the number of nodes visited while

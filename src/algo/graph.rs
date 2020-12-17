@@ -80,13 +80,13 @@ impl WeightedAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.cost)))
     }
-    pub fn edges_count(&self) -> usize {
+    pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
     pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
         self.edges.iter().enumerate()
     }
-    pub fn vertices_count(&self) -> usize {
+    pub fn node_count(&self) -> usize {
         self.edges.len()
     }
 }
@@ -144,13 +144,13 @@ impl UnweightedAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
     }
-    pub fn edges_count(&self) -> usize {
+    pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
     pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
         self.edges.iter().enumerate()
     }
-    pub fn vertices_count(&self) -> usize {
+    pub fn node_count(&self) -> usize {
         self.edges.len()
     }
 }
@@ -176,11 +176,11 @@ impl WeightedAdjacencyMatrix {
         }
         Self { inner }
     }
-    pub fn vertices_count(&self) -> usize {
+    pub fn node_count(&self) -> usize {
         self.inner.len()
     }
     pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
-        let mut res = Self::with_size(inp.vertices_count());
+        let mut res = Self::with_size(inp.node_count());
         for (from, edges) in inp.vertices() {
             for &Edge { to, cost } in edges {
                 res.inner[from][to] = cost;
@@ -211,7 +211,7 @@ impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
 
 impl fmt::Display for WeightedAdjacencyMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let n = self.vertices_count();
+        let n = self.node_count();
         write!(f, "   ")?;
         for i in 0..n {
             write!(f, "{:>2} ", i)?;
@@ -249,7 +249,7 @@ pub struct WeightedUndirectedAdjacencyMatrixCondensed {
 
 impl WeightedUndirectedAdjacencyMatrixCondensed {
     pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
-        let n = inp.vertices_count();
+        let n = inp.node_count();
         let mut m = Self {
             inner: vec![f64::INFINITY; n * (n - 1) / 2],
             n,

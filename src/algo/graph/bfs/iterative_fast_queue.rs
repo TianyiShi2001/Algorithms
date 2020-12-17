@@ -31,7 +31,7 @@ impl BfsReconstructPath for UnweightedAdjacencyList {
     /// Perform a breadth first search on a graph a starting node `start`.
     fn bfs<T: Queue<usize>>(&self, start: usize) -> Vec<Option<usize>> {
         // number of nodes
-        let n = self.vertices_count();
+        let n = self.node_count();
         // tracks who the parent of `i` was
         let mut prev = vec![None; n];
         let mut visited = vec![false; n];

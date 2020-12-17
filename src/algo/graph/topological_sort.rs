@@ -18,7 +18,7 @@ use partial_min_max::min;
 
 impl WeightedAdjacencyList {
     pub fn toposort(&self) -> Vec<usize> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         let mut visited = vec![false; n];
         let mut ordering = vec![0usize; n];
         let mut i = n - 1;
@@ -50,7 +50,7 @@ impl WeightedAdjacencyList {
     }
     /// Imagine building a program with dependencies
     pub fn toposort_khan(&self) -> Vec<usize> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         // `dependencies[i]` is the number of nodes pointing to node `i`
         let mut dependencies = vec![0; n];
         // identify all dependencies
@@ -82,7 +82,7 @@ impl WeightedAdjacencyList {
     }
     pub fn dag_shortest_path(&self, start: usize) -> Vec<f64> {
         let toposort = self.toposort_khan();
-        let mut dists = vec![f64::INFINITY; self.vertices_count()];
+        let mut dists = vec![f64::INFINITY; self.node_count()];
         dists[start] = 0.;
         let i = toposort
             .iter()

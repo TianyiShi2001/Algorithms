@@ -7,7 +7,7 @@ impl WeightedAdjacencyList {
     pub fn dfs(&self, start: usize) -> (usize, f64) {
         let mut count = 0;
         let mut cost = 0.;
-        let mut visited = vec![false; self.vertices_count()];
+        let mut visited = vec![false; self.node_count()];
         let mut stack = Vec::new();
 
         // start by visiting the start node
@@ -74,7 +74,7 @@ impl UnweightedAdjacencyList {
     /// in a given component.
     pub fn dfs(&self, start: usize) -> usize {
         let mut count = 0;
-        let mut visited = vec![false; self.vertices_count()];
+        let mut visited = vec![false; self.node_count()];
         let mut stack = Vec::new();
 
         // start by visiting the start node

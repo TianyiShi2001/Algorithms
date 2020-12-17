@@ -18,7 +18,7 @@ pub struct DfsCapacityScalingSolver<'a> {
 
 impl<'a> DfsCapacityScalingSolver<'a> {
     pub fn init(g: &'a mut NetworkFlowAdjacencyList) -> Self {
-        let n = g.vertices_count();
+        let n = g.node_count();
         let max_capacity = g.edges().map(|e| e.1.borrow().capacity).max().unwrap();
         let delta = 1 << (31 - max_capacity.leading_zeros());
         // equivalent to 1 << ((max_capacity as f64).log2().floor() as i32);

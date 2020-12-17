@@ -17,7 +17,7 @@ impl UnweightedAdjacencyList {
         // we can increment the depth counter each time a DEPTH_TOKEN is encountered
         const DEPTH_TOKEN: usize = usize::MAX;
         // number of nodes
-        let n = self.vertices_count();
+        let n = self.node_count();
         // tracks who the parent of `i` was
         let mut prev = vec![None; n];
         let mut visited = vec![false; n];

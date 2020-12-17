@@ -118,13 +118,13 @@ impl NetworkFlowAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b)))
     }
-    pub fn edges_count(&self) -> usize {
+    pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
     pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Rc<RefCell<Edge>>>)> {
         self.edges.iter().enumerate()
     }
-    pub fn vertices_count(&self) -> usize {
+    pub fn node_count(&self) -> usize {
         self.edges.len()
     }
 }

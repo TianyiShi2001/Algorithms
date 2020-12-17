@@ -29,7 +29,7 @@ impl<'a> MaxFlowSolver for FordFulkersonDfsSolver<'a> {
 
 impl<'a> FordFulkersonDfsSolver<'a> {
     pub fn init(g: &'a mut NetworkFlowAdjacencyList) -> Self {
-        let n = g.vertices_count();
+        let n = g.node_count();
         let s = g.source;
         let t = g.sink;
         Self {

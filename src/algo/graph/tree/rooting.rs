@@ -7,28 +7,17 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=2FFq2_je7Lg&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=9)
 
+use super::tree::{Node, Tree};
 use crate::algo::graph::UnweightedAdjacencyList;
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct TreeNode {
-    pub id: usize,
-    pub children: Vec<TreeNode>,
-}
-
-impl TreeNode {
-    pub fn new(id: usize) -> Self {
-        Self {
-            id,
-            children: vec![],
-        }
-    }
+impl Tree {
     pub fn from_adjacency_list(graph: &UnweightedAdjacencyList, root: usize) -> Self {
         fn build_tree_recursive(
             graph: &UnweightedAdjacencyList,
             node_id: usize,
             parent_id: Option<usize>,
-        ) -> TreeNode {
-            let mut node = TreeNode::new(node_id);
+        ) -> Node {
+            let mut node = Node::new(node_id);
             for &child_id in &graph[node_id] {
                 if let Some(id) = parent_id {
                     if id == child_id {
@@ -40,7 +29,11 @@ impl TreeNode {
             }
             node
         }
-        build_tree_recursive(graph, root, None)
+        let root = build_tree_recursive(graph, root, None);
+        Self {
+            root,
+            size: graph.node_count(),
+        }
     }
 }
 
@@ -59,7 +52,7 @@ mod tests {
         graph.add_undirected_edge(2, 6);
         graph.add_undirected_edge(6, 7);
         graph.add_undirected_edge(6, 8);
-        let tree = TreeNode::from_adjacency_list(&graph, 6);
+        let tree = Tree::from_adjacency_list(&graph, 6).root;
         // Rooted at 6 the tree should look like:
         //         6
         //      2  7  8
@@ -68,28 +61,28 @@ mod tests {
         println!("{:?}", &tree);
         assert_eq!(
             tree,
-            TreeNode {
+            Node {
                 id: 6,
                 children: vec![
-                    TreeNode {
+                    Node {
                         id: 2,
                         children: vec![
-                            TreeNode {
+                            Node {
                                 id: 1,
-                                children: vec![TreeNode::new(0)]
+                                children: vec![Node::new(0)]
                             },
-                            TreeNode {
+                            Node {
                                 id: 3,
-                                children: vec![TreeNode::new(4), TreeNode::new(5)]
+                                children: vec![Node::new(4), Node::new(5)]
                             }
                         ]
                     },
-                    TreeNode::new(7),
-                    TreeNode::new(8)
+                    Node::new(7),
+                    Node::new(8)
                 ]
             }
         );
-        let tree = TreeNode::from_adjacency_list(&graph, 3);
+        let tree = Tree::from_adjacency_list(&graph, 3).root;
         // Rooted at 3 the tree should look like:
         //       3
         //    2  4  5
@@ -98,24 +91,24 @@ mod tests {
         println!("{:?}", &tree);
         assert_eq!(
             tree,
-            TreeNode {
+            Node {
                 id: 3,
                 children: vec![
-                    TreeNode {
+                    Node {
                         id: 2,
                         children: vec![
-                            TreeNode {
+                            Node {
                                 id: 1,
-                                children: vec![TreeNode::new(0)]
+                                children: vec![Node::new(0)]
                             },
-                            TreeNode {
+                            Node {
                                 id: 6,
-                                children: vec![TreeNode::new(7), TreeNode::new(8)]
+                                children: vec![Node::new(7), Node::new(8)]
                             }
                         ]
                     },
-                    TreeNode::new(4),
-                    TreeNode::new(5)
+                    Node::new(4),
+                    Node::new(5)
                 ]
             }
         );

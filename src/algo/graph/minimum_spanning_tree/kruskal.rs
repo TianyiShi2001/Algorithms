@@ -12,12 +12,12 @@
 //!   If the graph is connected, the forest has a single component and forms a minimum spanning tree.
 
 use crate::algo::graph::WeightedAdjacencyList;
-use crate::data_structures::disjoint_set::UnionFind;
+use crate::data_structures::union_find::UnionFind;
 use ordered_float::OrderedFloat;
 
 impl WeightedAdjacencyList {
     pub fn kruskal(&self) -> Option<(f64, WeightedAdjacencyList)> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         let mut edges = self.edges().collect::<Vec<_>>();
         edges.sort_by_key(|(_f, _t, cost)| OrderedFloat(*cost));
         let mut msf_edges = Vec::new();

@@ -22,12 +22,7 @@ impl DfsRecursive for UnweightedAdjacencyList {
         }
         let mut count = 0;
         // let visited = vec![false; self.len()];
-        _dfs(
-            self,
-            start,
-            &mut vec![false; self.vertices_count()],
-            &mut count,
-        );
+        _dfs(self, start, &mut vec![false; self.node_count()], &mut count);
         count
     }
 }

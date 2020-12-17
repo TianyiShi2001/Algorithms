@@ -21,7 +21,7 @@ const INF: i32 = i32::MAX / 2;
 
 impl<'a> DinicSolver<'a> {
     fn init(g: &'a mut NetworkFlowAdjacencyList) -> Self {
-        let n = g.vertices_count();
+        let n = g.node_count();
         Self {
             g,
             n,

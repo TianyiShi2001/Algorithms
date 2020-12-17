@@ -2,7 +2,7 @@ use crate::algo::graph::WeightedAdjacencyMatrix;
 use crate::algo::math::permutations::*;
 
 pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f64, Vec<usize>) {
-    let n = g.vertices_count();
+    let n = g.node_count();
     let permutations = (0..n)
         .filter(|&i| i != start)
         .collect::<Vec<_>>()

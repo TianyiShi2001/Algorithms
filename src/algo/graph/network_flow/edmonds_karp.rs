@@ -5,7 +5,7 @@ pub struct EdmondsKarpSolver {}
 
 impl MaxFlowSolver for EdmondsKarpSolver {
     fn max_flow(graph: &mut NetworkFlowAdjacencyList) -> i32 {
-        let n = graph.vertices_count();
+        let n = graph.node_count();
         let mut visited = vec![0; n];
         let mut visited_token = 1;
 

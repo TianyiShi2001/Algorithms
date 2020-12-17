@@ -14,7 +14,7 @@ use priority_queue::PriorityQueue;
 
 impl WeightedAdjacencyList {
     pub fn prim(&self) -> Option<(f64, WeightedAdjacencyList)> {
-        let n = self.vertices_count();
+        let n = self.node_count();
         // the number of edges in the MST (a tree with `n` vertices has `n - 1` edges)
         let m = n - 1;
 
