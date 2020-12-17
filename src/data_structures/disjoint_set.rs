@@ -92,7 +92,10 @@ mod tests {
 
     #[test]
     fn test_union_find() {
-        let mut uf = UnionFind::with_size(8);
+        let mut uf = UnionFind::with_size(7);
+        uf.extend(1);
+        assert_eq!(uf.len(), 8);
+        assert!(!uf.is_empty());
         assert!(uf.union(0, 1));
         assert!(uf.union(1, 2));
         assert!(uf.union(4, 3));

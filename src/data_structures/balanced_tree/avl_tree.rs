@@ -144,8 +144,8 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         let new_parent = mem::replace(&mut node.right, right_left).unwrap();
         let new_left_child = mem::replace(node, new_parent);
         node.left = Some(new_left_child);
-        node.update();
         node.left.as_mut().unwrap().update();
+        node.update();
     }
 
     fn rotate_right(node: &mut Box<Node<T>>) {
@@ -153,8 +153,8 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
         let new_parent = mem::replace(&mut node.left, left_right).unwrap();
         let new_right_child = mem::replace(node, new_parent);
         node.right = Some(new_right_child);
-        node.update();
         node.right.as_mut().unwrap().update();
+        node.update();
     }
 
     pub fn remove(&mut self, elem: &T) {
@@ -359,14 +359,33 @@ impl<'a, T: 'a + Ord + Debug + PartialEq + Eq + Clone> Iterator for AvlIter<'a, 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use lazy_static::lazy_static;
+
+    lazy_static! {
+        static ref AVL: AvlTree<i32> = {
+            //     5
+            //   2   10
+            //      7  15
+            let mut avl = AvlTree::new();
+            avl.insert(2);
+            avl.insert(5);
+            avl.insert(7);
+            avl.insert(10);
+            avl.insert(15);
+            avl
+        };
+    }
+
     #[test]
     fn test_avl() {
-        let mut avl = AvlTree::new();
-        avl.insert(2);
-        avl.insert(5);
-        avl.insert(7);
-        avl.insert(10);
-        avl.insert(15);
+        let mut avl = AVL.clone();
+        println!("{:?}", &avl);
+        assert_eq!(avl.height().unwrap(), 2);
+        assert!(avl.contains(&2));
+        assert!(avl.contains(&5));
+        assert!(avl.contains(&7));
+        assert!(avl.contains(&10));
+        assert!(avl.contains(&15));
         //     5
         //   2   10
         //      7  15
@@ -402,6 +421,16 @@ mod tests {
         assert_eq!(n15.value, 15);
         assert!(n2.left.as_ref().is_none());
         assert_eq!(n2.right.as_ref().unwrap().value, 7);
+
+        avl.insert(5);
+        //     10
+        //   5    15
+        // 2   7
+        AvlTree::rotate_right(avl.root.as_mut().unwrap());
+        //     5
+        //   2   10
+        //      7  15
+        assert_eq!(&avl, &*AVL);
     }
 
     #[test]

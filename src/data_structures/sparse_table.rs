@@ -6,6 +6,8 @@
 //! addition and multiplication, and string concatenation.
 //! A function is overlap-freindly if $f(f(a, b), f(b, c)) = f(f(a, b), c)$. Examples include min, max, gcd and lcm.
 
+use crate::algo::math::log2::VecLog2;
+
 pub struct SparseTable<T, F>
 where
     F: Fn(T, T) -> T,
@@ -22,7 +24,7 @@ where
 impl<T: Clone, F: Fn(T, T) -> T> SparseTable<T, F> {
     pub fn new(arr: &[T], f: F, overlap_friendly: bool) -> Self {
         let n = arr.len();
-        let log2 = Self::build_log2(n);
+        let log2 = Vec::log2(n + 1);
         let m = log2[n];
         let mut values = vec![vec![None; n]; m + 1];
         for (i, v) in arr.iter().enumerate() {
@@ -42,13 +44,6 @@ impl<T: Clone, F: Fn(T, T) -> T> SparseTable<T, F> {
             f,
             overlap_friendly,
         }
-    }
-    fn build_log2(n: usize) -> Vec<usize> {
-        let mut log2 = vec![0usize; n + 1];
-        for i in 2..=n {
-            log2[i] = log2[i / 2] + 1;
-        }
-        log2
     }
     pub fn query(&self, mut l: usize, r: usize) -> T {
         if self.overlap_friendly {
