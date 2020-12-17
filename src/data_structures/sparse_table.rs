@@ -3,8 +3,8 @@
 //! For functions that are only associative, the query is done in $O(log(n))$.
 //!
 //! A function $f$ is associative if $f(a, f(b, c)) = f(f(a, b), c)$. Examples include scalar and matrix
-//! addition and multiplication.
-//! A function is overlap-freindly if $f(f(a, b), f(b, c)) = f(f(a, b), c)$. Examples include min, max and gcd.
+//! addition and multiplication, and string concatenation.
+//! A function is overlap-freindly if $f(f(a, b), f(b, c)) = f(f(a, b), c)$. Examples include min, max, gcd and lcm.
 
 pub struct SparseTable<T, F>
 where
@@ -82,7 +82,7 @@ mod tests {
     lazy_static! {
         static ref TEST_DATA: Vec<u32> = {
             let mut rng = thread_rng();
-            (0..SAMPLE_SIZE).map(|_| rng.gen_range(0, 10)).collect()
+            (0..SAMPLE_SIZE).map(|_| rng.gen_range(1, 20)).collect()
         };
     }
 
@@ -115,9 +115,31 @@ mod tests {
     }
 
     #[test]
-    fn test_gcd() {
-        use crate::algo::math::gcd::GcdUnsigned;
+    fn test_gcd_lcm() {
+        use crate::algo::math::{gcd::GcdUnsigned, lcm::LcmUnsigned};
         validate(|a, b| a.gcd(b), true);
+        validate(|a, b| a.lcm(b), true);
+    }
+
+    #[test]
+    fn test_string_concat() {
+        let mut rng = thread_rng();
+        let data: Vec<String> = (0..SAMPLE_SIZE * 4)
+            .map(|_| rng.gen_range(b'a', b'z'))
+            .collect::<Vec<_>>()
+            .chunks_exact(4)
+            .map(|x| unsafe { String::from_utf8_unchecked(vec![x[0], x[1], x[2], x[3]]) })
+            .collect();
+        let sparse_table = SparseTable::new(&data, |a, b| a + &b, false);
+        for i in 0..SAMPLE_SIZE - 1 {
+            for j in i..SAMPLE_SIZE {
+                let expected = data[i + 1..=j].iter().fold(data[i].clone(), |acc, curr| {
+                    (sparse_table.f)(acc, curr.clone())
+                });
+                let quried = sparse_table.query(i, j);
+                assert_eq!(expected, quried);
+            }
+        }
     }
 
     #[test]
