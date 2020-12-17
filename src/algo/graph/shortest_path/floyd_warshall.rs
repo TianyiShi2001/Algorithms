@@ -1,7 +1,12 @@
 //! This file contains an implementation of the Floyd-Warshall algorithm to find all pairs of
 //! shortest paths between nodes in a graph. We also demonstrate how to detect negative cycles and
 //! reconstruct the shortest path.
-//! Time Complexity: $O(V^3)$
+//!
+//! - Time Complexity: $O(V^3)$
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=4NQ3HnhyNfQ)
 
 use crate::algo::graph::WeightedAdjacencyMatrix;
 

@@ -1,1 +1,2 @@
-pub mod tsp_brute_force;
+pub mod reconstruct_string_from_lmers;
+pub mod tsp;

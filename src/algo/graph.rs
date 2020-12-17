@@ -97,6 +97,7 @@ impl std::ops::Index<usize> for WeightedAdjacencyList {
     }
 }
 
+#[derive(Debug)]
 pub struct UnweightedAdjacencyList {
     edges: Vec<Vec<usize>>,
     // is_directed: bool,
@@ -191,6 +192,12 @@ impl WeightedAdjacencyMatrix {
 impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
     fn from(inp: WeightedAdjacencyList) -> Self {
         Self::from_adjacency_list(&inp)
+    }
+}
+
+impl From<Vec<Vec<f32>>> for WeightedAdjacencyMatrix {
+    fn from(inner: Vec<Vec<f32>>) -> Self {
+        Self { inner }
     }
 }
 

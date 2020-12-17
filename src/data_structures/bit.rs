@@ -45,6 +45,7 @@ impl_bit!(u16);
 impl_bit!(u32);
 impl_bit!(u64);
 impl_bit!(u128);
+impl_bit!(usize);
 
 #[cfg(test)]
 mod tests {
