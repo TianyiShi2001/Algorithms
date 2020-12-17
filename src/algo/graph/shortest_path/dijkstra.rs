@@ -1,4 +1,4 @@
-//! This file contains an implementation of Dijkstra's shortest path algorithm from a start node to a
+//! This mod contains an implementation of Dijkstra's shortest path algorithm from a start node to a
 //! specific ending node. Dijkstra can also be modified to find the shortest path between a starting
 //! node and all other nodes in the graph. However, in this implementation since we're only going
 //! from a starting node to an ending node we can employ an optimization to stop early once we've

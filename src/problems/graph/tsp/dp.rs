@@ -1,24 +1,38 @@
+//! This mod contains a recursive implementation of the TSP problem using dynamic programming. The
+//! main idea is that since we need to do all n! permutations of nodes to find the optimal solution
+//! that caching the results of sub paths can improve performance.
+//!
+//! For example, if one permutation is: `... D A B C` then later when we need to compute the value
+//! of the permutation `... E B A C` we should already have cached the answer for the subgraph
+//! containing the nodes `{A, B, C}`.
+//!
+//! - Time Complexity: O(n^2 * 2^n) Space Complexity: O(n * 2^n)
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=cY4HiiFHO1o&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=25)
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=cY4HiiFHO1o&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=25)
+
 use crate::algo::graph::WeightedAdjacencyMatrix;
 use crate::data_structures::bit::Bit;
 
-pub struct TspSolver<'a> {
-    memo: Vec<Vec<f32>>,
-    distance: &'a WeightedAdjacencyMatrix,
-}
+pub struct TspSolver {}
 
-impl<'a> TspSolver<'a> {
+impl TspSolver {
     #[allow(clippy::needless_range_loop)]
-    pub fn solve(distance: &'a WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
+    pub fn solve(distance: &WeightedAdjacencyMatrix, start: usize) -> (f32, Vec<usize>) {
         let n = distance.vertices_count();
         let mut memo = vec![vec![f32::INFINITY; 1 << n]; n];
         // store the optimal distance from the start node to each node `i`
         for i in 0..n {
             memo[i][1 << i | 1 << start] = distance[start][i];
         }
-        let mut solver = Self { memo, distance };
-        solver._solve(n, start)
-    }
-    fn _solve(&mut self, n: usize, start: usize) -> (f32, Vec<usize>) {
+
+        let mut memo = vec![vec![f32::INFINITY; 1 << n]; n];
+        // store the optimal distance from the start node to each node `i`
+        for i in 0..n {
+            memo[i][1 << i | 1 << start] = distance[start][i];
+        }
         for r in 3..=n {
             for state in BinaryCombinations::new(n, r as u32).filter(|state| state.get_bit(start)) {
                 for next in (0..n).filter(|&node| state.get_bit(node) && node != start) {
@@ -28,13 +42,12 @@ impl<'a> TspSolver<'a> {
                     for prev_end in
                         (0..n).filter(|&node| state.get_bit(node) && node != start && node != next)
                     {
-                        let new_dist =
-                            self.memo[prev_end][prev_state] + self.distance[prev_end][next];
+                        let new_dist = memo[prev_end][prev_state] + distance[prev_end][next];
                         if new_dist < min_dist {
                             min_dist = new_dist;
                         }
                     }
-                    self.memo[next][state] = min_dist;
+                    memo[next][state] = min_dist;
                 }
             }
         }
@@ -43,7 +56,7 @@ impl<'a> TspSolver<'a> {
         let end_state = (1 << n) - 1;
         let mut min_dist = f32::INFINITY;
         for e in (0..start).chain(start + 1..n) {
-            let dist = self.memo[e][end_state] + self.distance[e][start];
+            let dist = memo[e][end_state] + distance[e][start];
             if dist < min_dist {
                 min_dist = dist;
             }
@@ -56,7 +69,7 @@ impl<'a> TspSolver<'a> {
             let mut best_j = usize::MAX;
             let mut best_dist = f32::MAX;
             for j in (0..n).filter(|&j| state.get_bit(j) && j != start) {
-                let dist = self.memo[j][state] + self.distance[j][last_index];
+                let dist = memo[j][state] + distance[j][last_index];
                 if dist < best_dist {
                     best_j = j;
                     best_dist = dist;

@@ -1,4 +1,4 @@
-//! This file contains an implementation of the Floyd-Warshall algorithm to find all pairs of
+//! This mod contains an implementation of the Floyd-Warshall algorithm to find all pairs of
 //! shortest paths between nodes in a graph. We also demonstrate how to detect negative cycles and
 //! reconstruct the shortest path.
 //!

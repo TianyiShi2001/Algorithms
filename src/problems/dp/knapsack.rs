@@ -1,4 +1,4 @@
-//! This file contains a dynamic programming solutions to the classic 0/1 knapsack problem where are
+//! This mod contains a dynamic programming solutions to the classic 0/1 knapsack problem where are
 //! you are trying to maximize the total profit of items selected without exceeding the capacity of
 //! your knapsack.
 //!
