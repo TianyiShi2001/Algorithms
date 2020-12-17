@@ -1,10 +1,10 @@
-# Rusty Algorithms and Data Structures
+# Rusty Algorithms and Data Structures for Education
 
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
 ![lines of code](https://img.shields.io/badge/lines%20of%20code-6135-blue)
 
-This repository presents Rust implementation of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
+This repository presents Rust implementations of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
 
 In addition to implementing W. Fiset's algorithms, I also add original content that might be helpful, such as solutions of classical puzzles e.g. N-Queens and Sudoku.
 
@@ -16,7 +16,7 @@ The implementation details are explained in comments and docs and the example us
 cargo test
 ```
 
-These algorithms and data structures are not designed for production usage, but might be directly applicable in competitve programming.
+Although these algorithms and data structures are mainly for learning purposes, many of them can be directly applied (copy-pasted) in the context of competitive programming. The `src/problems` folder offers some examples of using components of this crate to solve real competitive programming problems.
 
 ## Recommended Environment
 
@@ -67,3 +67,87 @@ pub fn poll(&mut self) -> T;
 ### Use `Option<T>` to Represent Nullable Values
 
 Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes the code work better with the standard library and cause less surprises. -->
+
+# Contents
+
+## Graph
+
+### Graph Representations
+
+- Adjacency Matrix (Weighted & Unweighted)
+- Adjacency List (Weighted & Unweighted)
+- Condensed Adjacency Matrix (Weighted)
+
+### Fundamental Graph Algorithms
+
+- Depth-first search (iterative and recursive)
+- Breadth-first search (iterative)
+
+### Tree Algorithms
+
+- Fundamentals (layout, DFS, tree height, tree sum)
+- Tree Center
+- Tree rooting
+- Tree isomorphism
+- Lowest common ancestor (LCA)
+
+### Minimum Spanning Tree/Forest
+
+- Prim's Algorithm
+- Kruskal's Algorithm
+
+### Network Flow
+
+- Bipartite check
+- Ford-Fulkerson + DFS
+- DFS with capacity scaling
+- Edmonds-Karp Algorithm (BFS)
+- Dinic's Algorithm (BFS + DFS)
+
+**Applications**
+
+- Mice and owls
+
+### Shortest Path
+
+- BFS (unweighted)
+- DAG shortest path with topological sorting
+- Dijkstra's algorithm (non-negative weights, SSSP)
+- Bellman-Ford algorithm (SSSP)
+- Floyd-Warshall algorithm (APSP)
+
+### Others
+
+- Topological sorting of DAG graphs and DAG shortest path
+- Eulerian path/circuit
+- Strongly connected components (Tarjan's algorithm)
+
+## Data Structures
+
+- Bit manipulation
+- Priority queue (binary heap)
+- Balanced tree
+  - AVL tree
+- Disjoin set (union-find)
+- Sparse table (range query) (generic)
+
+## Math
+
+- GCD/LCM
+- log2
+
+# Problems
+
+## Dynamic Programming
+
+- Edit distance
+- Knapsack 0/1
+
+## Back Tracking
+
+- Sudoku
+- N-Queens
+
+## Graph
+
+- Travelling salesman problem (brutal force & DP)

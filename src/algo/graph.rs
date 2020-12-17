@@ -257,7 +257,10 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
         for (i, j, weight) in inp.edges() {
             let w = &mut m[(i, j)];
             if w.is_finite() {
-                assert_eq!(*w, weight, "Graph contains directed edge(s)!");
+                assert!(
+                    (*w - weight).abs() < f64::EPSILON,
+                    "Graph contains directed edge(s)!"
+                );
             } else {
                 *w = weight;
             }

@@ -31,6 +31,7 @@ impl WeightedAdjacencyList {
                 ds.union(from, to);
             }
         }
+        // TODO: support non-tree forest
         if msf_edges.len() == n - 1 {
             return Some((mst_cost, WeightedAdjacencyList::new_directed(n, &msf_edges)));
         }
