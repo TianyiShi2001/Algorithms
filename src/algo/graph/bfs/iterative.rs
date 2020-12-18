@@ -30,7 +30,7 @@ impl UnweightedAdjacencyList {
 
         let mut depth = 0;
 
-        // Continue until the BFS is donw.
+        // Continue until the BFS is done.
         while let Some(node) = queue.pop_front() {
             if queue.is_empty() {
                 break;

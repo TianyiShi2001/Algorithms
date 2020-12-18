@@ -1,4 +1,5 @@
 pub mod bfs;
+pub mod bipartite_check;
 pub mod dfs;
 pub mod eulerian_path;
 pub mod minimum_spanning_tree;

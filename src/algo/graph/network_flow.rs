@@ -1,4 +1,3 @@
-pub mod bipartite_check;
 pub mod dfs_capacity_scaling;
 pub use dfs_capacity_scaling::DfsCapacityScalingSolver;
 pub mod dinic;

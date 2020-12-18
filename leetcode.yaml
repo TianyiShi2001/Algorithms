@@ -3,11 +3,21 @@
   - url: https://leetcode.com/problems/all-paths-from-source-to-target/
   - tags: [graph, DFS]
   - difficulty: 2
+886:
+  - title: Possible Bipartition
+  - url: https://leetcode.com/problems/possible-bipartition/
+  - tags: [graph, BFS, bipartite]
+  - difficulty: 3
 997:
   - title: Find the Town Judge
   - url: https://leetcode.com/problems/find-the-town-judge/
-  - tags: [graph],
+  - tags: [graph]
   - difficulty: 2
+1129:
+  - title: Shortest Path with Alternating Colors
+  - url: https://leetcode.com/problems/shortest-path-with-alternating-colors/
+  - tags: [graph, BFS, bipartite]
+  - difficulty: 4
 1557:
   - title: Minimum Number of Vertices to Reach All Nodes
   - url: https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/

@@ -1,4 +1,4 @@
-# Rusty Algorithms and Data Structures for Education
+# Rusty Algorithms and Data Structures for Education & Leetcode Solutions
 
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
@@ -6,7 +6,7 @@
 
 This repository presents Rust implementations of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
 
-In addition to implementing W. Fiset's algorithms, I also add original content that might be helpful, such as solutions of classical puzzles e.g. N-Queens and Sudoku.
+In addition to implementing W. Fiset's algorithms, I also write solutions to competitive programming problems, particularly in Leetcode. Where appropriate, I will note, or `use`, the relevent algorithm/data structure(s) in this crate.
 
 ## Usage
 
@@ -150,6 +150,6 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 - Travelling salesman problem (brutal force & DP)
 
-###**Applications**
+## Network Flow
 
 - Mice and owls
