@@ -1,0 +1,15 @@
+797:
+  - title: All Paths From Source to Target
+  - url: https://leetcode.com/problems/all-paths-from-source-to-target/
+  - tags: [graph, DFS]
+  - difficulty: 2
+997:
+  - title: Find the Town Judge
+  - url: https://leetcode.com/problems/find-the-town-judge/
+  - tags: [graph],
+  - difficulty: 2
+1557:
+  - title: Minimum Number of Vertices to Reach All Nodes
+  - url: https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/
+  - tags: [graph]
+  - difficulty: 2

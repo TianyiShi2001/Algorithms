@@ -174,26 +174,26 @@ pub mod rc {
             //      2  7  8
             //    1  3
             //  0   4 5
-            let node0 = Node::new(0, None);
-            let node1 = Node::new(1, None);
-            let node2 = Node::new(2, None);
-            let node3 = Node::new(3, None);
-            let node4 = Node::new(4, None);
-            let node5 = Node::new(5, None);
-            let node5 = Node::new(5, None);
-            let node6 = Node::new(6, None);
-            let node7 = Node::new(7, None);
-            let node8 = Node::new(8, None);
-            Node::add_child(&node6, &node2);
-            Node::add_child(&node6, &node7);
-            Node::add_child(&node6, &node8);
-            Node::add_child(&node2, &node1);
-            Node::add_child(&node2, &node3);
-            Node::add_child(&node1, &node0);
-            Node::add_child(&node3, &node4);
-            Node::add_child(&node3, &node5);
+            let _node0 = Node::new(0, None);
+            let _node1 = Node::new(1, None);
+            let _node2 = Node::new(2, None);
+            let _node3 = Node::new(3, None);
+            let _node4 = Node::new(4, None);
+            let _node5 = Node::new(5, None);
+            let _node5 = Node::new(5, None);
+            let _node6 = Node::new(6, None);
+            let _node7 = Node::new(7, None);
+            let _node8 = Node::new(8, None);
+            Node::add_child(&_node6, &_node2);
+            Node::add_child(&_node6, &_node7);
+            Node::add_child(&_node6, &_node8);
+            Node::add_child(&_node2, &_node1);
+            Node::add_child(&_node2, &_node3);
+            Node::add_child(&_node1, &_node0);
+            Node::add_child(&_node3, &_node4);
+            Node::add_child(&_node3, &_node5);
 
-            let root1 = node6;
+            let root1 = _node6;
 
             assert_eq!(root, root1);
         }
