@@ -5,6 +5,12 @@ pub struct GeographicalCoordinate {
 }
 
 impl GeographicalCoordinate {
+    pub fn new(longitude: f64, latitude: f64) -> Self {
+        Self {
+            longitude,
+            latitude,
+        }
+    }
     /// See: https://en.wikipedia.org/wiki/Haversine_formula
     pub fn distance(self, other: Self) -> f64 {
         const EARTH_RADIUS: f64 = 6378.1; // kilometers

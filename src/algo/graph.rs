@@ -290,6 +290,10 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
             .zip(self.inner.iter())
             .map(|((i, j), w)| (i, j, *w))
     }
+
+    pub fn node_count(&self) -> usize {
+        self.n
+    }
 }
 
 impl std::ops::Index<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCondensed {

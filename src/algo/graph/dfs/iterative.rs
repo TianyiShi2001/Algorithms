@@ -1,3 +1,11 @@
+//! An implementation of iterative DFS with an adjacency list
+//!
+//! - Time Complexity: O(V + E)
+//!
+//! # Resources
+//!
+//! - [W. Fiset's video](https://www.youtube.com/watch?v=7fujbpJ0LB4&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=4)
+
 use crate::algo::graph::WeightedAdjacencyList;
 
 impl WeightedAdjacencyList {

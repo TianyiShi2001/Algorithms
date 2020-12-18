@@ -26,6 +26,15 @@ impl UnionFind {
         }
     }
 
+    pub fn with_ranks(ranks: Vec<usize>) -> Self {
+        let size = ranks.len();
+        UnionFind {
+            // parents are initialised to invalid values
+            parents: (0..size).collect(),
+            ranks,
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.parents.len()
     }
@@ -87,11 +96,11 @@ impl UnionFind {
         self.ranks[element] = self.ranks[element].saturating_add(1);
     }
 
-    fn parent(&self, element: usize) -> usize {
+    pub fn parent(&self, element: usize) -> usize {
         self.parents[element]
     }
 
-    fn set_parent(&mut self, element: usize, parent: usize) {
+    pub fn set_parent(&mut self, element: usize, parent: usize) {
         self.parents[element] = parent;
     }
 }
