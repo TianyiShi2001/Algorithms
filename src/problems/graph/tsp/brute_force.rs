@@ -1,5 +1,5 @@
 use crate::algo::graph::WeightedAdjacencyMatrix;
-use crate::algo::math::permutations::*;
+use crate::algo::misc::permutations::*;
 
 pub fn tsp(g: &WeightedAdjacencyMatrix, start: usize) -> (f64, Vec<usize>) {
     let n = g.node_count();

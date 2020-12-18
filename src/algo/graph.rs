@@ -1,5 +1,4 @@
 pub mod bfs;
-pub mod clustering;
 pub mod dfs;
 pub mod eulerian_path;
 pub mod minimum_spanning_tree;

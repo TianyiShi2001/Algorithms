@@ -112,6 +112,8 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Bellman-Ford algorithm (SSSP)
 - Floyd-Warshall algorithm (APSP)
 
+### Clustering
+
 ### Others
 
 - Topological sorting of DAG graphs and DAG shortest path
