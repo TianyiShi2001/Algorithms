@@ -1,5 +1,5 @@
-//! An implementation of the eager version of Prim's algorithm which relies on using an indexed
-//! priority queue data structure to query the next best edge.
+//! UnionFind/Disjoint Set data structure implementation. This code was inspired by the union find
+//! implementation found in 'Algorithms Fourth Edition' by Robert Sedgewick and Kevin Wayne.
 //!
 //! # Resources
 //!

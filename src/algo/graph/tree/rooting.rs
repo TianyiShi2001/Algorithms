@@ -7,7 +7,7 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=2FFq2_je7Lg&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=9)
 
-use super::tree::{Node, Tree};
+use super::{Node, Tree};
 use crate::algo::graph::UnweightedAdjacencyList;
 
 impl Tree {
@@ -43,15 +43,19 @@ mod tests {
 
     #[test]
     fn test_tree_rooting() {
-        let mut graph = UnweightedAdjacencyList::with_size(9);
-        graph.add_undirected_edge(0, 1);
-        graph.add_undirected_edge(2, 1);
-        graph.add_undirected_edge(2, 3);
-        graph.add_undirected_edge(3, 4);
-        graph.add_undirected_edge(5, 3);
-        graph.add_undirected_edge(2, 6);
-        graph.add_undirected_edge(6, 7);
-        graph.add_undirected_edge(6, 8);
+        let graph = UnweightedAdjacencyList::new_undirected(
+            9,
+            &[
+                [0, 1],
+                [2, 1],
+                [2, 3],
+                [3, 4],
+                [5, 3],
+                [2, 6],
+                [6, 7],
+                [6, 8],
+            ],
+        );
         let tree = Tree::from_adjacency_list(&graph, 6).root;
         // Rooted at 6 the tree should look like:
         //         6
@@ -112,5 +116,86 @@ mod tests {
                 ]
             }
         );
+    }
+}
+
+pub mod rc {
+    use crate::algo::graph::tree::rc::*;
+    use crate::algo::graph::UnweightedAdjacencyList;
+
+    impl Node {
+        pub fn from_adjacency_list(
+            graph: &UnweightedAdjacencyList,
+            root: usize,
+        ) -> Rc<RefCell<Node>> {
+            fn build_tree_recursive(
+                graph: &UnweightedAdjacencyList,
+                node_id: usize,
+                parent: Option<&Rc<RefCell<Node>>>,
+            ) -> Rc<RefCell<Node>> {
+                let node = Node::new(node_id, parent);
+                for &child_id in &graph[node_id] {
+                    if let Some(parent_node) = parent {
+                        if parent_node.borrow().id == child_id {
+                            continue;
+                        }
+                    }
+                    let child_node = build_tree_recursive(graph, child_id, Some(&node));
+                    node.borrow_mut().children.push(child_node);
+                }
+                node
+            }
+            build_tree_recursive(graph, root, None)
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_tree_rooting_rc() {
+            let graph = UnweightedAdjacencyList::new_undirected(
+                9,
+                &[
+                    [0, 1],
+                    [2, 1],
+                    [2, 3],
+                    [3, 4],
+                    [5, 3],
+                    [2, 6],
+                    [6, 7],
+                    [6, 8],
+                ],
+            );
+            let root = Node::from_adjacency_list(&graph, 6);
+            // Rooted at 6 the tree should look like:
+            //         6
+            //      2  7  8
+            //    1  3
+            //  0   4 5
+            let node0 = Node::new(0, None);
+            let node1 = Node::new(1, None);
+            let node2 = Node::new(2, None);
+            let node3 = Node::new(3, None);
+            let node4 = Node::new(4, None);
+            let node5 = Node::new(5, None);
+            let node5 = Node::new(5, None);
+            let node6 = Node::new(6, None);
+            let node7 = Node::new(7, None);
+            let node8 = Node::new(8, None);
+            Node::add_child(&node6, &node2);
+            Node::add_child(&node6, &node7);
+            Node::add_child(&node6, &node8);
+            Node::add_child(&node2, &node1);
+            Node::add_child(&node2, &node3);
+            Node::add_child(&node1, &node0);
+            Node::add_child(&node3, &node4);
+            Node::add_child(&node3, &node5);
+
+            let root1 = node6;
+
+            assert_eq!(root, root1);
+        }
     }
 }

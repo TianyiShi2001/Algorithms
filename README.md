@@ -104,10 +104,6 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Edmonds-Karp Algorithm (BFS)
 - Dinic's Algorithm (BFS + DFS)
 
-**Applications**
-
-- Mice and owls
-
 ### Shortest Path
 
 - BFS (unweighted)
@@ -151,3 +147,7 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 ## Graph
 
 - Travelling salesman problem (brutal force & DP)
+
+###**Applications**
+
+- Mice and owls

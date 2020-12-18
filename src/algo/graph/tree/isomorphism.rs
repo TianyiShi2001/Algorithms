@@ -6,7 +6,7 @@
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=OCKvEMF0Xac&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=11)
 
 use crate::algo::graph::tree::center::{Center, TreeCenter};
-use crate::algo::graph::tree::tree::{Node, Tree};
+use crate::algo::graph::tree::{Node, Tree};
 use crate::algo::graph::UnweightedAdjacencyList;
 
 impl From<Center> for Vec<usize> {

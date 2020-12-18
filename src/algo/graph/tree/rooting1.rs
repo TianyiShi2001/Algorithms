@@ -1,4 +1,4 @@
-//! An improved implementation of Tree Rooting, in which each node has an pointer to its parent.
+//! Another implementation of Tree Rooting, in which each node has an pointer to its parent.
 
 use crate::algo::graph::UnweightedAdjacencyList;
 
@@ -7,6 +7,7 @@ use crate::algo::graph::UnweightedAdjacencyList;
 pub struct TreeNode {
     id: usize,
     parent: *const TreeNode,
+    // `Box` is required to prevent the parent pointer becoming invalid; otherwise, `Rc` can be used.
     children: Vec<Box<TreeNode>>,
 }
 
