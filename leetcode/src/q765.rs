@@ -23,3 +23,29 @@ impl S1 {
         res
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_q765_1() {
+        let inp = vec![0, 2, 1, 3];
+        let out = 1;
+        assert_eq!(S1::min_swaps_couples(inp), out);
+    }
+
+    #[test]
+    fn test_q765_2() {
+        let inp = vec![3, 2, 0, 1];
+        let out = 0;
+        assert_eq!(S1::min_swaps_couples(inp), out);
+    }
+
+    #[test]
+    fn test_q765_3() {
+        let inp = vec![0, 2, 1, 3, 5, 6, 11, 12, 8, 9, 4, 10, 7, 13];
+        let out = 4;
+        assert_eq!(S1::min_swaps_couples(inp), out);
+    }
+}
