@@ -2,11 +2,11 @@
 
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
-![lines of code](https://img.shields.io/badge/lines%20of%20code-6135-blue)
+![lines of code](https://img.shields.io/badge/lines%20of%20code-7221-blue)
 
 This repository presents Rust implementations of common algorithms and data structures, most of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode.
 
-In addition to implementing W. Fiset's algorithms, I also write solutions to competitive programming problems, particularly in Leetcode. Where appropriate, I will note, or `use`, the relevent algorithm/data structure(s) in this crate.
+In addition to implementing W. Fiset's algorithms, I also write solutions to competitive programming problems. Some representative problems are explained in `src/problems`, and there is also a `leetcode` folder for my leetcode solutions. Both are far from completion. <!-- particularly in Leetcode. Where appropriate, I will note, or `use`, the relevent algorithm/data structure(s) in this crate. -->
 
 ## Usage
 
@@ -16,7 +16,7 @@ The implementation details are explained in comments and docs and the example us
 cargo test
 ```
 
-Although these algorithms and data structures are mainly for learning purposes, many of them can be directly applied (copy-pasted) in the context of competitive programming. The `src/problems` folder offers some examples of using components of this crate to solve real competitive programming problems.
+<!-- Although these algorithms and data structures are mainly for learning purposes, many of them can be directly applied (copy-pasted) in the context of competitive programming. -->
 
 ## Recommended Environment
 
@@ -85,7 +85,8 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 ### Tree Algorithms
 
-- Fundamentals (layout, DFS, tree height, tree sum)
+- Tree representation: with or without pointer to parent
+- Fundamentals (DFS, tree height, tree sum, etc.)
 - Tree Center
 - Tree rooting
 - Tree isomorphism
@@ -98,7 +99,6 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 ### Network Flow
 
-- Bipartite check
 - Ford-Fulkerson + DFS
 - DFS with capacity scaling
 - Edmonds-Karp Algorithm (BFS)
@@ -112,10 +112,9 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Bellman-Ford algorithm (SSSP)
 - Floyd-Warshall algorithm (APSP)
 
-### Clustering
-
 ### Others
 
+- Bipartite check
 - Topological sorting of DAG graphs and DAG shortest path
 - Eulerian path/circuit
 - Strongly connected components (Tarjan's algorithm)
@@ -128,6 +127,12 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
   - AVL tree
 - Disjoin set (union-find)
 - Sparse table (range query) (generic)
+
+## Machine Learning
+
+### Clustering
+
+- Hierarchical clustering
 
 ## Math
 

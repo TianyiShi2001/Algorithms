@@ -18,7 +18,12 @@
   - url: https://leetcode.com/problems/shortest-path-with-alternating-colors/
   - tags: [graph, BFS, bipartite]
   - difficulty: 4
-1557:
+1387:
+  - title: Sort Integers by The Power Value
+  - url: https://leetcode.com/problems/sort-integers-by-the-power-value/
+  - tags: [BFS, DP]
+  - difficulty: 3
+  1557:
   - title: Minimum Number of Vertices to Reach All Nodes
   - url: https://leetcode.com/problems/minimum-number-of-vertices-to-reach-all-nodes/
   - tags: [graph]

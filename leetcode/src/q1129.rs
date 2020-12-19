@@ -8,6 +8,7 @@ impl S1 {
     ) -> Vec<i32> {
         let n = n as usize;
         let mut steps = vec![-1; n];
+        // `steps[n]` is the minimum number of steps to reach node `n` from node `0`
         let mut vis = vec![vec![false; n]; 2];
         // tracks whether an edge (not node!) has been visited
         // vis[0] tracks red edges; vis[1] tracks blue edges
@@ -20,10 +21,12 @@ impl S1 {
         }
 
         let mut q = std::collections::VecDeque::new();
-        q.push_back((0, 0, 0));
-        q.push_back((0, 1, 0)); // can start with either a red node or a blue node
+        q.push_back((0, 0, 0)); // can start with either a red node
+        q.push_back((0, 1, 0)); // or a blue node
         while let Some((node, next_color, step)) = q.pop_front() {
             if steps[node] == -1 || step < steps[node] {
+                // Cycles can cause a newly computeted number of steps greater than the previosuly determined one,
+                // so we need to check for it
                 steps[node] = step
             };
             for &(nei_node, edge_color) in &g[node] {
