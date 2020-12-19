@@ -1,3 +1,11 @@
+//! # Graph Theory Algorithms
+//!
+//! This module contains implementations of graph and tree representations and algorithms.
+//!
+//! I highly recommend watching [William Fiset's video series on graph theory algorithms](https://www.youtube.com/watch?v=DgXR2OWQnLc&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P)
+//! While following along, try implementing the algorithms yourself before comparing them to implementations presented here or
+//! William's original Java implementations.
+
 pub mod bfs;
 pub mod bipartite_check;
 pub mod dfs;
@@ -11,40 +19,49 @@ pub mod tree;
 
 use std::fmt;
 
+/// The Edge type used in [`WeightedAdjacencyList`].
+/// A `from` field is not required because it's implied by its position in the adjacency list.
 #[derive(Debug, Copy, Clone)]
 pub struct Edge {
     pub to: usize,
-    pub cost: f64,
+    pub weight: f64,
 }
 impl Edge {
-    pub fn new(to: usize, cost: f64) -> Self {
-        Self { to, cost }
+    /// Consruct a new (directed) weighted `Edge`
+    pub fn new(to: usize, weight: f64) -> Self {
+        Self { to, weight }
     }
 }
 
+/// A graph represented by a weighted adjacency list.
+/// Under the hood, a weighted adjacency list is a `Vec` of `Vec` of `Edge`s.
+/// For an adjacency list `g`, `g[i]` is a `Vec` of edges pointing from `i` to other nodes (vertices).
+/// Thus, the number of nodes is implied by the `len` of the (outer) `Vec`.
+/// For each node `i` that do not have outgoing edges, `g[i]` is an empty vector.
 #[derive(Debug)]
 pub struct WeightedAdjacencyList {
-    edges: Vec<Vec<Edge>>,
+    inner: Vec<Vec<Edge>>,
 }
 
 impl WeightedAdjacencyList {
     /// Initialize an empty adjacency list that can hold up to n nodes.
     pub fn with_size(n: usize) -> Self {
         Self {
-            edges: vec![vec![]; n],
+            inner: vec![vec![]; n],
         }
     }
+    /// Is the graph devoid of vertices?
     pub fn is_empty(&self) -> bool {
-        self.edges.is_empty()
+        self.inner.is_empty()
     }
-    /// Add a directed edge from node `u` to node `v` with cost `cost`.
-    pub fn add_directed_edge(&mut self, u: usize, v: usize, cost: f64) {
-        self.edges[u].push(Edge::new(v, cost))
+    /// Add a directed edge from node `u` to node `v` with weight `weight`.
+    pub fn add_directed_edge(&mut self, u: usize, v: usize, weight: f64) {
+        self.inner[u].push(Edge::new(v, weight))
     }
     /// Add an undirected edge between nodes `u` and `v`.
-    pub fn add_undirected_edge(&mut self, u: usize, v: usize, cost: f64) {
-        self.add_directed_edge(u, v, cost);
-        self.add_directed_edge(v, u, cost);
+    pub fn add_undirected_edge(&mut self, u: usize, v: usize, weight: f64) {
+        self.add_directed_edge(u, v, weight);
+        self.add_directed_edge(v, u, weight);
     }
     pub fn new_directed(size: usize, edges: &[(usize, usize, f64)]) -> Self {
         let mut graph = Self::with_size(size);
@@ -74,50 +91,58 @@ impl WeightedAdjacencyList {
         }
         graph
     }
+    /// Iterates over all edges in the gragh.
+    /// Each item is a tuples of 3: `(from, to, weight)`
     pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f64)> + '_ {
-        self.edges
+        self.inner
             .iter()
             .enumerate()
-            .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.cost)))
+            .flat_map(|(a, edges)| edges.iter().map(move |b| (a, b.to, b.weight)))
     }
+    /// Number of edges in the graph
     pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
-    pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
-        self.edges.iter().enumerate()
+    /// Iterates over all nodes in the graph.
+    /// Each item is a tuple of the node id and a reference to all its outgoing edges
+    pub fn nodes(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
+        self.inner.iter().enumerate()
     }
+    /// Number of nodes in the graph
     pub fn node_count(&self) -> usize {
-        self.edges.len()
+        self.inner.len()
     }
 }
 
+/// This allows the outgoing edges of a node to be accessed easily.
 impl std::ops::Index<usize> for WeightedAdjacencyList {
     type Output = Vec<Edge>;
     fn index(&self, index: usize) -> &Self::Output {
-        &self.edges[index]
+        &self.inner[index]
     }
 }
 
+/// An unweighted graph represented by an unweighted adjacency list.
+/// This is in principle the same as `WeightedAdjacencyList`, except that no weights are involved
+/// and thus a simple `usize` is able to represent an outgoing edge.
 #[derive(Debug)]
 pub struct UnweightedAdjacencyList {
-    edges: Vec<Vec<usize>>,
-    // is_directed: bool,
+    inner: Vec<Vec<usize>>,
 }
 
 impl UnweightedAdjacencyList {
     /// Initialize an empty adjacency list that can hold up to n nodes.
     pub fn with_size(n: usize) -> Self {
         Self {
-            edges: vec![vec![]; n],
-            //is_directed: true,
+            inner: vec![vec![]; n],
         }
     }
     pub fn is_empty(&self) -> bool {
-        self.edges.is_empty()
+        self.inner.is_empty()
     }
     /// Add a directed edge from node `u` to node `v`
     pub fn add_directed_edge(&mut self, u: usize, v: usize) {
-        self.edges[u].push(v)
+        self.inner[u].push(v)
     }
     /// Add an undirected edge between nodes `u` and `v`.
     pub fn add_undirected_edge(&mut self, u: usize, v: usize) {
@@ -138,8 +163,10 @@ impl UnweightedAdjacencyList {
         }
         graph
     }
+    /// Iterates over all edges in the gragh.
+    /// Each item is an array of length 2, showing the source and destination of this edge.
     pub fn edges(&self) -> impl Iterator<Item = [usize; 2]> + '_ {
-        self.edges
+        self.inner
             .iter()
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
@@ -147,18 +174,18 @@ impl UnweightedAdjacencyList {
     pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
-    pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
-        self.edges.iter().enumerate()
+    pub fn nodes(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
+        self.inner.iter().enumerate()
     }
     pub fn node_count(&self) -> usize {
-        self.edges.len()
+        self.inner.len()
     }
 }
 
 impl std::ops::Index<usize> for UnweightedAdjacencyList {
     type Output = Vec<usize>;
     fn index(&self, index: usize) -> &Self::Output {
-        &self.edges[index]
+        &self.inner[index]
     }
 }
 
@@ -181,9 +208,9 @@ impl WeightedAdjacencyMatrix {
     }
     pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
         let mut res = Self::with_size(inp.node_count());
-        for (from, edges) in inp.vertices() {
-            for &Edge { to, cost } in edges {
-                res.inner[from][to] = cost;
+        for (from, edges) in inp.nodes() {
+            for &Edge { to, weight } in edges {
+                res.inner[from][to] = weight;
             }
         }
         res

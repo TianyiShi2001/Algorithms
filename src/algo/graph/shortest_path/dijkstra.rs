@@ -44,12 +44,12 @@ impl WeightedAdjacencyList {
                 continue;
             }
             *dist = cur_dist;
-            for &Edge { to, cost } in &self[node] {
+            for &Edge { to, weight } in &self[node] {
                 // You cannot get a shorter path by revisiting
                 // a node you have already visited before.
                 if !vis[to] {
                     // Relax edge by updating minimum cost if applicable.
-                    let new_dist = cur_dist + cost;
+                    let new_dist = cur_dist + weight;
                     if new_dist < dists[to] {
                         prev[to] = Some(node);
                         dists[to] = new_dist;

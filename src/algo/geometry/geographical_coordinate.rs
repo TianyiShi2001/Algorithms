@@ -11,7 +11,7 @@ impl GeographicalCoordinate {
             latitude,
         }
     }
-    /// See: https://en.wikipedia.org/wiki/Haversine_formula
+    /// See: <https://en.wikipedia.org/wiki/Haversine_formula>
     pub fn distance(self, other: Self) -> f64 {
         const EARTH_RADIUS: f64 = 6378.1; // kilometers
 

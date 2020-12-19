@@ -91,8 +91,8 @@ impl WeightedAdjacencyList {
         toposort.into_iter().skip(i).for_each(|node_id| {
             let cur_dist = dists[node_id];
             if cur_dist.is_finite() {
-                for &Edge { to, cost } in &self[node_id] {
-                    let new_dist = cur_dist + cost;
+                for &Edge { to, weight } in &self[node_id] {
+                    let new_dist = cur_dist + weight;
                     let dist = &mut dists[to];
                     *dist = min(*dist, new_dist);
                 }

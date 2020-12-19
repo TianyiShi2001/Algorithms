@@ -120,7 +120,7 @@ impl NetworkFlowAdjacencyList {
     pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
-    pub fn vertices(&self) -> impl Iterator<Item = (usize, &Vec<Rc<RefCell<Edge>>>)> {
+    pub fn nodes(&self) -> impl Iterator<Item = (usize, &Vec<Rc<RefCell<Edge>>>)> {
         self.edges.iter().enumerate()
     }
     pub fn node_count(&self) -> usize {

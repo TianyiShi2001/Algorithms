@@ -40,7 +40,7 @@ impl UnweightedAdjacencyList {
                 depth += 1;
                 continue;
             }
-            let neighbours = &self.edges[node];
+            let neighbours = &self[node];
 
             // Loop through all edges attached to this node. Mark nodes as visited once they`re
             // in the queue. This will prevent having duplicate nodes in the queue and speedup the BFS.

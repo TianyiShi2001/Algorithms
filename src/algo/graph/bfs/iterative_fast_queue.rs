@@ -43,7 +43,7 @@ impl BfsReconstructPath for UnweightedAdjacencyList {
 
         // Continue until the BFS is donw.
         while let Some(node) = queue.pop_front() {
-            let neighbours = &self.edges[node];
+            let neighbours = &self[node];
 
             // Loop through all edges attached to this node. Mark nodes as visited once they`re
             // in the queue. This will prevent having duplicate nodes in the queue and speedup the BFS.

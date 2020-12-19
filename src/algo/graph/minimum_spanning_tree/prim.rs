@@ -25,11 +25,11 @@ impl WeightedAdjacencyList {
             visited[from] = true;
             // iterate over all edges going outwards from the current node.
             // Add edges to the PQ which point to unvisited nodes.
-            for &Edge { to, cost } in &self[from] {
+            for &Edge { to, weight } in &self[from] {
                 if !visited[to] {
                     // `push_increase` queues an element if it's not already present.
                     // Otherwise, it updates the element's priority if the new priority is higher.
-                    pq.push_increase((from, to), OrderedFloat(-cost));
+                    pq.push_increase((from, to), OrderedFloat(-weight));
                 }
             }
         };

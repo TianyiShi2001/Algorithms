@@ -27,7 +27,7 @@ impl WeightedAdjacencyList {
             let neighbours = &self[node];
             for &edge in neighbours {
                 if !visited[edge.to] {
-                    cost += edge.cost;
+                    cost += edge.weight;
                     stack.push(edge.to);
                     visited[edge.to] = true;
                 }

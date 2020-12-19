@@ -24,7 +24,7 @@ impl TreeCenter for UnweightedAdjacencyList {
         let mut degrees = vec![0; n];
         let mut leaves = Vec::new();
         // identify all leaves
-        self.edges.iter().enumerate().for_each(|(i, neighbours)| {
+        self.nodes().for_each(|(i, neighbours)| {
             let degree = neighbours.len();
             if degree <= 1 {
                 leaves.push(i);
