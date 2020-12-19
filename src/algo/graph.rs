@@ -104,17 +104,17 @@ impl WeightedAdjacencyList {
         self.edges().count()
     }
     /// Iterates over all nodes in the graph.
-    /// Each item is a tuple of the node id and a reference to all its outgoing edges
+    /// Each item is a tuple of the node id and a `Vec` of all its outgoing edges
     pub fn nodes(&self) -> impl Iterator<Item = (usize, &Vec<Edge>)> {
         self.inner.iter().enumerate()
     }
-    /// Number of nodes in the graph
+    /// Number of nodes (vertices) in the graph
     pub fn node_count(&self) -> usize {
         self.inner.len()
     }
 }
 
-/// This allows the outgoing edges of a node to be accessed easily.
+/// Allows the outgoing edges of a node to be accessed easily.
 impl std::ops::Index<usize> for WeightedAdjacencyList {
     type Output = Vec<Edge>;
     fn index(&self, index: usize) -> &Self::Output {
@@ -171,17 +171,22 @@ impl UnweightedAdjacencyList {
             .enumerate()
             .flat_map(|(a, edges)| edges.iter().map(move |&b| [a, b]))
     }
+    /// Number of edges in the graph
     pub fn edge_count(&self) -> usize {
         self.edges().count()
     }
+    /// Iterates over all nodes in the graph.
+    /// Each item is a tuple of the node id and a `Vec` of all its outgoing edges
     pub fn nodes(&self) -> impl Iterator<Item = (usize, &Vec<usize>)> {
         self.inner.iter().enumerate()
     }
+    /// Number of nodes (vertices) in the graph
     pub fn node_count(&self) -> usize {
         self.inner.len()
     }
 }
 
+/// Allows the outgoing edges of a node to be accessed easily.
 impl std::ops::Index<usize> for UnweightedAdjacencyList {
     type Output = Vec<usize>;
     fn index(&self, index: usize) -> &Self::Output {
@@ -189,6 +194,12 @@ impl std::ops::Index<usize> for UnweightedAdjacencyList {
     }
 }
 
+/// Dense graphs, are sometimes more efficient to be represented as adjacency matrices.
+/// A `WeightedAdjacencyMatrix` is based on a Matrix of size `n * n` where n is the number of nodes (vertices) in
+/// the graph.
+/// For a `WeightedAdjacencyMatrix` `g`, `g[i][j]` is the weight of the edge pointing from node `i`
+/// to node `j`. By convention, for two nodes `i` and `j` that are *not* connected, `g[i][j] = INFINITY`,
+/// and each node by default has a weight of `0` to point to itself (i.e. `g[i][i]` = 0).
 pub struct WeightedAdjacencyMatrix {
     inner: Vec<Vec<f64>>,
 }
@@ -196,6 +207,7 @@ pub struct WeightedAdjacencyMatrix {
 impl WeightedAdjacencyMatrix {
     #[allow(clippy::needless_range_loop)]
     pub fn with_size(n: usize) -> Self {
+        // By default, all vertices are not connected and this is indicated by a weight of `INFINITY` between them
         let mut inner = vec![vec![f64::INFINITY; n]; n];
         // distance of each vertex to itself defaults to zero.
         for i in 0..n {
@@ -203,9 +215,11 @@ impl WeightedAdjacencyMatrix {
         }
         Self { inner }
     }
+    /// Number of nodes in the graph.
     pub fn node_count(&self) -> usize {
         self.inner.len()
     }
+    /// Converts a `WeightedAdjacencyList` to `WeightedAdjacencyMatrix`
     pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
         let mut res = Self::with_size(inp.node_count());
         for (from, edges) in inp.nodes() {
@@ -215,20 +229,14 @@ impl WeightedAdjacencyMatrix {
         }
         res
     }
-}
-
-impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
-    fn from(inp: WeightedAdjacencyList) -> Self {
-        Self::from_adjacency_list(&inp)
+    /// Builds a `WeightedAdjacencyMatrix` from its underlying representation.
+    pub fn from_inner(matrix: Vec<Vec<f64>>) -> Self {
+        Self { inner: matrix }
     }
 }
 
-impl From<Vec<Vec<f64>>> for WeightedAdjacencyMatrix {
-    fn from(inner: Vec<Vec<f64>>) -> Self {
-        Self { inner }
-    }
-}
-
+/// This allows us to access the weight of edge `i -> j` in graph `g`
+/// by `g[i][j]` rather than `g.inner[i][j]`
 impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
     type Output = Vec<f64>;
     fn index(&self, index: usize) -> &Self::Output {
@@ -236,6 +244,21 @@ impl std::ops::Index<usize> for WeightedAdjacencyMatrix {
     }
 }
 
+/// For convinience
+impl From<WeightedAdjacencyList> for WeightedAdjacencyMatrix {
+    fn from(inp: WeightedAdjacencyList) -> Self {
+        Self::from_adjacency_list(&inp)
+    }
+}
+
+/// For convinience
+impl From<Vec<Vec<f64>>> for WeightedAdjacencyMatrix {
+    fn from(matrix: Vec<Vec<f64>>) -> Self {
+        Self::from_inner(matrix)
+    }
+}
+
+/// Pretty-prints a small graph represented by an adjacency matrix
 impl fmt::Display for WeightedAdjacencyMatrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let n = self.node_count();
@@ -262,12 +285,22 @@ impl fmt::Display for WeightedAdjacencyMatrix {
     }
 }
 
+/// Pretty-prints a small graph represented by a weighted adjacency list
+/// The graph is first converted to a `WeightedAdjacencyMatrix` before being printed
 impl fmt::Display for WeightedAdjacencyList {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", WeightedAdjacencyMatrix::from_adjacency_list(self))
     }
 }
 
+/// An adjacency matrix representing an undirected graph is symmetric with respect to the main diagonal,
+/// i.e. `g[i][j]` = `g[j][i]`. Thus, only half of the values in the matrix need to be stored. In addition,
+/// The assumption that `g[i][i] = 0` works fine in most cases, so weights representing these self-pointing
+/// edges are also not stored.
+///
+/// Thus a condensed matrix stores only `g[i][j]` where `i < j` in a vector of length ${}^{n}C_{2} = \\dfrac{n(n-1)}{2}$
+/// (n-choose-2). For example, in a graph with 4 vertices, the 6 weights in the condensed vector represents
+/// `g[0 -> 1], g[0 -> 2], g[0 -> 3], g[1 -> 2], g[1 -> 3], g[2 -> 3]`, respectively.
 #[derive(Debug)]
 pub struct WeightedUndirectedAdjacencyMatrixCondensed {
     inner: Vec<f64>,
@@ -275,6 +308,14 @@ pub struct WeightedUndirectedAdjacencyMatrixCondensed {
 }
 
 impl WeightedUndirectedAdjacencyMatrixCondensed {
+    /// Build a `WeightedUndirectedAdjacencyMatrixCondensed` from [`WeightedAdjacencyList`].
+    /// The graph must be undirected. Even if the [`WeightedAdjacencyList`] were build with
+    /// directed edges, they are treated as undirected edges.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the [`WeightedAdjacencyList`] contains both `g[i -> j]` and `g[j -> i]` but
+    /// their weights differ
     pub fn from_adjacency_list(inp: &WeightedAdjacencyList) -> Self {
         let n = inp.node_count();
         let mut m = Self {
@@ -294,6 +335,7 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
         }
         m
     }
+    /// Builds a `WeightedUndirectedAdjacencyMatrixCondensed` from its inner representation.
     pub fn from_slice(inp: &[f64]) -> Self {
         assert!(!inp.is_empty(), "Inpud cannot be empty.");
         let mut n = 2;
@@ -311,18 +353,24 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
             }
         }
     }
+    /// Iterate over all pairs of nodes `(i, j)` where `i < j` with the weight associated with the pair.
+    /// Each item is a tuple of 3: `(i, j, weight)`.
+    /// Note that only `(i, j)` but not `(j, i)` is outputted.
     pub fn edges(&self) -> impl Iterator<Item = (usize, usize, f64)> + '_ {
         (0..self.n - 1)
             .flat_map(move |i| (i + 1..self.n).map(move |j| (i, j)))
             .zip(self.inner.iter())
             .map(|((i, j), w)| (i, j, *w))
     }
-
+    /// Number of nodes (vertices) in the graph
     pub fn node_count(&self) -> usize {
         self.n
     }
 }
 
+/// This allows indexing into graphs represented by [`WeightedUndirectedAdjacencyMatrixCondensed`] easier.
+/// For example, for a graph `g`, either `g[(i, j)]` or `g[(j, i)]` will give the weight associated with node
+/// `i` and node `j` (remember the graph is undirected)
 impl std::ops::Index<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCondensed {
     type Output = f64;
 
@@ -345,7 +393,6 @@ impl std::ops::Index<(usize, usize)> for WeightedUndirectedAdjacencyMatrixConden
         }
     }
 }
-
 impl std::ops::IndexMut<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCondensed {
     fn index_mut(&mut self, (i, j): (usize, usize)) -> &mut Self::Output {
         use std::cmp::Ordering::*;

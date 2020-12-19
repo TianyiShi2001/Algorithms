@@ -16,7 +16,17 @@ The implementation details are explained in comments and docs and the example us
 cargo test
 ```
 
-<!-- Although these algorithms and data structures are mainly for learning purposes, many of them can be directly applied (copy-pasted) in the context of competitive programming. -->
+I use LaTeX to write some math expression in docs. To render them correctly in docs, run:
+
+```
+RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps --open
+```
+
+or an alias for this command:
+
+```
+./doc
+```
 
 ## Recommended Environment
 
