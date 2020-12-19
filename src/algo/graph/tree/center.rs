@@ -1,4 +1,4 @@
-//! This algorithm finds the center(s) of a tree.
+//! This algorithm finds the center(s) of an undirected tree represented by an adjacency list.
 //!
 //! - Time Complexity: $O(V+E)$
 //!
@@ -8,32 +8,40 @@
 
 use crate::algo::graph::UnweightedAdjacencyList;
 
+// A tree can either have one or two center(s)
 #[derive(Debug, Eq, PartialEq)]
 pub enum Center {
     One(usize),
     Two(usize, usize),
 }
 
-pub trait TreeCenter {
-    fn center(&self) -> Center;
-}
-
-impl TreeCenter for UnweightedAdjacencyList {
-    fn center(&self) -> Center {
+impl UnweightedAdjacencyList {
+    /// Finds the center(s) of an undirected tree.
+    /// The adjacency list must be build with undirected edges, and does not contain cycles, so that
+    /// it qualifies the definition for a tree.
+    pub fn center(&self) -> Center {
         let n = self.node_count();
+        // Tracks the degree of each node
+        // the degee of a node is the number of its neighbours (i.e. nodes that it points to)
         let mut degrees = vec![0; n];
         let mut leaves = Vec::new();
-        // identify all leaves
+        // compute degrees and identify all leaves (i.e. nodes that are connected to only one neighbour and thus
+        // with a degree of 1)
         self.nodes().for_each(|(i, neighbours)| {
             let degree = neighbours.len();
+            // this also processes singleton nodes with a degree of zero
+            // (but you can treat it as `degree == 1` for the sake of simplicity, in which case the
+            // algorithm only works if the graph is not disconnected and contains only one tree)
             if degree <= 1 {
                 leaves.push(i);
             }
             degrees[i] = degree;
         });
         let mut processed_leaves = leaves.len();
-        // Remove leaf nodes and decrease the degree of each node adding new leaf nodes progressively
-        // until only the centers remain.
+        // Pruning leaf nodes by decreasing the degree of its neighbours.
+        // If the degree drops to 1, the node becomes a new leaf node and is added to `new_leaves`
+        // which are processed in the next round of iteration
+        // The process repeats until only the centers remain.
         while processed_leaves < n {
             let mut new_leaves = Vec::new();
             for &leaf in &leaves {
@@ -43,7 +51,6 @@ impl TreeCenter for UnweightedAdjacencyList {
                         new_leaves.push(neighbour);
                     }
                 }
-                // degrees[leaf] = 0; // prune this leaf (not necessary?)
             }
             processed_leaves += new_leaves.len();
             leaves = new_leaves;
