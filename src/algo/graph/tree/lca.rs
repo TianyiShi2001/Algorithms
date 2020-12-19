@@ -7,7 +7,7 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=sD1IoalFomA)
 
-use super::Tree;
+use super::Node;
 
 pub struct LcaSolver {
     sparse_table: MinSparseTable,
@@ -18,10 +18,10 @@ pub struct LcaSolver {
 }
 
 impl LcaSolver {
-    pub fn new(tree: &Tree) -> Self {
-        let mut node_depth = vec![0usize; tree.size * 2 - 1]; // Vec::<usize>::new();
-        let mut node_order = vec![0usize; tree.size * 2 - 1]; // Vec::<usize>::new();
-        let mut last = vec![0usize; tree.size];
+    pub fn new(root: &Node, size: usize) -> Self {
+        let mut node_depth = vec![0usize; size * 2 - 1]; // Vec::<usize>::new();
+        let mut node_order = vec![0usize; size * 2 - 1]; // Vec::<usize>::new();
+        let mut last = vec![0usize; size];
         let mut tour_index = 0;
 
         let mut visit = |node: usize, depth: usize| {
@@ -32,8 +32,8 @@ impl LcaSolver {
         };
 
         //dfs
-        let mut stack = vec![(&tree.root, 0usize)];
-        let mut visited = vec![false; tree.size];
+        let mut stack = vec![(root, 0usize)];
+        let mut visited = vec![false; size];
         while let Some((node, depth)) = stack.pop() {
             visit(node.id, depth);
             if !visited[node.id] {
@@ -148,9 +148,9 @@ mod tests {
                 [11, 16],
             ],
         );
-        let tree = Tree::from_adjacency_list(&tree, 0);
+        let tree = Node::from_adjacency_list(&tree, 0);
 
-        let lca_solver = LcaSolver::new(&tree);
+        let lca_solver = LcaSolver::new(&tree, 17);
         assert_eq!(lca_solver.lca(14, 13), 2);
         assert_eq!(lca_solver.lca(9, 11), 0);
         assert_eq!(lca_solver.lca(12, 12), 12);
@@ -159,7 +159,7 @@ mod tests {
 
 pub mod with_generic_sparse_table {
 
-    use super::super::Tree;
+    use super::super::Node;
     use crate::data_structures::sparse_table::SparseTable;
 
     type IndexAndDepth = (usize, usize);
@@ -174,10 +174,10 @@ pub mod with_generic_sparse_table {
     }
 
     impl LcaSolver {
-        pub fn new(tree: &Tree) -> Self {
-            let mut node_depth = vec![0usize; tree.size * 2 - 1];
-            let mut node_order = vec![0usize; tree.size * 2 - 1];
-            let mut last = vec![0usize; tree.size];
+        pub fn new(root: &Node, size: usize) -> Self {
+            let mut node_depth = vec![0usize; size * 2 - 1];
+            let mut node_order = vec![0usize; size * 2 - 1];
+            let mut last = vec![0usize; size];
             let mut tour_index = 0;
 
             let mut visit = |node: usize, depth: usize| {
@@ -188,8 +188,8 @@ pub mod with_generic_sparse_table {
             };
 
             //dfs
-            let mut stack = vec![(&tree.root, 0usize)];
-            let mut visited = vec![false; tree.size];
+            let mut stack = vec![(root, 0usize)];
+            let mut visited = vec![false; size];
             while let Some((node, depth)) = stack.pop() {
                 visit(node.id, depth);
                 if !visited[node.id] {
@@ -245,8 +245,8 @@ pub mod with_generic_sparse_table {
                     [11, 16],
                 ],
             );
-            let tree = Tree::from_adjacency_list(&tree, 0);
-            let lca_solver = LcaSolver::new(&tree);
+            let tree = Node::from_adjacency_list(&tree, 0);
+            let lca_solver = LcaSolver::new(&tree, 17);
             assert_eq!(lca_solver.lca(14, 13), 2);
             assert_eq!(lca_solver.lca(9, 11), 0);
             assert_eq!(lca_solver.lca(12, 12), 12);

@@ -7,10 +7,10 @@
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=2FFq2_je7Lg&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=9)
 
-use super::{Node, Tree};
+use super::Node;
 use crate::algo::graph::UnweightedAdjacencyList;
 
-impl Tree {
+impl Node {
     pub fn from_adjacency_list(graph: &UnweightedAdjacencyList, root: usize) -> Self {
         fn build_tree_recursive(
             graph: &UnweightedAdjacencyList,
@@ -29,11 +29,7 @@ impl Tree {
             }
             node
         }
-        let root = build_tree_recursive(graph, root, None);
-        Self {
-            root,
-            size: graph.node_count(),
-        }
+        build_tree_recursive(graph, root, None)
     }
 }
 
@@ -56,15 +52,15 @@ mod tests {
                 [6, 8],
             ],
         );
-        let tree = Tree::from_adjacency_list(&graph, 6).root;
-        // Rooted at 6 the tree should look like:
+        let root = Node::from_adjacency_list(&graph, 6);
+        // Rooted at 6 the root should look like:
         //         6
         //      2  7  8
         //    1  3
         //  0   4 5
-        println!("{:?}", &tree);
+        println!("{:?}", &root);
         assert_eq!(
-            tree,
+            root,
             Node {
                 id: 6,
                 children: vec![
@@ -86,15 +82,15 @@ mod tests {
                 ]
             }
         );
-        let tree = Tree::from_adjacency_list(&graph, 3).root;
-        // Rooted at 3 the tree should look like:
+        let root = Node::from_adjacency_list(&graph, 3);
+        // Rooted at 3 the root should look like:
         //       3
         //    2  4  5
         //  6  1
         // 7 8  0
-        println!("{:?}", &tree);
+        println!("{:?}", &root);
         assert_eq!(
-            tree,
+            root,
             Node {
                 id: 3,
                 children: vec![
@@ -169,7 +165,7 @@ pub mod rc {
                 ],
             );
             let root = Node::from_adjacency_list(&graph, 6);
-            // Rooted at 6 the tree should look like:
+            // Rooted at 6 the root should look like:
             //         6
             //      2  7  8
             //    1  3
