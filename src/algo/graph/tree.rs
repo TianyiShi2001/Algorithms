@@ -1,6 +1,5 @@
 pub mod center;
 pub mod height;
-pub mod height1;
 pub mod isomorphism;
 pub mod lca;
 pub mod rooting;
@@ -21,6 +20,22 @@ impl Node {
         Self {
             id,
             children: vec![],
+        }
+    }
+}
+
+pub struct BinaryTreeNode {
+    pub id: usize,
+    pub left: Option<Box<BinaryTreeNode>>,
+    pub right: Option<Box<BinaryTreeNode>>,
+}
+
+impl BinaryTreeNode {
+    pub fn new(id: usize) -> Self {
+        Self {
+            id,
+            left: None,
+            right: None,
         }
     }
 }

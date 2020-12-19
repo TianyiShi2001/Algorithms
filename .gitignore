@@ -12,3 +12,5 @@ Cargo.lock
 .VSCodeCounter/
 
 src/main.rs
+
+.draft/
