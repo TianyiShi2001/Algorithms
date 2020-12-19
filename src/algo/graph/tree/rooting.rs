@@ -1,5 +1,6 @@
 //! Often when working with trees we are given them as a graph with undirected edges, however
-//! sometimes a better representation is a rooted tree.
+//! sometimes a better representation is a rooted tree. This module (and the [`with_parent`] submodule) contains
+//! implementations to build a tree from its adjacency list representation with a given root id.
 //!
 //! - Time Complexity: O(V+E)
 //!
@@ -115,8 +116,8 @@ mod tests {
     }
 }
 
-pub mod rc {
-    use crate::algo::graph::tree::rc::*;
+pub mod with_parent {
+    use crate::algo::graph::tree::with_parent::*;
     use crate::algo::graph::UnweightedAdjacencyList;
 
     impl Node {
@@ -142,6 +143,31 @@ pub mod rc {
                 node
             }
             build_tree_recursive(graph, root, None)
+        }
+    }
+
+    impl UnsafeTreeNode {
+        pub fn from_adjacency_list(graph: &UnweightedAdjacencyList, root: usize) -> Box<Self> {
+            fn build_tree_recursive(
+                graph: &UnweightedAdjacencyList,
+                mut node: Box<UnsafeTreeNode>,
+            ) -> Box<UnsafeTreeNode> {
+                for &child_id in &graph[node.id] {
+                    if !node.parent.is_null() && unsafe { (*node.parent).id == child_id } {
+                        continue;
+                    }
+                    let child_node = build_tree_recursive(
+                        graph,
+                        Box::new(UnsafeTreeNode::new(
+                            child_id,
+                            node.as_ref() as *const UnsafeTreeNode,
+                        )),
+                    );
+                    node.children.push(child_node);
+                }
+                node
+            }
+            build_tree_recursive(graph, Box::new(UnsafeTreeNode::new(root, std::ptr::null())))
         }
     }
 
@@ -192,6 +218,58 @@ pub mod rc {
             let root1 = _node6;
 
             assert_eq!(root, root1);
+        }
+
+        #[test]
+        fn test_tree_rooting_unsafe() {
+            let mut graph = UnweightedAdjacencyList::with_size(9);
+            graph.add_undirected_edge(0, 1);
+            graph.add_undirected_edge(2, 1);
+            graph.add_undirected_edge(2, 3);
+            graph.add_undirected_edge(3, 4);
+            graph.add_undirected_edge(5, 3);
+            graph.add_undirected_edge(2, 6);
+            graph.add_undirected_edge(6, 7);
+            graph.add_undirected_edge(6, 8);
+            let tree = UnsafeTreeNode::from_adjacency_list(&graph, 6);
+            // Rooted at 6 the tree should look like:
+            //           6
+            //      2    7     8
+            //    1   3
+            //  0    4 5
+            println!("{:?}", &tree);
+            // layer 1
+            let UnsafeTreeNode {
+                id,
+                parent,
+                children,
+            } = *tree;
+            assert_eq!(id, 6);
+            assert!(parent.is_null());
+            assert_eq!(children.len(), 3);
+            let node2 = &children[0];
+            assert_eq!(node2.id, 2);
+            assert_eq!((unsafe { &*node2.parent }).id, 6);
+            assert_eq!(node2.children.len(), 2);
+
+            let tree = UnsafeTreeNode::from_adjacency_list(&graph, 3);
+            // Rooted at 3 the tree should look like:
+            //               3
+            //     2         4        5
+            //  6     1
+            // 7 8    0
+            let UnsafeTreeNode {
+                id,
+                parent,
+                children,
+            } = *tree;
+            assert_eq!(id, 3);
+            assert!(parent.is_null());
+            assert_eq!(children.len(), 3);
+            let node2 = &children[0];
+            assert_eq!(node2.id, 2);
+            assert_eq!((unsafe { &*node2.parent }).id, 3);
+            assert_eq!(node2.children.len(), 2);
         }
     }
 }

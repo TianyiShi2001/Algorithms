@@ -3,7 +3,6 @@ pub mod height;
 pub mod isomorphism;
 pub mod lca;
 pub mod rooting;
-pub mod rooting1;
 pub mod sum;
 
 /// Representation of a tree node, which has an `id` and a `Vec` of `children`.
@@ -40,7 +39,7 @@ impl BinaryTreeNode {
     }
 }
 
-pub mod rc {
+pub mod with_parent {
     pub use std::cell::RefCell;
     pub use std::rc::{Rc, Weak};
     /// Representation of a tree node, which has an `id`, a `Vec` of `children`, as well as a `Weak` reference
@@ -86,6 +85,25 @@ pub mod rc {
         pub fn add_child(parent: &Rc<RefCell<Node>>, child: &Rc<RefCell<Node>>) {
             child.borrow_mut().parent = Some(Rc::downgrade(parent));
             parent.borrow_mut().children.push(child.clone());
+        }
+    }
+
+    #[derive(Debug, Eq, PartialEq)]
+    #[allow(clippy::vec_box)]
+    pub struct UnsafeTreeNode {
+        pub id: usize,
+        pub parent: *const UnsafeTreeNode,
+        // `Box` is required to prevent the parent pointer becoming invalid; otherwise, `Rc` can be used.
+        pub children: Vec<Box<UnsafeTreeNode>>,
+    }
+
+    impl UnsafeTreeNode {
+        pub fn new(id: usize, parent: *const UnsafeTreeNode) -> Self {
+            Self {
+                id,
+                parent,
+                children: vec![],
+            }
         }
     }
 }
