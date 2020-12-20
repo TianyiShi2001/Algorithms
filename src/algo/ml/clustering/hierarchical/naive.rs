@@ -31,7 +31,11 @@ impl<'a> HierarchicalClusterer<'a> {
         for (i, j, dist) in self.dis.edges() {
             pq.push((i, j), -OrderedFloat(dist));
         }
+        // the sequence of instructions to produce the dendrogram
+        // each item is a tuple of `(i, j, dist)`
         let mut steps = Vec::new();
+        // the index of the next cluster. Starts from `n` because clusters `0` to `n-1`
+        // are 'singleton' clusters formed by individual nodes.
         let mut k = n;
         while let Some(((i, j), dist)) = pq.pop() {
             let dist = -dist.into_inner();

@@ -8,7 +8,7 @@ pub mod improved;
 pub mod naive;
 pub mod specialized;
 
-// Copied from the `kodama` crate under MIT license
+// Adapted from the `::kodama::Method`
 /// A method for computing the dissimilarities between clusters.
 ///
 /// The method selected dictates how the dissimilarities are computed whenever

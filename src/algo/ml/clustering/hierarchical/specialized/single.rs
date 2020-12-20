@@ -19,18 +19,10 @@ impl<'a> HierarchicalClusterer<'a> {
         let mut edges = self.dis.edges().collect::<Vec<_>>();
         // sort edges in ascending order of the distance
         edges.sort_by_key(|(_f, _t, dist)| OrderedFloat(*dist));
-        // the sequence of instructions to produce the dendrogram
-        // each item is a tuple of `(i, j, dist)`
         let mut steps = Vec::new();
-        // the index of the next cluster. Starts from `n` because clusters `0` to `n-1`
-        // are 'singleton' clusters formed by individual nodes.
         let mut k = n;
-        // A union-find used to track which most recently formed cluster a node belongs to
-        // clusters `0` to `n-1` have a rank of `0`, and clusters `n` to `2n - 1`, have ranks
-        // `1` to `n-1`, which is in accordance with their order of formation in the next iteration.
-        // This ensures that the most recently formed clusters becomes the parents. (when mergeing,
-        // UF chooses the element with a higher rank to be the parent.)
-        let mut uf = UnionFind::with_ranks([vec![0; n], (1..n).collect()].concat());
+        // A union-find used to track to which most recently formed cluster each node belongs to.
+        let mut uf = UnionFind::with_size(total_clusters_count);
         // process edges in ascending order of distance (short edges first)
         for (i, j, dist) in edges {
             // find the representative of nodes `i` and `j`, i.e. the most recently formed
@@ -40,8 +32,11 @@ impl<'a> HierarchicalClusterer<'a> {
             if _i != _j {
                 // `k` becomes the parent of the most recently formed clusters that contain
                 // `i` and `j`
-                uf.union(_i, k);
-                uf.union(_j, k);
+                // Note that here we do not use the `union` method, which makes the larger cluster be the
+                // parent of the smaller cluster. Here we want exactly that the new cluster, `k`, to become
+                // the parent
+                uf.set_parent(_i, k);
+                uf.set_parent(_j, k);
                 steps.push((min(_i, _j), max(_i, _j), dist));
 
                 k += 1;
