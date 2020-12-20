@@ -14,15 +14,31 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
         let n = self.node_count();
         let total_clusters_count = n + (n - 1); // another `n-1` clusters will be generated
         let mut edges = self.edges().collect::<Vec<_>>();
+        // sort edges in ascending order of the distance
         edges.sort_by_key(|(_f, _t, dist)| OrderedFloat(*dist));
+        // the sequence of instructions to produce the dendrogram
+        // each item is a tuple of `(i, j, dist)`
         let mut steps = Vec::new();
+        // the index of the next cluster. Starts from `n` because clusters `0` to `n-1`
+        // are 'singleton' clusters formed by individual nodes.
         let mut k = n;
-        let mut ds = UnionFind::with_ranks([vec![0; n], (1..n).collect()].concat());
+        // A union-find used to track which most recently formed cluster a node belongs to
+        // clusters `0` to `n-1` have a rank of `0`, and clusters `n` to `2n - 1`, have ranks
+        // `1` to `n-1`, which is in accordance with their order of formation in the next iteration.
+        // This ensures that the most recently formed clusters becomes the parents. (when mergeing,
+        // UF chooses the element with a higher rank to be the parent.)
+        let mut uf = UnionFind::with_ranks([vec![0; n], (1..n).collect()].concat());
+        // process edges in ascending order of distance (short edges first)
         for (i, j, dist) in edges {
-            let (_i, _j) = (ds.find(i), ds.find(j));
+            // find the representative, i.e. the nodes representing the most recently formed clusters,
+            // of node `i` and `j`
+            let (_i, _j) = (uf.find(i), uf.find(j));
+            // skip if `_i == _j`, which means `i` and `j` are already in one cluster
             if _i != _j {
-                ds.union(_i, k);
-                ds.union(_j, k);
+                // `k` becomes the parent of the most recently formed clusters that contain
+                // `i` and `j`
+                uf.union(_i, k);
+                uf.union(_j, k);
                 steps.push((min(_i, _j), max(_i, _j), dist));
 
                 k += 1;
@@ -35,11 +51,15 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
     }
     pub fn hierarchical_cluster_complete(&self) -> Vec<(usize, usize, f64)> {
         let n = self.node_count();
+        // Dynamically tracks the pair of clusters with the shortest distance
         let mut pq = PriorityQueue::with_capacity(n * (n - 1) / 2);
         let total_clusters_count = n + (n - 1); // another `n-1` clusters will be generated
+                                                // Tracks whether cluster `i` has been merged. Each cluster is merged exactly once during clustering.
+                                                // (This is very obvious if you consider the structure of a dendrogram—the output of hierarchical clustering)
         let mut merged = vec![false; total_clusters_count];
+        // We need to extend the adjacency matrix from size `n` to `2n - 1` to track distances from each newly
+        // formed cluster to the other clusters.
         let mut extended = self.resized(total_clusters_count);
-
         for (i, j, dist) in self.edges() {
             pq.push((i, j), -OrderedFloat(dist));
         }
@@ -50,11 +70,14 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
             merged[i] = true;
             merged[j] = true;
             steps.push((i, j, dist));
+            // only need to calculate distances to clusters which has not yet been merged
+            // because those that have been merged will not be merged again
             for idx in (0..k).filter(|idx| !merged[*idx]) {
                 let dist_to_k = ::partial_min_max::max(extended[(idx, i)], extended[(idx, j)]);
                 extended[(idx, k)] = dist_to_k;
 
                 pq.push((idx, k), -OrderedFloat(dist_to_k));
+                // distances to `i` and `j` becomes invalid and are removed from the PQ.
                 pq.remove(&(min(idx, i), max(idx, i)));
                 pq.remove(&(min(idx, j), max(idx, j)));
             }
