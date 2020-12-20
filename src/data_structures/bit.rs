@@ -1,9 +1,5 @@
 use num_traits::Unsigned;
 
-// pub struct BitArray<T: PrimInt> {
-//     inner: T,
-// }
-
 pub trait Bit: Unsigned {
     fn set_bit(&mut self, pos: usize);
     fn clear_bit(&mut self, pos: usize);

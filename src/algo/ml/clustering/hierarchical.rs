@@ -1,3 +1,7 @@
+//! # Resources
+//!
+//! - [Victor Lavrenko's lecture series](https://www.youtube.com/watch?v=GVz6Y8r5AkY&list=PLBv09BD7ez_7qIbBhyQDr-LAKWUeycZtx&index=1)
+
 pub mod naive;
 
 // Copied from the `kodama` crate under MIT license
