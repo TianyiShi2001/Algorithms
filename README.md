@@ -145,7 +145,7 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 ### Clustering
 
-- Hierarchical clustering
+- Hierarchical clustering (WIP, almost done)
 
 ## Math
 

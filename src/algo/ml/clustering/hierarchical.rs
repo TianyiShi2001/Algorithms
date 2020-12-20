@@ -3,8 +3,10 @@
 //! - [Victor Lavrenko's lecture series](https://www.youtube.com/watch?v=GVz6Y8r5AkY&list=PLBv09BD7ez_7qIbBhyQDr-LAKWUeycZtx&index=1)
 //! - [Understanding the Concept of Hierarchical Clustering](https://towardsdatascience.com/understanding-the-concept-of-hierarchical-clustering-technique-c6e8243758ec)
 
+pub mod generic;
 pub mod improved;
 pub mod naive;
+pub mod specialized;
 
 // Copied from the `kodama` crate under MIT license
 /// A method for computing the dissimilarities between clusters.
@@ -18,102 +20,92 @@ pub mod naive;
 pub enum Method {
     /// Assigns the minimum dissimilarity between all pairs of observations.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// min(d[ab, x] for ab in AB for x in X)
-    /// ```
+    /// $$
+    /// D_{k, x} = \min (D_{i,k}, D_{j, k} )
+    /// $$
     ///
-    /// where `ab` and `x` correspond to all observations in `AB` and `X`,
-    /// respectively.
+    ///
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Single,
     /// Assigns the maximum dissimilarity between all pairs of observations.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// max(d[ab, x] for ab in AB for x in X)
-    /// ```
+    /// $$
+    /// D_{k, x} = \max (D_{i,k}, D_{j, k} )
+    /// $$
     ///
-    /// where `ab` and `x` correspond to all observations in `AB` and `X`,
-    /// respectively.
+    ///
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Complete,
     /// Assigns the average dissimilarity between all pairs of observations.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// sum(d[ab, x] for ab in AB for x in X) / (|AB| * |X|)
-    /// ```
+    /// $$
+    /// D_{k, x} = \dfrac{D_{i,k} \cdot |i| + D_{j, k} \cdot |j|}{|k|}
+    /// $$
     ///
-    /// where `ab` and `x` correspond to all observations in `AB` and `X`,
-    /// respectively, and `|AB|` and `|X|` correspond to the total number of
-    /// observations in `AB` and `X`, respectively.
+    ///
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Average,
     /// Assigns the weighted dissimilarity between clusters.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// 0.5 * (d(A, X) + d(B, X))
-    /// ```
+    /// $$
+    /// D_{k, x} = 0.5 (D_{i, x} + D_{j, x})
+    /// $$
     ///
-    /// where `A` and `B` correspond to the clusters that merged to create
-    /// `AB`.
+    ///
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Weighted,
     /// Assigns the Ward dissimilarity between clusters.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// let t1 = d(A, X)^2 * (|A| + |X|);
-    /// let t2 = d(B, X)^2 * (|B| + |X|);
-    /// let t3 = d(A, B)^2 * |X|;
-    /// let T = |A| + |B| + |X|;
-    /// sqrt(t1/T + t2/T + t3/T)
-    /// ```
+    /// $$
+    /// D_{k, x} = \sqrt{\dfrac{D_{i, x}^2 \cdot (|i| + |x|) + D_{j, x}^2 \cdot (|j| + |x|) + D_{i, j} \cdot |x|}{|i| + |j| + |x|}}
+    /// $$
     ///
-    /// where `A` and `B` correspond to the clusters that merged to create
-    /// `AB`.
+    ///
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Ward,
     /// Assigns the centroid dissimilarity between clusters.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// let t1 = |A| * d(A, X) + |B| * d(B, X));
-    /// let t2 = |A| * |B| * d(A, B);
-    /// let size = |A| + |B|;
-    /// sqrt(t1/size + t2/size^2)
-    /// ```
+    /// $$
+    /// D_{k, x} = \sqrt{\dfrac{|i|\cdot D_{i, x}^2 + |j| \cdot D_{j, x}^2}{|k|} - \dfrac{|i|\cdot |j| \cdot D_{i,j}^2}{|k|^2}}
+    /// $$
     ///
-    /// where `A` and `B` correspond to the clusters that merged to create
-    /// `AB`.
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Centroid,
     /// Assigns the median dissimilarity between clusters.
     ///
-    /// Specifically, if `AB` is a newly merged cluster and `X` is every other
-    /// cluster, then the pairwise dissimilarity between `AB` and `X` is
+    /// Specifically, if $k$ is a newly merged cluster and $x$ is every other
+    /// cluster, then the pairwise dissimilarity between `k` and `x` is
     /// computed by
     ///
-    /// ```text
-    /// sqrt(d(A, X)/2 + d(B, X)/2 - d(A, B)/4)
-    /// ```
+    /// $$
+    /// D_{k, x} = \sqrt{\dfrac{D_{i, x}^2 + D_{j, x}}{2}^2 - \dfrac{D_{i,j}}{4} }
+    /// $$
     ///
-    /// where `A` and `B` correspond to the clusters that merged to create
-    /// `AB`.
+    /// where $i$ and $j$ correspond to the clusters that merged to create $k$
     Median,
 }
 
@@ -183,14 +175,20 @@ mod tests {
     #[test]
     fn test_single() {
         let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Single);
-        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
-        let cl = naive::HierarchicalClusterer::new(&mut m);
+        let m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let cl = specialized::single::HierarchicalClusterer::new(&m);
         assert_eq!(cl.single(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Single), expected);
 
         let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Single);
-        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
-        let cl = naive::HierarchicalClusterer::new(&mut m);
+        let m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let cl = specialized::single::HierarchicalClusterer::new(&m);
         assert_eq!(cl.single(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Single), expected);
     }
 
     #[test]
@@ -201,6 +199,9 @@ mod tests {
         assert_eq!(cl.complete(), expected);
         let mut cl = improved::HierarchicalClusterer::new(&mut m);
         assert_eq!(cl.complete(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Complete), expected);
 
         let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Complete);
         let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
@@ -208,6 +209,9 @@ mod tests {
         assert_eq!(cl.complete(), expected);
         let mut cl = improved::HierarchicalClusterer::new(&mut m);
         assert_eq!(cl.complete(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Complete), expected);
     }
 
     #[test]
@@ -216,9 +220,68 @@ mod tests {
         let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
         let mut cl = improved::HierarchicalClusterer::new(&mut m);
         assert_eq!(cl.average(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Average), expected);
+
         let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Average);
         let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
         let mut cl = improved::HierarchicalClusterer::new(&mut m);
         assert_eq!(cl.average(), expected);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Average), expected);
+    }
+
+    #[test]
+    fn test_median() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Median);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Median), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Median);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Median), expected);
+    }
+
+    #[test]
+    fn test_centroid() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Centroid);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Centroid), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Centroid);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Centroid), expected);
+    }
+
+    #[test]
+    fn test_ward() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Ward);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Ward), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Ward);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Ward), expected);
+    }
+
+    #[test]
+    fn test_weighted() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Weighted);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Weighted), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Weighted);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = generic::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.linkage(Method::Weighted), expected);
     }
 }

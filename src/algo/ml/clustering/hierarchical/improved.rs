@@ -16,7 +16,8 @@ impl<'a> HierarchicalClusterer<'a> {
     /// Note that in the naïve implementation, when merging two clusters, we remove distances associated with
     /// the two old clusters which become invalid, and distances from the newly formed node are added to a new
     /// row in the adjacency matrix. What we could do instead is to *update* distances associated with one of the
-    /// two old clusters with the distances associated with the newly formed cluster.
+    /// two old clusters with the distances associated with the newly formed cluster. This avoid growing the size
+    /// of the adjacency matrix, and reduces the number removals from the priority queue.
     pub fn complete(&mut self) -> Dendrogram {
         let n = self.dis.node_count();
         // Dynamically tracks the pair of clusters with the shortest distance
