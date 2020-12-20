@@ -1,3 +1,5 @@
+pub mod naive;
+
 // Copied from the `kodama` crate under MIT license
 /// A method for computing the dissimilarities between clusters.
 ///

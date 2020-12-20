@@ -37,6 +37,7 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
         let n = self.node_count();
         let mut pq = PriorityQueue::with_capacity(n * (n - 1) / 2);
         let total_clusters_count = n + (n - 1); // another `n-1` clusters will be generated
+        let mut merged = vec![false; total_clusters_count];
         let mut extended = self.resized(total_clusters_count);
 
         for (i, j, dist) in self.edges() {
@@ -44,30 +45,23 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
         }
         let mut steps = Vec::new();
         let mut k = n;
-        let mut ds = UnionFind::with_ranks([vec![0; n], (1..n).collect()].concat());
         while let Some(((i, j), dist)) = pq.pop() {
             let dist = -dist.into_inner();
-            let (_i, _j) = (ds.find(i), ds.find(j));
-            if i != _i || j != _j {
-                continue;
+            merged[i] = true;
+            merged[j] = true;
+            steps.push((i, j, dist));
+            for idx in (0..k).filter(|idx| !merged[*idx]) {
+                let dist_to_k = ::partial_min_max::max(extended[(idx, i)], extended[(idx, j)]);
+                extended[(idx, k)] = dist_to_k;
+
+                pq.push((idx, k), -OrderedFloat(dist_to_k));
+                pq.remove(&(min(idx, i), max(idx, i)));
+                pq.remove(&(min(idx, j), max(idx, j)));
             }
-            if i != j {
-                ds.union(i, k);
-                ds.union(j, k);
-                steps.push((i, j, dist));
-                for idx in (0..k).filter(|idx| *idx != i && *idx != j) {
-                    let dist_to_k = ::partial_min_max::max(extended[(idx, i)], extended[(idx, j)]);
-                    extended[(idx, k)] = dist_to_k;
 
-                    pq.push((idx, k), -OrderedFloat(dist_to_k));
-                    pq.remove(&(min(idx, i), max(idx, i)));
-                    pq.remove(&(min(idx, j), max(idx, j)));
-                }
-
-                k += 1;
-                if k == total_clusters_count {
-                    break;
-                }
+            k += 1;
+            if k == total_clusters_count {
+                break;
             }
         }
         steps
