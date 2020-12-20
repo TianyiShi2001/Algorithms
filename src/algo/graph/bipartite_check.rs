@@ -6,8 +6,8 @@
 use crate::algo::graph::WeightedAdjacencyList;
 
 pub const BLACK: i8 = 0b10;
-pub const RED: i8 = BLACK ^ 1;
-const EMPTY: i8 = 0;
+pub const RED: i8 = BLACK ^ 1; // 0b11
+const EMPTY: i8 = 0b00;
 
 #[derive(Debug)]
 pub enum BipartiteCheckError {

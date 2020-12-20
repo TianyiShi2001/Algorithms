@@ -65,6 +65,7 @@ impl Edge {
     }
 }
 
+/// A type of adjacency list specifically used for network flow analysis
 #[derive(Debug)]
 pub struct NetworkFlowAdjacencyList {
     edges: Vec<Vec<Rc<RefCell<Edge>>>>,

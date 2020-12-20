@@ -30,14 +30,37 @@ impl UnweightedAdjacencyList {
     /// an `EulerianPathError` if no path exists or the graph is disconnected.
     pub fn eulerian_path(&self) -> Result<Vec<usize>, EulerianPathError> {
         let n = self.node_count();
+        // Checks whether a graph has an Eulerian path by inspecting the in and out degrees of all nodes.
+        // If a graph contains an Eulerian path, either
+        //    - every node has the same number of incoming edges and outgoing edges (in which case the path
+        //      is also an Eulerian circuit/cycle), OR
+        //    - exactly one node has one more outgoing edges than incoming edges, and exactly
+        //      one node has more more incoming edges than outgoing edges. They become the start
+        //      and end nodes of the Eulerian path, respectively.
         let has_eulerian_path = |[in_degrees, out_degrees]: [&[usize]; 2]| {
+            // tracks the start node (with an extra outgoing edge), if any
             let mut start = None;
+            // tracks if the graph has a end node (with an extra incoming edge)
+            // its value is not important, when constructing the path only a start node is required
             let mut has_end = false;
+            // if no start or end nodes are found, the graph has an Eulerian cycle, in which case
+            // the first non-singleton node's id is returned (any non-singleton node can be the starting point)
             let mut start_default = None;
             for (node, (&i, &o)) in in_degrees.iter().zip(out_degrees.iter()).enumerate() {
+                // The difference is more than 1
                 if (i as isize - o as isize).abs() > 1 {
                     return None;
                 }
+                // start node (one extra outgoing edge)
+                if o.wrapping_sub(i) == 1 {
+                    if start.is_some() {
+                        // can only have exactly one such node
+                        return None;
+                    } else {
+                        start = Some(node)
+                    }
+                }
+                // same logic for the end node.
                 if i.wrapping_sub(o) == 1 {
                     if has_end {
                         return None;
@@ -45,17 +68,13 @@ impl UnweightedAdjacencyList {
                         has_end = true;
                     }
                 }
-                if o.wrapping_sub(i) == 1 {
-                    if start.is_some() {
-                        return None;
-                    } else {
-                        start = Some(node)
-                    }
-                }
+                // set the default start node to be the first non-singleton node
                 if start_default.is_none() && o > 0 {
                     start_default = Some(node);
                 }
             }
+            // Fails If the graph has only a start but not an end node or vice versa
+            // (it must contain either none of both or exactly one of each)
             if start.is_some() ^ has_end {
                 None
             } else {
