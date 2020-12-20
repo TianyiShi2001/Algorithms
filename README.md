@@ -1,5 +1,8 @@
 # Rusty Algorithms and Data Structures for Education & Leetcode Solutions
 
+[![Crates.io](https://img.shields.io/crates/d/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
+[![Crates.io](https://img.shields.io/crates/v/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
+[![Crates.io](https://img.shields.io/crates/l/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
 ![lines of code](https://img.shields.io/badge/lines%20of%20code-7221-blue)
