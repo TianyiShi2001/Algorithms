@@ -1,3 +1,8 @@
+//! # Resources
+//!
+//! - [Understanding the Concept of Hierarchical Clustering](https://towardsdatascience.com/understanding-the-concept-of-hierarchical-clustering-technique-c6e8243758ec)
+
+pub mod improved;
 pub mod naive;
 
 // Copied from the `kodama` crate under MIT license
@@ -109,4 +114,110 @@ pub enum Method {
     /// where `A` and `B` correspond to the clusters that merged to create
     /// `AB`.
     Median,
+}
+
+#[derive(Debug)]
+pub struct Dendrogram {
+    steps: Vec<(usize, usize, f64)>,
+}
+
+impl PartialEq for Dendrogram {
+    fn eq(&self, other: &Dendrogram) -> bool {
+        if self.steps.len() != other.steps.len() {
+            return false;
+        }
+        for (s0, s1) in self.steps.iter().zip(other.steps.iter()) {
+            if s0.0 != s1.0 || s0.1 != s1.1 || (s0.2 - s1.2).abs() > 0.0001 {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::algo::geometry::geographical_coordinate::GeographicalCoordinate;
+    use crate::algo::graph::WeightedUndirectedAdjacencyMatrixCondensed;
+    use lazy_static::lazy_static;
+    use rand::{thread_rng, Rng};
+    lazy_static! {
+        // From kodama's example
+        static ref KODAMA_EXAMPLE: Vec<f64> = {
+            let coordinates = vec![
+                GeographicalCoordinate::new(42.5833333, -71.8027778),
+                GeographicalCoordinate::new(42.2791667, -71.4166667),
+                GeographicalCoordinate::new(42.3458333, -71.5527778),
+                GeographicalCoordinate::new(42.1513889, -71.6500000),
+                GeographicalCoordinate::new(42.3055556, -71.5250000),
+                GeographicalCoordinate::new(42.2694444, -71.6166667),
+            ];
+            let mut condensed = vec![];
+            for i in 0..coordinates.len() - 1 {
+                for j in i + 1..coordinates.len() {
+                    condensed.push(coordinates[i].distance(coordinates[j]));
+                }
+            }
+            condensed
+        };
+        // random
+        static ref RANDOM: Vec<f64> =  {
+            const N: usize = 10;
+            let mut rng = thread_rng();
+            let mut condensed = Vec::new();
+            condensed.extend((0..(N - 1) * N / 2).map(|_|rng.gen_range(1.0, 10.0)));
+            condensed
+        };
+    }
+    fn _generate_expected(n: usize, v: &Vec<f64>, method: ::kodama::Method) -> Dendrogram {
+        let mut condensed_ = v.clone();
+        let steps = kodama::linkage(&mut condensed_, n, method)
+            .steps()
+            .into_iter()
+            .map(|x| (x.cluster1, x.cluster2, x.dissimilarity))
+            .collect::<Vec<_>>();
+        Dendrogram { steps }
+    }
+    #[test]
+    fn test_single() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Single);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let cl = naive::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.single(), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Single);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let cl = naive::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.single(), expected);
+    }
+
+    #[test]
+    fn test_complete() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Complete);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let cl = naive::HierarchicalClusterer::new(&m);
+        assert_eq!(cl.complete(), expected);
+        let mut cl = improved::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.complete(), expected);
+
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Complete);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let cl = naive::HierarchicalClusterer::new(&m);
+        assert_eq!(cl.complete(), expected);
+        let mut cl = improved::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.complete(), expected);
+    }
+
+    #[test]
+    fn test_average() {
+        let expected = _generate_expected(6, &KODAMA_EXAMPLE, ::kodama::Method::Average);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&KODAMA_EXAMPLE);
+        let mut cl = improved::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.average(), expected);
+        let expected = _generate_expected(10, &RANDOM, ::kodama::Method::Average);
+        let mut m = WeightedUndirectedAdjacencyMatrixCondensed::from_slice(&RANDOM);
+        let mut cl = improved::HierarchicalClusterer::new(&mut m);
+        assert_eq!(cl.average(), expected);
+    }
 }

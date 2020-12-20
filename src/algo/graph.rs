@@ -439,24 +439,24 @@ impl From<WeightedAdjacencyList> for WeightedUndirectedAdjacencyMatrixCondensed 
 impl fmt::Display for WeightedUndirectedAdjacencyMatrixCondensed {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let n = self.node_count();
-        write!(f, "    ")?;
+        write!(f, "   ")?;
         for i in 1..n {
-            write!(f, "{:>5} ", i)?;
+            write!(f, "{:6} ", i)?;
         }
         writeln!(f)?;
         for i in 0..n - 1 {
-            write!(f, "{:>2} ", i)?;
+            write!(f, "{:2}", i)?;
             for _ in 0..i {
-                write!(f, "      ")?;
+                write!(f, "       ")?;
             }
             for j in i + 1..n {
                 let x = self[(i, j)];
                 if x == f64::INFINITY {
-                    write!(f, "  ∞  ")?;
+                    write!(f, "      ∞")?;
                 } else if x == f64::NEG_INFINITY {
-                    write!(f, "  -∞ ")?;
+                    write!(f, "     -∞")?;
                 } else {
-                    write!(f, " {:>4.2}", x)?;
+                    write!(f, " {:6.2}", x)?;
                 }
             }
             writeln!(f)?;
