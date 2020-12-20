@@ -308,6 +308,12 @@ pub struct WeightedUndirectedAdjacencyMatrixCondensed {
 }
 
 impl WeightedUndirectedAdjacencyMatrixCondensed {
+    pub fn new(node_count: usize) -> Self {
+        Self {
+            inner: vec![f64::INFINITY; node_count * (node_count - 1) / 2],
+            n: node_count,
+        }
+    }
     /// Build a `WeightedUndirectedAdjacencyMatrixCondensed` from [`WeightedAdjacencyList`].
     /// The graph must be undirected. Even if the [`WeightedAdjacencyList`] were build with
     /// directed edges, they are treated as undirected edges.
@@ -366,6 +372,15 @@ impl WeightedUndirectedAdjacencyMatrixCondensed {
     pub fn node_count(&self) -> usize {
         self.n
     }
+    pub fn resized(&self, new_node_count: usize) -> Self {
+        let mut new = Self::new(new_node_count);
+        for (i, j, weight) in self.edges() {
+            if i < new_node_count && j < new_node_count {
+                new[(i, j)] = weight;
+            }
+        }
+        new
+    }
 }
 
 /// This allows indexing into graphs represented by [`WeightedUndirectedAdjacencyMatrixCondensed`] easier.
@@ -376,13 +391,14 @@ impl std::ops::Index<(usize, usize)> for WeightedUndirectedAdjacencyMatrixConden
 
     fn index(&self, (i, j): (usize, usize)) -> &Self::Output {
         use std::cmp::Ordering::*;
+        assert!(i < self.n && j < self.n, "Index out of bound.");
         match i.cmp(&j) {
             Less => {
-                let (mut _i, mut _j, mut j, mut k) = (i, self.n, j - 1, 0);
+                let (mut _i, mut j_, mut j, mut k) = (i, self.n - 1, j - 1, 0);
                 while _i > 0 {
+                    k += j_;
+                    j_ -= 1;
                     j -= 1;
-                    _j -= i;
-                    k += _j;
                     _i -= 1;
                 }
                 k += j;
@@ -398,11 +414,11 @@ impl std::ops::IndexMut<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCon
         use std::cmp::Ordering::*;
         match i.cmp(&j) {
             Less => {
-                let (mut _i, mut _j, mut j, mut k) = (i, self.n, j - 1, 0);
+                let (mut _i, mut j_, mut j, mut k) = (i, self.n - 1, j - 1, 0);
                 while _i > 0 {
+                    k += j_;
+                    j_ -= 1;
                     j -= 1;
-                    _j -= 1;
-                    k += _j;
                     _i -= 1;
                 }
                 k += j;
@@ -417,6 +433,35 @@ impl std::ops::IndexMut<(usize, usize)> for WeightedUndirectedAdjacencyMatrixCon
 impl From<WeightedAdjacencyList> for WeightedUndirectedAdjacencyMatrixCondensed {
     fn from(inp: WeightedAdjacencyList) -> Self {
         Self::from_adjacency_list(&inp)
+    }
+}
+
+impl fmt::Display for WeightedUndirectedAdjacencyMatrixCondensed {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let n = self.node_count();
+        write!(f, "    ")?;
+        for i in 1..n {
+            write!(f, "{:>5} ", i)?;
+        }
+        writeln!(f)?;
+        for i in 0..n - 1 {
+            write!(f, "{:>2} ", i)?;
+            for _ in 0..i {
+                write!(f, "      ")?;
+            }
+            for j in i + 1..n {
+                let x = self[(i, j)];
+                if x == f64::INFINITY {
+                    write!(f, "  ∞  ")?;
+                } else if x == f64::NEG_INFINITY {
+                    write!(f, "  -∞ ")?;
+                } else {
+                    write!(f, " {:>4.2}", x)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 

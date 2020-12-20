@@ -117,6 +117,7 @@ mod tests {
 }
 
 pub mod with_parent {
+    //! This module contains implementations of tree rooting for node types that contain a pointer to the parent.
     use crate::algo::graph::tree::with_parent::*;
     use crate::algo::graph::UnweightedAdjacencyList;
 

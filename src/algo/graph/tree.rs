@@ -1,3 +1,5 @@
+//! This module contains tree representations and related algorithms.
+
 pub mod center;
 pub mod height;
 pub mod isomorphism;
