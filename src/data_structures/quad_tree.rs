@@ -176,34 +176,39 @@ impl Node {
         res
     }
     pub fn knn(&self, point: &Point2D, k: usize) -> Vec<(Point2D, f64)> {
-        let mut result_pq: PriorityQueue<Point2D, OrderedFloat<f64>> =
+        let mut result_pq: PriorityQueue<(usize, Point2D), OrderedFloat<f64>> =
             PriorityQueue::with_capacity(k);
         let mut node_pq = PriorityQueue::new();
         node_pq.push(
             self as *const Node,
             -OrderedFloat(self.region.distance_to_point(&point)),
         );
+        let mut id = 0;
         while let Some((node, _)) = node_pq.pop() {
             let node: &Node = unsafe { &*node };
             for point1 in &node.points {
-                // Get largest radius.
-                let radius = result_pq
-                    .peek()
-                    .map_or(f64::INFINITY, |(_p, dist)| dist.into_inner());
                 // Get distance from point to this point
                 let distance = point.distance(point1);
-                // Add node to PQ
                 if result_pq.len() < k {
-                    result_pq.push(*point1, OrderedFloat(distance));
-                } else if distance < radius {
-                    result_pq.pop().unwrap();
-                    result_pq.push(*point1, OrderedFloat(distance));
+                    id += 1;
+                    result_pq.push((id, *point1), OrderedFloat(distance));
+                } else {
+                    // Get largest radius.
+                    let radius = result_pq
+                        .peek()
+                        .map_or(f64::INFINITY, |(_p, dist)| dist.into_inner());
+
+                    if distance <= radius {
+                        id += 1;
+                        result_pq.pop().unwrap();
+                        result_pq.push((id, *point1), OrderedFloat(distance));
+                    }
                 }
             }
             for child in [&node.nw, &node.ne, &node.sw, &node.se].iter() {
                 if let Some(child) = child {
                     let dist = child.region.distance_to_point(&point);
-                    if dist < result_pq.peek().unwrap().1.into_inner() {
+                    if dist - result_pq.peek().unwrap().1.into_inner() < 0.0001 {
                         node_pq.push(child.as_ref() as *const Node, -OrderedFloat(dist));
                     }
                 }
@@ -211,7 +216,7 @@ impl Node {
         }
         result_pq
             .into_iter()
-            .map(|(point, dist)| (point, dist.into_inner()))
+            .map(|((_id, point), dist)| (point, dist.into_inner()))
             .collect()
     }
 }
@@ -325,7 +330,9 @@ mod tests {
         static ref QT: Node = {
             let mut qt = Node::new(CAPACITY, Rectangle::new(0, 0, WIDTH, HEIGHT));
             for &point in POINTS.iter() {
-                qt.push(point);
+                if !qt.push(point) {
+                    panic!("boom!");
+                }
             }
             qt
         };
@@ -360,7 +367,8 @@ mod tests {
         let mut actual: Vec<_> = QT.knn(&target, k).into_iter().map(|x| x.1).collect();
         actual.sort_by(|a, b| a.partial_cmp(&b).unwrap());
         for (a, b) in actual.iter().zip(expected.iter().take(k)) {
-            assert!(*a - *b < std::f64::EPSILON);
+            println!("{:?}", (a, b));
+            assert!((*a - *b).abs() < std::f64::EPSILON);
         }
     }
 }
