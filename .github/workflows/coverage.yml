@@ -1,0 +1,51 @@
+name:                           coverage
+
+on:                             [push]
+jobs:
+  Coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Install cargo-tarpaulin
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-tarpaulin
+          version: latest
+          use-tool-cache: true
+
+      - name: Coverage with tarpaulin
+        run: cargo tarpaulin --all --all-features --timeout 600 --out Lcov -- --test-threads 1
+
+      - name: Upload coverage
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./lcov.info
+
+# test:
+#   name:                       coverage
+#   runs-on:                    ubuntu-latest
+#   container:
+#     image:                    <your [CI] docker image with installed tarpaulin>
+#     options:                  --security-opt seccomp=unconfined
+#   steps:
+#     - name:                   Checkout repository
+#       uses:                   actions/checkout@v2
+
+#     - name:                   Generate code coverage
+#       run: |
+#         cargo +nightly tarpaulin --verbose --all-features --workspace --timeout 120 --out Xml
+
+#     - name:                   Upload to codecov.io
+#       uses:                   codecov/codecov-action@v1
+#       with:
+#         # token:                ${{secrets.CODECOV_TOKEN}} # not required for public repos
+#         fail_ci_if_error:     true
