@@ -361,6 +361,8 @@ mod tests {
         expected.sort_by(|a, b| a.partial_cmp(&b).unwrap());
         let mut actual: Vec<_> = QT.knn(&target, k).into_iter().map(|x| x.1).collect();
         actual.sort_by(|a, b| a.partial_cmp(&b).unwrap());
-        assert_eq!(&actual, &expected[..k]);
+        for (a, b) in actual.iter().zip(expected.iter().take(k)) {
+            assert!(*a - *b < std::f64::EPSILON);
+        }
     }
 }
