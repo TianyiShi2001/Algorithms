@@ -1,15 +1,15 @@
-# Rusty Algorithms and Data Structures for Education & Leetcode Solutions
+# Rusty Algorithms & Data Structures for Learners
 
-[![Crates.io](https://img.shields.io/crates/d/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
+<!-- [![Crates.io](https://img.shields.io/crates/d/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu) -->
 [![Crates.io](https://img.shields.io/crates/v/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 [![Crates.io](https://img.shields.io/crates/l/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
 ![lines of code](https://img.shields.io/badge/lines%20of%20code-7951-blue)
 
-This repository presents Rust implementations of common algorithms and data structures, many of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode. I recommend that you implement these algorithms by yourself before comparing them to my or William's implementations, since the best way to learn is by doing, and it's likely that you discover ways in which the code can be written in a more efficient, robuset and/or readable way, in which case you're welcome to submit a PR!
+This repository presents Rust implementations of common algorithms and data structures, many of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode. I recommend that you implement these algorithms by yourself before comparing them to my or William's implementations, since the best way to learn is by doing, and it's likely that you discover ways in which the code can be written in a more efficient, robust and/or readable way, in which case you're welcome to submit a PR!
 
-I also write algorithms that's not yet available in William's repository. When I do so I attach references (most of which are freely accessible) that I used and hopefully they should be sufficient to guide you to write your implementations.
+I also write algorithms that's not yet available in William's repository. When I do so I attach references (most of which are freely accessible) that I used and hopefully they should be sufficient to guide you to write your own implementations.
 
 <!-- In addition to implementing W. Fiset's algorithms, I also write solutions to competitive programming problems. Some representative problems are explained in `src/problems`, and there is also a `leetcode` folder for my leetcode solutions. Both are far from completion. particularly in Leetcode. Where appropriate, I will note, or `use`, the relevent algorithm/data structure(s) in this crate. -->
 
