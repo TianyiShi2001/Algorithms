@@ -152,9 +152,7 @@ impl Node {
     pub fn query(&self, area: &Rectangle) -> Vec<&Point2D> {
         let mut res = Vec::new();
         fn _query<'a>(node: &'a Node, area: &Rectangle, res: &mut Vec<&'a Point2D>) {
-            if !node.region.intersects(&area) {
-                return;
-            } else {
+            if node.region.intersects(&area) {
                 if area.contains_rectangle(&node.region) {
                     res.extend(node.points.iter());
                 } else {
