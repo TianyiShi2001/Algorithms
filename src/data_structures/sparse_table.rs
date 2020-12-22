@@ -6,7 +6,7 @@
 //! addition and multiplication, and string concatenation.
 //! A function is overlap-freindly if $f(f(a, b), f(b, c)) = f(f(a, b), c)$. Examples include min, max, gcd and lcm.
 
-use crate::algo::math::log2::VecLog2;
+use crate::math::log2::VecLog2;
 
 pub struct SparseTable<T, F>
 where
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_gcd_lcm() {
-        use crate::algo::math::{gcd::GcdUnsigned, lcm::LcmUnsigned};
+        use crate::math::{gcd::GcdUnsigned, lcm::LcmUnsigned};
         validate(|a, b| a.gcd(b), true);
         validate(|a, b| a.lcm(b), true);
     }

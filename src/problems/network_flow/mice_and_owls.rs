@@ -1,5 +1,5 @@
-use crate::algo::geometry::Point2D;
-use crate::algo::graph::network_flow::{MaxFlowSolver, NetworkFlowAdjacencyList};
+use crate::geometry::Point2D;
+use crate::graph::network_flow::{MaxFlowSolver, NetworkFlowAdjacencyList};
 
 #[allow(clippy::many_single_char_names)]
 #[allow(clippy::needless_range_loop)]
@@ -62,7 +62,7 @@ impl Hole {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algo::graph::network_flow::EdmondsKarpSolver;
+    use crate::graph::network_flow::EdmondsKarpSolver;
     #[test]
     fn test_mice_and_owls() {
         let mice = &[

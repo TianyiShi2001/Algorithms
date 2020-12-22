@@ -5,7 +5,7 @@ pub mod dp;
 mod tests {
     use super::*;
 
-    use crate::algo::graph::WeightedAdjacencyMatrix;
+    use crate::graph::WeightedAdjacencyMatrix;
     #[test]
     fn test_tsp() {
         let mut dist = vec![vec![100.; 5]; 5];

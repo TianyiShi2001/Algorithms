@@ -11,8 +11,8 @@
 //! between two vertices `ATG` and `TGC`, there is a directed edge pointing from `ATG` to
 //! `TGC`, because they have an `l-1`-mer` overlap, i.e. `"ATG"[1..] == "TGC"[.."TGC".len() - 1]`
 
-use crate::algo::graph::eulerian_path::*;
-use crate::algo::graph::UnweightedAdjacencyList;
+use crate::graph::eulerian_path::*;
+use crate::graph::UnweightedAdjacencyList;
 
 pub fn reconstruct_string(lmers: &[&[u8]]) -> Result<Vec<u8>, EulerianPathError> {
     let l = lmers[0].len();

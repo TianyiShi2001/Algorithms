@@ -2,7 +2,7 @@ pub mod balanced_tree;
 pub mod bit;
 pub mod heaparray;
 pub mod priority_queue;
-pub mod quad_tree;
+pub mod quadtree;
 pub mod queue;
 pub mod sparse_table;
 pub mod union_find;
