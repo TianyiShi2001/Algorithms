@@ -1,6 +1,7 @@
 pub mod balanced_tree;
 pub mod bit;
 pub mod heaparray;
+pub mod kdtree;
 pub mod priority_queue;
 pub mod quadtree;
 pub mod queue;

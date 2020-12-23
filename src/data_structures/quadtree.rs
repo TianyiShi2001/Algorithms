@@ -12,11 +12,10 @@
 //!
 //! - [Watch a Quadtree in action (interactive animation)](https://ericandrewlewis.github.io/how-a-quadtree-works/)
 //! - [k-nearest-neighbor search using D3 quadtrees (Interactive visualization and Javascript implementation)](http://bl.ocks.org/llb4ll/8709363)
+//! - [Wikipedia](https://www.wikiwand.com/en/Quadtree)
 use ordered_float::OrderedFloat;
 use std::cmp::min;
 use std::collections::BinaryHeap;
-
-pub mod quadtree1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, PartialOrd, Ord)]
 pub struct Point2D {
@@ -66,56 +65,53 @@ impl Node {
     pub fn push(&mut self, point: Point2D) -> bool {
         if !self.region.contains_point(&point) {
             false
+        } else if self.points.len() < self.capacity {
+            self.points.push(point);
+            true
         } else {
-            if self.points.len() < self.capacity {
-                self.points.push(point);
-
-                true
-            } else
             // capacity is full; push point onto an appropriate child
-            {
-                // Find the center of this region at (cx, cy)
-                let cx = (self.region.x0 + self.region.x1) / 2;
-                let cy = (self.region.y0 + self.region.y1) / 2;
-                // Lazily subdivide each of the regions into four parts to save memory.
-                if self.nw.is_none() {
-                    self.nw = Some(Box::new(Node::new(
-                        self.capacity,
-                        Rectangle::new(self.region.x0, self.region.y0, cx, cy),
-                    )));
-                }
-                if self.nw.as_mut().unwrap().push(point) {
-                    return true;
-                }
-                if self.ne.is_none() {
-                    self.ne = Some(Box::new(Node::new(
-                        self.capacity,
-                        Rectangle::new(cx, self.region.y0, self.region.x1, cy),
-                    )));
-                }
-                if self.ne.as_mut().unwrap().push(point) {
-                    return true;
-                }
-                if self.sw.is_none() {
-                    self.sw = Some(Box::new(Node::new(
-                        self.capacity,
-                        Rectangle::new(self.region.x0, cy, cx, self.region.y1),
-                    )));
-                }
-                if self.sw.as_mut().unwrap().push(point) {
-                    return true;
-                }
-                if self.se.is_none() {
-                    self.se = Some(Box::new(Node::new(
-                        self.capacity,
-                        Rectangle::new(cx, cy, self.region.x1, self.region.y1),
-                    )));
-                }
-                if self.se.as_mut().unwrap().push(point) {
-                    return true;
-                }
-                false
+
+            // Find the center of this region at (cx, cy)
+            let cx = (self.region.x0 + self.region.x1) / 2;
+            let cy = (self.region.y0 + self.region.y1) / 2;
+            // Lazily subdivide each of the regions into four parts to save memory.
+            if self.nw.is_none() {
+                self.nw = Some(Box::new(Node::new(
+                    self.capacity,
+                    Rectangle::new(self.region.x0, self.region.y0, cx, cy),
+                )));
             }
+            if self.nw.as_mut().unwrap().push(point) {
+                return true;
+            }
+            if self.ne.is_none() {
+                self.ne = Some(Box::new(Node::new(
+                    self.capacity,
+                    Rectangle::new(cx, self.region.y0, self.region.x1, cy),
+                )));
+            }
+            if self.ne.as_mut().unwrap().push(point) {
+                return true;
+            }
+            if self.sw.is_none() {
+                self.sw = Some(Box::new(Node::new(
+                    self.capacity,
+                    Rectangle::new(self.region.x0, cy, cx, self.region.y1),
+                )));
+            }
+            if self.sw.as_mut().unwrap().push(point) {
+                return true;
+            }
+            if self.se.is_none() {
+                self.se = Some(Box::new(Node::new(
+                    self.capacity,
+                    Rectangle::new(cx, cy, self.region.x1, self.region.y1),
+                )));
+            }
+            if self.se.as_mut().unwrap().push(point) {
+                return true;
+            }
+            false
         }
     }
 
