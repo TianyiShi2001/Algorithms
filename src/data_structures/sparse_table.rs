@@ -77,7 +77,7 @@ mod tests {
     lazy_static! {
         static ref TEST_DATA: Vec<u128> = {
             let mut rng = thread_rng();
-            (0..SAMPLE_SIZE).map(|_| rng.gen_range(1, 20)).collect()
+            (0..SAMPLE_SIZE).map(|_| rng.gen_range(1..20)).collect()
         };
     }
 
@@ -120,7 +120,7 @@ mod tests {
     fn test_string_concat() {
         let mut rng = thread_rng();
         let data: Vec<String> = (0..SAMPLE_SIZE * 4)
-            .map(|_| rng.gen_range(b'a', b'z'))
+            .map(|_| rng.gen_range(b'a'..b'z'))
             .collect::<Vec<_>>()
             .chunks_exact(4)
             .map(|x| unsafe { String::from_utf8_unchecked(vec![x[0], x[1], x[2], x[3]]) })
@@ -141,7 +141,7 @@ mod tests {
     fn test_sparse_table_matrix_add_mul() {
         let mut rng = thread_rng();
         let data: Vec<Matrix2x2> = (0..SAMPLE_SIZE * 4)
-            .map(|_| rng.gen_range(-10i128, 10))
+            .map(|_| rng.gen_range(-10i128..10))
             .collect::<Vec<_>>()
             .chunks_exact(4)
             .map(|x| [[x[0], x[1]], [x[2], x[3]]])

@@ -159,7 +159,7 @@ mod tests {
             const N: usize = 10;
             let mut rng = thread_rng();
             let mut condensed = Vec::new();
-            condensed.extend((0..(N - 1) * N / 2).map(|_|rng.gen_range(1.0, 10.0)));
+            condensed.extend((0..(N - 1) * N / 2).map(|_|rng.gen_range(1.0..10.0)));
             condensed
         };
     }

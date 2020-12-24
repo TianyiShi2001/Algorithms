@@ -325,8 +325,8 @@ mod tests {
             let mut rng = thread_rng();
             (0..N)
                 .map(|_| Point2D {
-                    x: rng.gen_range(0, WIDTH),
-                    y: rng.gen_range(0, HEIGHT),
+                    x: rng.gen_range(0..WIDTH),
+                    y: rng.gen_range(0..HEIGHT),
                 })
                 .collect()
         };
