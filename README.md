@@ -143,12 +143,19 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
   - AVL tree
 - Disjoin set (union-find)
 - Sparse table (range query) (generic)
+- Quadtree
+- k-dimensional tree (k-d tree)
 
 ## Machine Learning
 
 ### Clustering
 
 - Hierarchical clustering (WIP, almost done)
+
+### K Nearest Neighbour (KNN)
+
+- in quad tree (docs/annotations WIP)
+- in k-d tree (docs/annotations WIP)
 
 ## Math
 
