@@ -8,13 +8,22 @@
 //!
 //! - Time Complexity: O(V + E)
 //!
+//! # Prerequisites
+//!
+//! - Tree centering: tree centering algorithm and Khan's topological sort algorithm share the same
+//!   principle: edges with a low degree are pruned, degrees of neighbors are updated, and new leaf
+//!   nodes are pruned until every nodes are processed.
+//!
+//! # What's Next
+//!
+//! - [`crate::graph::shortest_path::dag`] shows how shortest paths within a DAG can be solved efficiently
+//!
 //! # Resources
 //!
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=eL-KzMXSXXI&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=15)
 //! - [W. Fiset's video (Khan's algorithm)](https://www.youtube.com/watch?v=cIBFEhD77b4&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=16)
 
-use crate::graph::{Edge, WeightedAdjacencyList};
-use partial_min_max::min;
+use crate::graph::WeightedAdjacencyList;
 
 impl WeightedAdjacencyList {
     pub fn toposort(&self) -> Vec<usize> {
@@ -80,26 +89,6 @@ impl WeightedAdjacencyList {
         }
         ordering
     }
-    pub fn dag_shortest_path(&self, start: usize) -> Vec<f64> {
-        let toposort = self.toposort_khan();
-        let mut dists = vec![f64::INFINITY; self.node_count()];
-        dists[start] = 0.;
-        let i = toposort
-            .iter()
-            .position(|&node_id| node_id == start)
-            .unwrap();
-        toposort.into_iter().skip(i).for_each(|node_id| {
-            let cur_dist = dists[node_id];
-            if cur_dist.is_finite() {
-                for &Edge { to, weight } in &self[node_id] {
-                    let new_dist = cur_dist + weight;
-                    let dist = &mut dists[to];
-                    *dist = min(*dist, new_dist);
-                }
-            }
-        });
-        dists
-    }
 }
 
 #[cfg(test)]
@@ -143,22 +132,5 @@ mod tests {
                 .iter()
                 .all(|&[dependency, dependent]| rank[dependency] < rank[dependent])
         }
-    }
-    #[test]
-    fn test_dag_shortest_path() {
-        let edges = &[
-            (0, 1, 3.),
-            (0, 2, 2.),
-            (0, 5, 3.),
-            (1, 3, 1.),
-            (1, 2, 6.),
-            (2, 3, 1.),
-            (2, 4, 10.),
-            (3, 4, 5.),
-            (5, 4, 7.),
-        ];
-        let graph = WeightedAdjacencyList::new_directed(7, edges);
-        let dists = graph.dag_shortest_path(0);
-        assert_eq!(&dists, &[0., 3., 2., 3., 8., 3., f64::INFINITY])
     }
 }
