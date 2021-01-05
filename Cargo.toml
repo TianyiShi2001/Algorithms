@@ -19,6 +19,8 @@ rand = "0.8.0"
 lazy_static = "1.4.0"
 kodama = "0.2.3"
 min-max = "0.1.8"
+num-derive = "0.3.3"
+statrs = "0.13.0"
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html" ]
