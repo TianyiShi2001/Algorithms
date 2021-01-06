@@ -29,6 +29,7 @@ impl<F: Float, const DIM: usize> Point<F, DIM> {
 }
 
 impl<T: Clone + Float + Clone + Float + Debug, const DIM: usize> KdTree<T, DIM> {
+    #[allow(clippy::borrowed_box)]
     /// Find k nearest neighbors (knn).
     pub fn k_nearest_neighbors(&self, query: &Point<T, DIM>, k: usize) -> Vec<(T, &Point<T, DIM>)> {
         let mut res_pq: BinaryHeap<(OrderedFloat<T>, *const Point<T, DIM>)> =

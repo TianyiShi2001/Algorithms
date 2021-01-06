@@ -43,7 +43,7 @@ impl Matrix {
             // swap row `i` with a row where `matrix[i][i]` is not zero.
             let i = if let Some(idx) = (j_..dim)
                 .filter(|&idx| self[[indices[idx], j_]] != 0.)
-                .nth(0)
+                .next()
             {
                 indices.swap(j_, idx);
                 indices[j_]
@@ -53,7 +53,7 @@ impl Matrix {
 
             let pivot = self[[i, j_]];
             // scale the row by 1/pivot, so that the pivot becomes 1
-            for coef in self.row_mut(i).into_iter().skip(j_) {
+            for coef in self.row_mut(i).iter_mut().skip(j_) {
                 *coef /= pivot;
             }
             rhs[i] /= pivot;

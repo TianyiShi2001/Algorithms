@@ -4,6 +4,10 @@
 //! # Recommended Prerequisites
 //!
 //! - quadtree
+//!
+//! # Resources
+//!
+//! - [Multidimensional Data, Video 7 K d Tree Nearest Finding](https://www.youtube.com/watch?v=mxrUFkdXaR8)
 
 use num_traits::Float;
 use std::fmt::Debug;
@@ -55,6 +59,7 @@ impl<T: Clone + Float + Debug, const DIM: usize> KdTree<T, DIM> {
     pub fn dim() -> usize {
         DIM
     }
+    #[allow(clippy::needless_range_loop)]
     pub fn from_slice(points: &mut [Point<T, DIM>]) -> Self {
         fn build_node<T: Clone + Float, const DIM: usize>(
             points: &mut [Point<T, DIM>],
