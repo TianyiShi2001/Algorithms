@@ -97,7 +97,7 @@ impl UnweightedAdjacencyList {
             }
             // add current node to solution.
             path.push(at);
-        };
+        }
         has_eulerian_path([&i, &o]).map_or(Err(EulerianPathError::InvalidDegrees), |start| {
             let mut path = Vec::with_capacity(n);
             _dfs(self, &mut o, &mut path, start);

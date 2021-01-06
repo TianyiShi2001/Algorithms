@@ -10,8 +10,6 @@
 //!     - [Linear Algebra 9e: Gaussian Elimination and Systems Without Solutions](https://www.youtube.com/watch?v=DlRcSZd0SIQ)
 //!     - [Linear Algebra 9f: Row Switching in Gaussian Elimination](https://www.youtube.com/watch?v=E-y8XFuCssI)
 
-// TODO: write a simple, non-indexed version
-
 use super::Matrix;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -32,6 +30,84 @@ impl Solution {
 }
 
 impl Matrix {
+    fn _swap_row(&mut self, i1: usize, i2: usize) {
+        let n = self.dim[1];
+        for j in 0..n {
+            self.inner.swap(i1 * n + j, i2 * n + j);
+        }
+    }
+    #[allow(dead_code)]
+    pub fn gaussian_elimination_simple(mut self, mut rhs: Vec<f64>) -> Solution {
+        assert!(self.is_square_matrix());
+        let dim = self.dim[0];
+        assert_eq!(dim, rhs.len());
+        // from top to bottom (from left to right)
+        for i in 0..dim {
+            // if `matrix[i][i]` (which will become a pivot) is zero,
+            // swap row `i` with a row where `matrix[i][i]` is not zero.
+            if let Some(idx) = (i..dim).filter(|&idx| self[[idx, i]] != 0.).next() {
+                if idx != i {
+                    self._swap_row(idx, i);
+                    rhs.swap(idx, i);
+                }
+            } else {
+                continue;
+            };
+
+            let pivot = self[[i, i]];
+            // scale the row by 1/pivot, so that the pivot becomes 1
+            for coef in self.row_mut(i).iter_mut().skip(i) {
+                *coef /= pivot;
+            }
+            rhs[i] /= pivot;
+            if i < dim {
+                // subtract `row[i]` * `matrix[i][j]` from `row[j]` for each row below row `i`
+                // to make `row[i]` zero
+                for curr_i in i + 1..dim {
+                    let factor = self[[curr_i, i]];
+                    for j in i..dim {
+                        self[[curr_i, j]] -= factor * self[[i, j]];
+                    }
+                    rhs[curr_i] -= factor * rhs[i];
+                }
+            }
+        }
+
+        // from right to left
+        let mut null_space_cols = Vec::new();
+        for i in (1..dim).rev() {
+            if self[[i, i]] == 0.0 {
+                if rhs[i] != 0. {
+                    return Solution::None;
+                } else {
+                    null_space_cols.push(i);
+                    continue;
+                }
+            }
+
+            for curr_i in 0..i {
+                let factor = self[[curr_i, i]];
+                for j in i..dim {
+                    self[[curr_i, j]] -= factor * self[[i, j]];
+                }
+                rhs[curr_i] -= factor * rhs[i];
+            }
+        }
+        if null_space_cols.is_empty() {
+            Solution::Unique(rhs)
+        } else {
+            let null_space = null_space_cols
+                .into_iter()
+                .rev()
+                .map(|j_| {
+                    let mut ns_el = self.column(j_).collect::<Vec<_>>();
+                    ns_el[j_] = -1.;
+                    ns_el
+                })
+                .collect();
+            Solution::Infinite((rhs, null_space))
+        }
+    }
     pub fn gaussian_elimination(mut self, mut rhs: Vec<f64>) -> Solution {
         assert!(self.is_square_matrix());
         let dim = self.dim[0];
@@ -58,7 +134,7 @@ impl Matrix {
             }
             rhs[i] /= pivot;
             if j_ < dim {
-                // subtract `row[j_]` * `matrix[i][j_]` from `row[j]` for each row below row `i`
+                // subtract `row[j_]` * `matrix[i][j]` from `row[j]` for each row below row `i`
                 // to make `row[j_]` zero
                 for &curr_i in &indices[j_ + 1..] {
                     let factor = self[[curr_i, j_]];
@@ -148,8 +224,9 @@ mod tests {
                     7., 8., 9.]
         );
         let rhs = vec![3., 9., 15.];
-        let res = m.gaussian_elimination(rhs);
-        assert_eq!(res, Solution::Infinite((vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]])));
+        let res = m.clone().gaussian_elimination(rhs.clone());
+        assert_eq!(&res, &Solution::Infinite((vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]])));
+        assert_eq!(&res, &m.gaussian_elimination_simple(rhs));
 
         let m = Matrix::new([5, 5],
             vec![ 1., 2., 3., 4., 5.,
@@ -159,10 +236,11 @@ mod tests {
                     0., 0., 0., 0., 0.,]
         );
         let rhs = vec![-4., -16., 0., 0., 0.];
-        let res = m.gaussian_elimination(rhs);
-        assert_eq!(res, Solution::Infinite((vec![4.0, -4.0, 0.0, 0.0, 0.0],
+        let res = m.clone().gaussian_elimination(rhs.clone());
+        assert_eq!(&res, &Solution::Infinite((vec![4.0, -4.0, 0.0, 0.0, 0.0],
             vec![vec![1.0, 1.0, -1.0, 0.0, 0.0],
                  vec![2.0, 1.0, 0.0, -1.0, 0.0],
                  vec![3.0, 1.0, 0.0, 0.0, -1.0]])));
+        assert_eq!(&res, &m.gaussian_elimination_simple(rhs));
     }
 }

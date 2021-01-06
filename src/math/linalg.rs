@@ -7,7 +7,7 @@ pub mod gaussian_elimination;
 
 use std::ops::{Index, IndexMut, Mul};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Matrix {
     inner: Vec<f64>,
     dim: [usize; 2],
