@@ -30,16 +30,13 @@ impl Solution {
 }
 
 impl Matrix {
-    fn _swap_row(&mut self, i1: usize, i2: usize) {
-        let n = self.dim[1];
-        for j in 0..n {
-            self.inner.swap(i1 * n + j, i2 * n + j);
-        }
+    fn swap_row(&mut self, i0: usize, i1: usize) {
+        self.0.swap(i0, i1)
     }
     #[allow(dead_code)]
-    pub fn gaussian_elimination_simple(mut self, mut rhs: Vec<f64>) -> Solution {
+    pub fn gauss_jordan_elimination(mut self, mut rhs: Vec<f64>) -> Solution {
         assert!(self.is_square_matrix());
-        let dim = self.dim[0];
+        let dim = self.nrows();
         assert_eq!(dim, rhs.len());
         // from top to bottom (from left to right)
         for i in 0..dim {
@@ -47,7 +44,7 @@ impl Matrix {
             // swap row `i` with a row where `matrix[i][i]` is not zero.
             if let Some(idx) = (i..dim).filter(|&idx| self[[idx, i]] != 0.).next() {
                 if idx != i {
-                    self._swap_row(idx, i);
+                    self.swap_row(idx, i);
                     rhs.swap(idx, i);
                 }
             } else {
@@ -108,84 +105,6 @@ impl Matrix {
             Solution::Infinite((rhs, null_space))
         }
     }
-    pub fn gaussian_elimination(mut self, mut rhs: Vec<f64>) -> Solution {
-        assert!(self.is_square_matrix());
-        let dim = self.dim[0];
-        assert_eq!(dim, rhs.len());
-        let mut indices = (0..dim).collect::<Vec<_>>();
-        // from top to bottom (from left to right)
-        for j_ in 0..dim {
-            // if `matrix[i][i]` (which will become a pivot) is zero,
-            // swap row `i` with a row where `matrix[i][i]` is not zero.
-            let i = if let Some(idx) = (j_..dim)
-                .filter(|&idx| self[[indices[idx], j_]] != 0.)
-                .next()
-            {
-                indices.swap(j_, idx);
-                indices[j_]
-            } else {
-                continue;
-            };
-
-            let pivot = self[[i, j_]];
-            // scale the row by 1/pivot, so that the pivot becomes 1
-            for coef in self.row_mut(i).iter_mut().skip(j_) {
-                *coef /= pivot;
-            }
-            rhs[i] /= pivot;
-            if j_ < dim {
-                // subtract `row[j_]` * `matrix[i][j]` from `row[j]` for each row below row `i`
-                // to make `row[j_]` zero
-                for &curr_i in &indices[j_ + 1..] {
-                    let factor = self[[curr_i, j_]];
-                    for j in j_..dim {
-                        self[[curr_i, j]] -= factor * self[[i, j]];
-                    }
-                    rhs[curr_i] -= factor * rhs[i];
-                }
-            }
-        }
-
-        // from right to left
-        let mut null_space_cols = Vec::new();
-        for j_ in (1..dim).rev() {
-            let i_ = indices[j_];
-            if self[[i_, j_]] == 0.0 {
-                if rhs[i_] != 0. {
-                    return Solution::None;
-                } else {
-                    null_space_cols.push(j_);
-                    continue;
-                }
-            }
-
-            for &i in indices[0..j_].iter() {
-                let factor = self[[i, j_]];
-                for j in j_..dim {
-                    self[[i, j]] -= factor * self[[i_, j]];
-                }
-                rhs[i] -= factor * rhs[i_];
-            }
-        }
-        if null_space_cols.is_empty() {
-            Solution::Unique(indices.into_iter().map(|i| rhs[i]).collect())
-        } else {
-            let null_space = null_space_cols
-                .into_iter()
-                .rev()
-                .map(|j_| {
-                    let column: Vec<_> = self.column(j_).collect();
-                    let mut ns_el = vec![0.; dim];
-                    for (i, &real_i) in indices.iter().enumerate() {
-                        ns_el[real_i] = column[i];
-                    }
-                    ns_el[j_] = -1.;
-                    ns_el
-                })
-                .collect();
-            Solution::Infinite((indices.into_iter().map(|i| rhs[i]).collect(), null_space))
-        }
-    }
 }
 
 #[cfg(test)]
@@ -194,53 +113,56 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn simple() {
-        let m = Matrix::new([3, 3],
-            vec![ 1., 2., 3.,
-                    2., 4., 7.,
-                    3., 7., 11.]
-        );
+        let m = Matrix::new(vec![
+            vec![1., 2., 3. ],
+            vec![2., 4., 7. ],
+            vec![3., 7., 11.]
+        ]);
         let rhs = vec![1., 2., 2.];
-        let res = m.gaussian_elimination(rhs).unwrap();
+        let res = m.gauss_jordan_elimination(rhs).unwrap();
         assert_eq!(&res, &[3., -1., 0.]);
     }
     #[test]
     #[rustfmt::skip]
     fn no_solution() {
-        let m = Matrix::new([3, 3],
-            vec![ 1., 2., 3.,
-                    4., 5., 6.,
-                    7., 8., 9.]
-        );
+        let m = Matrix::new(vec![
+            vec![1., 2., 3.],
+            vec![4., 5., 6.],
+            vec![7., 8., 9.]
+        ]);
         let rhs = vec![3., 9., 6.];
-        let res = m.gaussian_elimination(rhs);
+        let res = m.gauss_jordan_elimination(rhs);
         assert_eq!(res, Solution::None);
     }
     #[test]
-    #[rustfmt::skip]
     fn infinite_solutions() {
-        let m = Matrix::new([3, 3],
-            vec![ 1., 2., 3.,
-                    4., 5., 6.,
-                    7., 8., 9.]
-        );
+        let m = Matrix::new(vec![vec![1., 2., 3.], vec![4., 5., 6.], vec![7., 8., 9.]]);
         let rhs = vec![3., 9., 15.];
-        let res = m.clone().gaussian_elimination(rhs.clone());
-        assert_eq!(&res, &Solution::Infinite((vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]])));
-        assert_eq!(&res, &m.gaussian_elimination_simple(rhs));
-
-        let m = Matrix::new([5, 5],
-            vec![ 1., 2., 3., 4., 5.,
-                    3., 7., 10., 13., 16.,
-                    0., 0., 0., 0., 0.,
-                    0., 0., 0., 0., 0.,
-                    0., 0., 0., 0., 0.,]
+        let res = m.clone().gauss_jordan_elimination(rhs.clone());
+        assert_eq!(
+            &res,
+            &Solution::Infinite((vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]]))
         );
+
+        let m = Matrix::new(vec![
+            vec![1., 2., 3., 4., 5.],
+            vec![3., 7., 10., 13., 16.],
+            vec![0., 0., 0., 0., 0.],
+            vec![0., 0., 0., 0., 0.],
+            vec![0., 0., 0., 0., 0.],
+        ]);
         let rhs = vec![-4., -16., 0., 0., 0.];
-        let res = m.clone().gaussian_elimination(rhs.clone());
-        assert_eq!(&res, &Solution::Infinite((vec![4.0, -4.0, 0.0, 0.0, 0.0],
-            vec![vec![1.0, 1.0, -1.0, 0.0, 0.0],
-                 vec![2.0, 1.0, 0.0, -1.0, 0.0],
-                 vec![3.0, 1.0, 0.0, 0.0, -1.0]])));
-        assert_eq!(&res, &m.gaussian_elimination_simple(rhs));
+        let res = m.clone().gauss_jordan_elimination(rhs.clone());
+        assert_eq!(
+            &res,
+            &Solution::Infinite((
+                vec![4.0, -4.0, 0.0, 0.0, 0.0],
+                vec![
+                    vec![1.0, 1.0, -1.0, 0.0, 0.0],
+                    vec![2.0, 1.0, 0.0, -1.0, 0.0],
+                    vec![3.0, 1.0, 0.0, 0.0, -1.0]
+                ]
+            ))
+        );
     }
 }
