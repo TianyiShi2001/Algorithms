@@ -1,4 +1,3 @@
-#![feature(min_const_generics)]
 #![feature(binary_heap_into_iter_sorted)]
 pub mod data_structures;
 pub mod geometry;

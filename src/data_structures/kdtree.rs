@@ -61,6 +61,7 @@ impl<T: Clone + Float + Debug, const DIM: usize> KdTree<T, DIM> {
     }
     #[allow(clippy::needless_range_loop)]
     pub fn from_slice(points: &mut [Point<T, DIM>]) -> Self {
+        #[allow(clippy::unnecessary_wraps)]
         fn build_node<T: Clone + Float, const DIM: usize>(
             points: &mut [Point<T, DIM>],
             depth: usize,
