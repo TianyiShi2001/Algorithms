@@ -10,7 +10,7 @@ impl Matrix {
         for i in 0..dim {
             // if `matrix[i][i]` (which will become a pivot) is zero,
             // swap row `i` with a row where `matrix[i][i]` is not zero.
-            if let Some(idx) = (i..dim).filter(|&idx| self[[idx, i]] != 0.).next() {
+            if let Some(idx) = (i..dim).find(|&idx| self[[idx, i]] != 0.) {
                 // TODO: swap to maximise `m[i][i]`? https://www.youtube.com/watch?v=HS7RadfcoFk 16:20
                 if idx != i {
                     self.swap_row(idx, i);
@@ -46,7 +46,6 @@ impl Matrix {
 }
 #[cfg(test)]
 mod tests {
-    // use super::super::gaussian_elimination::GaussJordanElimination;
     use super::*;
     use lazy_static::lazy_static;
     lazy_static! {

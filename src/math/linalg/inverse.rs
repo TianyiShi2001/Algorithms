@@ -4,23 +4,16 @@
 //! - [Linear Algebra 11r: First Explanation for the Inversion Algorithm](https://www.youtube.com/watch?v=CgkuBFPMkNA)
 //! - [l](https://www.youtube.com/watch?v=sdO5UoSyrzM)
 
-use super::{LinearSystemSolver, Matrix, Solution};
+use super::{LinearSystemSolver, Matrix};
 
 impl Matrix {
-    pub fn try_inverse_by_solving<S: LinearSystemSolver>(mut self) -> Option<Matrix> {
+    pub fn try_inverse<S: LinearSystemSolver>(mut self) -> Option<Matrix> {
         assert!(self.is_square_matrix());
         let dim = self.nrows();
-        let mut sol = Self::identity(dim);
-        if S::solve_multiple(&mut self, &mut sol)
-            .iter()
-            .all(|s| matches!(s, Solution::Unique(_)))
-        {
-            Some(sol)
-        } else {
-            None
-        }
+        self.hstack(&Self::identity(dim));
+        S::solve(self).solutions_matrix()
     }
-    pub fn try_inverse(mut self) -> Option<Matrix> {
+    pub fn try_inverse_gauss_jordan_elimination(mut self) -> Option<Matrix> {
         assert!(self.is_square_matrix());
         let dim = self.nrows();
         // from top to bottom (from left to right)
@@ -28,7 +21,7 @@ impl Matrix {
         for i in 0..dim {
             // if `matrix[i][i]` (which will become a pivot) is zero,
             // swap row `i` with a row where `matrix[i][i]` is not zero.
-            if let Some(idx) = (i..dim).filter(|&idx| self[[idx, i]] != 0.).next() {
+            if let Some(idx) = (i..dim).find(|&idx| self[[idx, i]] != 0.) {
                 if idx != i {
                     self.swap_row(idx, i);
                     l = Self::row_swapping_matrix(dim, idx, i) * l;
@@ -89,14 +82,11 @@ mod tests {
     }
     #[test]
     fn matrix_inverse() {
-        let i = M
-            .clone()
-            .try_inverse_by_solving::<GaussJordanElimination>()
-            .unwrap();
+        let i = M.clone().try_inverse_gauss_jordan_elimination().unwrap();
         assert_eq!(M.multiply_matrix(&i), Matrix::identity(3));
         assert_eq!(i.multiply_matrix(&M), Matrix::identity(3));
 
-        let i = M.clone().try_inverse().unwrap();
+        let i = M.clone().try_inverse::<GaussJordanElimination>().unwrap();
         assert_eq!(M.multiply_matrix(&i), Matrix::identity(3));
         assert_eq!(i.multiply_matrix(&M), Matrix::identity(3));
     }

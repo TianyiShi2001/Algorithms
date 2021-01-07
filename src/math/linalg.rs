@@ -17,6 +17,7 @@ impl Matrix {
     pub fn new(m: Vec<Vec<f64>>) -> Self {
         Self(m)
     }
+    #[allow(clippy::needless_range_loop)]
     pub fn identity(dim: usize) -> Self {
         let mut res = vec![vec![0.; dim]; dim];
         for i in 0..dim {
@@ -70,6 +71,9 @@ impl Matrix {
     pub fn rows(&self) -> impl Iterator<Item = &Vec<f64>> {
         self.0.iter()
     }
+    pub fn rows_mut(&mut self) -> impl Iterator<Item = &mut Vec<f64>> {
+        self.0.iter_mut()
+    }
     pub fn column(&self, j: usize) -> impl Iterator<Item = f64> + '_ {
         (0..self.nrows()).map(move |i| self[[i, j]])
     }
@@ -101,6 +105,21 @@ impl Matrix {
     //     let dim = self.nrows();
     //     (0..dim).map(|i| &mut self[i][i])
     // }
+    pub fn hstack(&mut self, rhs: &Self) {
+        for (l, r) in self.rows_mut().zip(rhs.rows()) {
+            l.extend_from_slice(r);
+        }
+    }
+    pub fn hsplit(self, j: usize) -> (Self, Self) {
+        let mut left_rows = Vec::with_capacity(self.nrows());
+        let mut right_rows = Vec::with_capacity(self.nrows());
+        for mut row in self.0.into_iter() {
+            let right = row.drain(j..).collect();
+            left_rows.push(row);
+            right_rows.push(right);
+        }
+        (Matrix(left_rows), Matrix(right_rows))
+    }
 }
 
 impl Index<[usize; 2]> for Matrix {
@@ -206,7 +225,7 @@ mod tests {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Solution {
     Unique(Vec<f64>),
-    Infinite((Vec<f64>, Vec<Vec<f64>>)),
+    Infinite(Vec<f64>, Vec<Vec<f64>>),
     None,
 }
 
@@ -214,13 +233,65 @@ impl Solution {
     pub fn unwrap(self) -> Vec<f64> {
         match self {
             Self::Unique(res) => res,
-            Self::Infinite(_) => panic!("Infinite solutions!"),
+            Self::Infinite(_, _) => panic!("Infinite solutions!"),
             Self::None => panic!("No solutions!"),
         }
     }
 }
 
+pub struct Solutions {
+    pub augmented: Matrix,
+    pub nrows: usize,
+    pub ncols: usize,
+    pub nullspace_cols: Vec<usize>,
+}
+
+impl Solutions {
+    pub fn nullspace(&self) -> Vec<Vec<f64>> {
+        self.nullspace_cols
+            .iter()
+            .rev()
+            .map(|&j| {
+                let mut ns_el = self.augmented.column(j).collect::<Vec<_>>();
+                ns_el[j] = -1.;
+                ns_el
+            })
+            .collect()
+    }
+    pub fn solutions_iter(&self) -> impl Iterator<Item = Solution> + '_ {
+        let nullspace = self.nullspace();
+        (self.nrows..self.ncols).map(move |j| {
+            let sol = self.augmented.column(j).collect();
+            if self.nullspace_cols.is_empty() {
+                Solution::Unique(sol)
+            } else {
+                for &j_ in &self.nullspace_cols {
+                    if sol[j_] != 0. {
+                        return Solution::None;
+                    }
+                }
+                Solution::Infinite(sol, nullspace.clone())
+            }
+        })
+    }
+    pub fn solutions(&self) -> Vec<Solution> {
+        self.solutions_iter().collect()
+    }
+    pub fn first(&self) -> Solution {
+        self.solutions_iter().next().unwrap()
+    }
+    pub fn unwrap_first(&self) -> Vec<f64> {
+        self.first().unwrap()
+    }
+    pub fn solutions_matrix(self) -> Option<Matrix> {
+        if !self.nullspace_cols.is_empty() {
+            None
+        } else {
+            Some(self.augmented.hsplit(self.nrows).1)
+        }
+    }
+}
+
 pub trait LinearSystemSolver {
-    fn solve(coefficients: &mut Matrix, rhs: &mut Vec<f64>) -> Solution;
-    fn solve_multiple(coefficients: &mut Matrix, rhs: &mut Matrix) -> Vec<Solution>;
+    fn solve(augmented: Matrix) -> Solutions;
 }
