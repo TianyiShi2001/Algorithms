@@ -10,7 +10,7 @@ pub mod lu;
 
 use std::ops::{Index, IndexMut, Mul, MulAssign};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct Matrix(pub Vec<Vec<f64>>);
 
 impl Matrix {
@@ -93,6 +93,9 @@ impl Matrix {
         }
         res
     }
+    fn iter(&self) -> impl Iterator<Item = f64> + '_ {
+        self.rows().flat_map(move |row| row.iter().cloned())
+    }
     // pub fn main_diagonal_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut f64> {
     //     assert!(self.is_square_matrix());
     //     let dim = self.nrows();
@@ -152,11 +155,19 @@ impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in self.rows() {
             for &x in row {
-                write!(f, "{:4.1} ", x)?;
+                write!(f, "{:5.2} ", x)?;
             }
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+impl PartialEq for Matrix {
+    fn eq(&self, other: &Matrix) -> bool {
+        self.iter()
+            .zip(other.iter())
+            .all(|(a, b)| (a - b).abs() < 0.00001)
     }
 }
 

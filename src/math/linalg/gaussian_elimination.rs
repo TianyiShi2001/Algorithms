@@ -15,6 +15,81 @@ use super::{LinearSystemSolver, Matrix};
 
 pub struct GaussJordanElimination;
 
+impl GaussJordanElimination {
+    #[allow(dead_code)]
+    fn solve_single(mut coefficients: Matrix, mut rhs: Vec<f64>) -> Solution {
+        assert!(coefficients.is_square_matrix());
+        let dim = coefficients.nrows();
+        assert_eq!(dim, rhs.len());
+        // from top to bottom (from left to right)
+        for i in 0..dim {
+            // if `matrix[i][i]` (which will become a pivot) is zero,
+            // swap row `i` with a row where `matrix[i][i]` is not zero.
+            if let Some(idx) = (i..dim).filter(|&idx| coefficients[[idx, i]] != 0.).next() {
+                if idx != i {
+                    coefficients.swap_row(idx, i);
+                    rhs.swap(idx, i);
+                }
+            } else {
+                continue;
+            };
+
+            let pivot = coefficients[[i, i]];
+            // scale the row by 1/pivot, so that the pivot becomes 1
+            for coef in coefficients.row_mut(i).iter_mut().skip(i) {
+                *coef /= pivot;
+            }
+            rhs[i] /= pivot;
+            if i < dim {
+                // subtract `row[i]` * `matrix[i][j]` from `row[j]` for each row below row `i`
+                // to make `row[i]` zero
+                for curr_i in i + 1..dim {
+                    let factor = coefficients[[curr_i, i]];
+                    for j in i..dim {
+                        coefficients[[curr_i, j]] -= factor * coefficients[[i, j]];
+                    }
+                    rhs[curr_i] -= factor * rhs[i];
+                }
+            }
+        }
+
+        // from right to left
+        let mut null_space_cols = Vec::new();
+        for i in (1..dim).rev() {
+            if coefficients[[i, i]] == 0.0 {
+                if rhs[i] != 0. {
+                    return Solution::None;
+                } else {
+                    null_space_cols.push(i);
+                    continue;
+                }
+            }
+
+            for curr_i in 0..i {
+                let factor = coefficients[[curr_i, i]];
+                for j in i..dim {
+                    coefficients[[curr_i, j]] -= factor * coefficients[[i, j]];
+                }
+                rhs[curr_i] -= factor * rhs[i];
+            }
+        }
+        if null_space_cols.is_empty() {
+            Solution::Unique(rhs)
+        } else {
+            let null_space = null_space_cols
+                .into_iter()
+                .rev()
+                .map(|j_| {
+                    let mut ns_el = coefficients.column(j_).collect::<Vec<_>>();
+                    ns_el[j_] = -1.;
+                    ns_el
+                })
+                .collect();
+            Solution::Infinite((rhs, null_space))
+        }
+    }
+}
+
 pub enum Rhs<'a> {
     Single(&'a mut Vec<f64>),
     Multiple(&'a mut Matrix),
