@@ -162,12 +162,13 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - GCD/LCM
 - log2
 
-### Linear Algebra
+### Linear Algebra (docs/annotations WIP)
 
 - Basics (matrix representation, matrix/vector arithmetics)
 - Determinant of square matrix (Laplace expansion)
 - Gauss-Jordan Elimination
 - LU Decomposition
+- Cholesky Decomposition
 
 # Problems
 
