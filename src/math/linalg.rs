@@ -7,7 +7,7 @@ pub mod elementary;
 pub mod gaussian_elimination;
 pub mod lu;
 
-use std::ops::{Index, IndexMut, Mul};
+use std::ops::{Index, IndexMut, Mul, MulAssign};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Matrix(pub Vec<Vec<f64>>);
@@ -80,6 +80,18 @@ impl Matrix {
         let dim = self.nrows();
         (0..dim).map(move |i| self[i][i])
     }
+    pub fn multiply_matrix(&self, rhs: &Self) -> Self {
+        assert_eq!(self.ncols(), rhs.nrows());
+        let (m, n) = (self.nrows(), rhs.ncols());
+        let mut res = Self::zero([m, n]);
+        for i in 0..m {
+            let row = self.row(i);
+            for j in 0..n {
+                res[i][j] = row.iter().zip(rhs.column(j)).map(|(x, y)| *x * y).sum();
+            }
+        }
+        res
+    }
     // pub fn main_diagonal_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut f64> {
     //     assert!(self.is_square_matrix());
     //     let dim = self.nrows();
@@ -124,16 +136,13 @@ impl Mul<f64> for Matrix {
 impl Mul<Matrix> for Matrix {
     type Output = Matrix;
     fn mul(self, rhs: Matrix) -> Self::Output {
-        assert_eq!(self.ncols(), rhs.nrows());
-        let (m, n) = (self.nrows(), rhs.ncols());
-        let mut res = Self::zero([m, n]);
-        for i in 0..m {
-            let row = self.row(i);
-            for j in 0..n {
-                res[i][j] = row.iter().zip(rhs.column(j)).map(|(x, y)| *x * y).sum();
-            }
-        }
-        res
+        self.multiply_matrix(&rhs)
+    }
+}
+
+impl MulAssign<Matrix> for Matrix {
+    fn mul_assign(&mut self, rhs: Matrix) {
+        *self = self.multiply_matrix(&rhs)
     }
 }
 
