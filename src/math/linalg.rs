@@ -199,10 +199,6 @@ pub enum Solution {
     None,
 }
 
-pub trait LinearSystemSolver {
-    fn solve(coefficients: Matrix, rhs: Vec<f64>) -> Solution;
-}
-
 impl Solution {
     pub fn unwrap(self) -> Vec<f64> {
         match self {
@@ -211,4 +207,9 @@ impl Solution {
             Self::None => panic!("No solutions!"),
         }
     }
+}
+
+pub trait LinearSystemSolver {
+    fn solve(coefficients: &mut Matrix, rhs: &mut Vec<f64>) -> Solution;
+    fn solve_multiple(coefficients: &mut Matrix, rhs: &mut Matrix) -> Vec<Solution>;
 }

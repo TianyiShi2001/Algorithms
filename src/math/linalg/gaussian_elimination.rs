@@ -15,8 +15,53 @@ use super::{LinearSystemSolver, Matrix};
 
 pub struct GaussJordanElimination;
 
-impl LinearSystemSolver for GaussJordanElimination {
-    fn solve(mut coefficients: Matrix, mut rhs: Vec<f64>) -> Solution {
+pub enum Rhs<'a> {
+    Single(&'a mut Vec<f64>),
+    Multiple(&'a mut Matrix),
+}
+
+impl<'a> Rhs<'a> {
+    fn len(&self) -> usize {
+        match self {
+            Rhs::Single(rhs) => rhs.len(),
+            Rhs::Multiple(rhs) => rhs.nrows(),
+        }
+    }
+    fn row_swap(&mut self, i: usize, j: usize) {
+        match self {
+            Rhs::Single(rhs) => rhs.swap(j, i),
+            Rhs::Multiple(rhs) => rhs.swap_row(j, i),
+        }
+    }
+    fn row_addition(&mut self, dim: usize, dst: usize, src: usize, factor: f64) {
+        match self {
+            Rhs::Single(rhs) => rhs[dst] += factor * rhs[src],
+            Rhs::Multiple(rhs) => {
+                for j in 0..dim {
+                    rhs[[dst, j]] += factor * rhs[[src, j]];
+                }
+            }
+        }
+    }
+    fn row_multiplication(&mut self, i: usize, factor: f64) {
+        match self {
+            Rhs::Single(rhs) => rhs[i] *= factor,
+            Rhs::Multiple(rhs) => {
+                for v in &mut rhs[i] {
+                    *v *= factor;
+                }
+            }
+        }
+    }
+}
+
+pub enum _Solution {
+    Single(Solution),
+    Multiple(Vec<Solution>),
+}
+
+impl GaussJordanElimination {
+    fn _solve(coefficients: &mut Matrix, mut rhs: Rhs<'_>) -> _Solution {
         assert!(coefficients.is_square_matrix());
         let dim = coefficients.nrows();
         assert_eq!(dim, rhs.len());
@@ -27,7 +72,7 @@ impl LinearSystemSolver for GaussJordanElimination {
             if let Some(idx) = (i..dim).filter(|&idx| coefficients[[idx, i]] != 0.).next() {
                 if idx != i {
                     coefficients.swap_row(idx, i);
-                    rhs.swap(idx, i);
+                    rhs.row_swap(idx, i);
                 }
             } else {
                 continue;
@@ -38,7 +83,8 @@ impl LinearSystemSolver for GaussJordanElimination {
             for coef in coefficients.row_mut(i).iter_mut().skip(i) {
                 *coef /= pivot;
             }
-            rhs[i] /= pivot;
+            rhs.row_multiplication(i, 1. / pivot);
+
             if i < dim {
                 // subtract `row[i]` * `matrix[i][j]` from `row[j]` for each row below row `i`
                 // to make `row[i]` zero
@@ -47,7 +93,7 @@ impl LinearSystemSolver for GaussJordanElimination {
                     for j in i..dim {
                         coefficients[[curr_i, j]] -= factor * coefficients[[i, j]];
                     }
-                    rhs[curr_i] -= factor * rhs[i];
+                    rhs.row_addition(dim, curr_i, i, -factor);
                 }
             }
         }
@@ -56,12 +102,7 @@ impl LinearSystemSolver for GaussJordanElimination {
         let mut null_space_cols = Vec::new();
         for i in (1..dim).rev() {
             if coefficients[[i, i]] == 0.0 {
-                if rhs[i] != 0. {
-                    return Solution::None;
-                } else {
-                    null_space_cols.push(i);
-                    continue;
-                }
+                null_space_cols.push(i);
             }
 
             for curr_i in 0..i {
@@ -69,17 +110,46 @@ impl LinearSystemSolver for GaussJordanElimination {
                 for j in i..dim {
                     coefficients[[curr_i, j]] -= factor * coefficients[[i, j]];
                 }
-                rhs[curr_i] -= factor * rhs[i];
+                rhs.row_addition(dim, curr_i, i, -factor)
             }
         }
+        match rhs {
+            Rhs::Single(rhs) => _Solution::Single(Self::_make_solution(
+                coefficients,
+                rhs.clone(),
+                &null_space_cols,
+            )),
+            Rhs::Multiple(rhs) => _Solution::Multiple(
+                rhs.columns()
+                    .map(|column| {
+                        Self::_make_solution(
+                            coefficients,
+                            column.into_iter().collect(),
+                            &null_space_cols,
+                        )
+                    })
+                    .collect(),
+            ),
+        }
+    }
+    fn _make_solution(
+        processed_coefficients: &Matrix,
+        rhs: Vec<f64>,
+        null_space_cols: &[usize],
+    ) -> Solution {
         if null_space_cols.is_empty() {
             Solution::Unique(rhs)
         } else {
+            for &i in null_space_cols {
+                if rhs[i] != 0. {
+                    return Solution::None;
+                }
+            }
             let null_space = null_space_cols
                 .into_iter()
                 .rev()
-                .map(|j_| {
-                    let mut ns_el = coefficients.column(j_).collect::<Vec<_>>();
+                .map(|&j_| {
+                    let mut ns_el = processed_coefficients.column(j_).collect::<Vec<_>>();
                     ns_el[j_] = -1.;
                     ns_el
                 })
@@ -89,11 +159,29 @@ impl LinearSystemSolver for GaussJordanElimination {
     }
 }
 
+impl LinearSystemSolver for GaussJordanElimination {
+    fn solve(coefficients: &mut Matrix, rhs: &mut Vec<f64>) -> Solution {
+        match Self::_solve(coefficients, Rhs::Single(rhs)) {
+            _Solution::Single(sol) => sol,
+            _ => unreachable!(),
+        }
+    }
+    fn solve_multiple(coefficients: &mut Matrix, rhs: &mut Matrix) -> Vec<Solution> {
+        match Self::_solve(coefficients, Rhs::Multiple(rhs)) {
+            _Solution::Multiple(sol) => sol,
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl Matrix {
     pub fn swap_row(&mut self, i0: usize, i1: usize) {
         self.0.swap(i0, i1)
     }
-    pub fn solve_by_gauss_jordan_elimination(coefficients: Matrix, rhs: Vec<f64>) -> Solution {
+    pub fn solve_by_gauss_jordan_elimination(
+        coefficients: &mut Matrix,
+        rhs: &mut Vec<f64>,
+    ) -> Solution {
         GaussJordanElimination::solve(coefficients, rhs)
     }
 }
@@ -104,46 +192,46 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn simple() {
-        let m = Matrix::new(vec![
+        let mut m = Matrix::new(vec![
             vec![1., 2., 3. ],
             vec![2., 4., 7. ],
             vec![3., 7., 11.]
         ]);
-        let rhs = vec![1., 2., 2.];
-        let res = GaussJordanElimination::solve(m, rhs).unwrap();
+        let mut rhs = vec![1., 2., 2.];
+        let res = GaussJordanElimination::solve(&mut m, &mut rhs).unwrap();
         assert_eq!(&res, &[3., -1., 0.]);
     }
     #[test]
     #[rustfmt::skip]
     fn no_solution() {
-        let m = Matrix::new(vec![
+        let mut m = Matrix::new(vec![
             vec![1., 2., 3.],
             vec![4., 5., 6.],
             vec![7., 8., 9.]
         ]);
-        let rhs = vec![3., 9., 6.];
-        let res = GaussJordanElimination::solve(m, rhs);
+        let mut rhs = vec![3., 9., 6.];
+        let res = GaussJordanElimination::solve(&mut m, &mut rhs);
         assert_eq!(res, Solution::None);
     }
     #[test]
     fn infinite_solutions() {
-        let m = Matrix::new(vec![vec![1., 2., 3.], vec![4., 5., 6.], vec![7., 8., 9.]]);
-        let rhs = vec![3., 9., 15.];
-        let res = GaussJordanElimination::solve(m, rhs);
+        let mut m = Matrix::new(vec![vec![1., 2., 3.], vec![4., 5., 6.], vec![7., 8., 9.]]);
+        let mut rhs = vec![3., 9., 15.];
+        let res = GaussJordanElimination::solve(&mut m, &mut rhs);
         assert_eq!(
             &res,
             &Solution::Infinite((vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]]))
         );
 
-        let m = Matrix::new(vec![
+        let mut m = Matrix::new(vec![
             vec![1., 2., 3., 4., 5.],
             vec![3., 7., 10., 13., 16.],
             vec![0., 0., 0., 0., 0.],
             vec![0., 0., 0., 0., 0.],
             vec![0., 0., 0., 0., 0.],
         ]);
-        let rhs = vec![-4., -16., 0., 0., 0.];
-        let res = GaussJordanElimination::solve(m, rhs);
+        let mut rhs = vec![-4., -16., 0., 0., 0.];
+        let res = GaussJordanElimination::solve(&mut m, &mut rhs);
         assert_eq!(
             &res,
             &Solution::Infinite((

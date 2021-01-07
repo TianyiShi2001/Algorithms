@@ -46,6 +46,7 @@ impl Matrix {
 }
 #[cfg(test)]
 mod tests {
+    // use super::super::gaussian_elimination::GaussJordanElimination;
     use super::*;
     use lazy_static::lazy_static;
     lazy_static! {
