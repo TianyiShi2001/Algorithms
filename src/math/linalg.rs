@@ -38,6 +38,9 @@ impl Matrix {
     pub fn is_square_matrix(&self) -> bool {
         self.nrows() == self.ncols()
     }
+    pub fn transpose(&self) -> Self {
+        Self(self.columns().map(|col| col.collect()).collect())
+    }
 
     pub fn row(&self, i: usize) -> &[f64] {
         &self.0[i]
@@ -167,30 +170,6 @@ impl PartialEq for Matrix {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn mul() {
-        let m3x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.], vec![2., 8., 7.]]);
-        assert_eq!(
-            m3x3 * 3.,
-            Matrix::new(vec![
-                vec![18., 3., 3.],
-                vec![12., -6., 15.],
-                vec![6., 24., 21.]
-            ])
-        );
-        let m2x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.]]);
-        let m3x2 = Matrix::new(vec![vec![3., 2.], vec![0., -1.], vec![-3., 4.]]);
-        assert_eq!(
-            m2x3 * m3x2,
-            Matrix::new(vec![vec![15., 15.], vec![-3., 30.]])
-        )
-    }
-}
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum Solution {
     Unique(Vec<f64>),
@@ -228,6 +207,9 @@ impl Solutions {
             .collect()
     }
     pub fn solutions_iter(&self) -> impl Iterator<Item = Solution> + '_ {
+        println!("{}", self.augmented);
+        println!("{:?}", self.nullspace_cols);
+        println!("{:?}", (self.nrows, self.ncols));
         let nullspace = self.nullspace();
         (self.nrows..self.ncols).map(move |j| {
             let sol = self.augmented.column(j).collect();
@@ -263,4 +245,43 @@ impl Solutions {
 
 pub trait LinearSystemSolver {
     fn solve(augmented: Matrix) -> Solutions;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mul() {
+        let m3x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.], vec![2., 8., 7.]]);
+        assert_eq!(
+            m3x3 * 3.,
+            Matrix::new(vec![
+                vec![18., 3., 3.],
+                vec![12., -6., 15.],
+                vec![6., 24., 21.]
+            ])
+        );
+        let m2x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.]]);
+        let m3x2 = Matrix::new(vec![vec![3., 2.], vec![0., -1.], vec![-3., 4.]]);
+        assert_eq!(
+            m2x3 * m3x2,
+            Matrix::new(vec![vec![15., 15.], vec![-3., 30.]])
+        )
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn transpose() {
+        let m = Matrix(vec![
+            vec![1., 2., 3.],
+            vec![4., 5., 6.],
+        ]);
+        let t = m.transpose();
+        assert_eq!(t, Matrix(vec![
+            vec![1., 4.],
+            vec![2., 5.],
+            vec![3., 6.],
+        ]));
+    }
 }

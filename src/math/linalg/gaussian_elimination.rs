@@ -92,7 +92,7 @@ impl GaussJordanElimination {
     #[allow(dead_code)]
     fn solve_augmented(mut augmented: Matrix) -> Solutions {
         let nrows = augmented.nrows();
-        let ncols = augmented.nrows();
+        let ncols = augmented.ncols();
         // from top to bottom (from left to right)
         for i in 0..nrows {
             // if `matrix[i][i]` (which will become a pivot) is zero,
@@ -165,11 +165,9 @@ mod tests {
     #[rustfmt::skip]
     fn simple() {
         let m = Matrix::new(vec![
-            vec![1., 2., 3. ],
-            vec![2., 4., 7. ],
-            vec![3., 7., 11.],
-            // rhs
-            vec![1., 2., 2.],
+            vec![1., 2., 3. ,   1.],
+            vec![2., 4., 7. ,   2.],
+            vec![3., 7., 11.,   2.],
         ]);
         let res = GaussJordanElimination::solve(m).unwrap_first();
         assert_eq!(&res, &[3., -1., 0.]);
@@ -178,23 +176,20 @@ mod tests {
     #[rustfmt::skip]
     fn no_solution() {
         let m = Matrix::new(vec![
-            vec![1., 2., 3.],
-            vec![4., 5., 6.],
-            vec![7., 8., 9.],
-            // rhs
-            vec![3., 9., 6.],
+            vec![1., 2., 3.,    3.],
+            vec![4., 5., 6.,    9.],
+            vec![7., 8., 9.,    6.],
         ]);
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(res, Solution::None);
     }
     #[test]
+    #[rustfmt::skip]
     fn infinite_solutions() {
         let m = Matrix::new(vec![
-            vec![1., 2., 3.],
-            vec![4., 5., 6.],
-            vec![7., 8., 9.],
-            // RHS
-            vec![3., 9., 15.],
+            vec![1., 2., 3.,    3.],
+            vec![4., 5., 6.,    9.],
+            vec![7., 8., 9.,    15.],
         ]);
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(
@@ -203,13 +198,11 @@ mod tests {
         );
 
         let m = Matrix::new(vec![
-            vec![1., 2., 3., 4., 5.],
-            vec![3., 7., 10., 13., 16.],
-            vec![0., 0., 0., 0., 0.],
-            vec![0., 0., 0., 0., 0.],
-            vec![0., 0., 0., 0., 0.],
-            // RHS
-            vec![-4., -16., 0., 0., 0.],
+            vec![1., 2., 3., 4., 5.   ,   -4.],
+            vec![3., 7., 10., 13., 16.,  -16.],
+            vec![0., 0., 0., 0., 0.   ,    0.],
+            vec![0., 0., 0., 0., 0.   ,    0.],
+            vec![0., 0., 0., 0., 0.   ,    0.],
         ]);
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(
