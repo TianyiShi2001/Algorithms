@@ -3,7 +3,9 @@
 //! -[Determinant of a Matrix (mathsisfun.com)](https://www.mathsisfun.com/algebra/matrix-determinant.html)
 
 pub mod eigen;
+pub mod elementary;
 pub mod gaussian_elimination;
+pub mod lu;
 
 use std::ops::{Index, IndexMut, Mul};
 
@@ -15,7 +17,11 @@ impl Matrix {
         Self(m)
     }
     pub fn identity(dim: usize) -> Self {
-        Self(vec![vec![0.; dim]; dim])
+        let mut res = vec![vec![0.; dim]; dim];
+        for i in 0..dim {
+            res[i][i] = 1.;
+        }
+        Self(res)
     }
     pub fn zero(dim: [usize; 2]) -> Self {
         Self(vec![vec![0.; dim[1]]; dim[0]])
@@ -69,6 +75,16 @@ impl Matrix {
     pub fn columns(&self) -> impl Iterator<Item = impl Iterator<Item = f64> + '_> + '_ {
         (0..self.ncols()).map(move |j| (0..self.nrows()).map(move |i| self[[i, j]]))
     }
+    pub fn main_diagonal(&self) -> impl Iterator<Item = f64> + '_ {
+        assert!(self.is_square_matrix());
+        let dim = self.nrows();
+        (0..dim).map(move |i| self[i][i])
+    }
+    // pub fn main_diagonal_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut f64> {
+    //     assert!(self.is_square_matrix());
+    //     let dim = self.nrows();
+    //     (0..dim).map(|i| &mut self[i][i])
+    // }
 }
 
 impl Index<[usize; 2]> for Matrix {
@@ -118,6 +134,19 @@ impl Mul<Matrix> for Matrix {
             }
         }
         res
+    }
+}
+
+use std::fmt;
+impl fmt::Display for Matrix {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for row in self.rows() {
+            for &x in row {
+                write!(f, "{:4.1} ", x)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
