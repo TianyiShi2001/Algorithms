@@ -5,7 +5,7 @@
 use super::Matrix;
 
 impl Matrix {
-    pub fn row_switching_matrix(dim: usize, i0: usize, i1: usize) -> Self {
+    pub fn row_swapping_matrix(dim: usize, i0: usize, i1: usize) -> Self {
         let mut res = Self::identity(dim);
         res[i0][i0] = 0.;
         res[i1][i1] = 0.;
@@ -13,17 +13,27 @@ impl Matrix {
         res[i1][i0] = 1.;
         res
     }
-    pub fn inverse_row_switching_matrix(&self) -> &Self {
+    pub fn row_swapping_matrix_inverse(dim: usize, i0: usize, i1: usize) -> Self {
+        Self::row_swapping_matrix(dim, i0, i1)
+    }
+    pub fn inverse_row_swapping_matrix(&self) -> &Self {
         &self
     }
-    pub fn row_multiplying_matrix(dim: usize, row_and_factors: &[(usize, f64)]) -> Self {
+    pub fn row_multiplication_matrix(dim: usize, row_and_factors: &[(usize, f64)]) -> Self {
         let mut res = Self::identity(dim);
         for &(i, factor) in row_and_factors {
             res[i][i] = factor;
         }
         res
     }
-    pub fn inverse_row_multiplying_matrix(&self) -> Self {
+    pub fn row_multiplication_matrix_inverse(dim: usize, row_and_factors: &[(usize, f64)]) -> Self {
+        let mut res = Self::identity(dim);
+        for &(i, factor) in row_and_factors {
+            res[i][i] = 1. / factor;
+        }
+        res
+    }
+    pub fn inverse_row_multiplication_matrix(&self) -> Self {
         let mut res = self.clone();
         let dim = self.nrows();
         for i in 0..dim {
@@ -36,6 +46,13 @@ impl Matrix {
         let mut res = Self::identity(dim);
         for &(to, by) in params {
             res[to][from] = by;
+        }
+        res
+    }
+    pub fn row_addition_matrix_inverse(dim: usize, from: usize, params: &[(usize, f64)]) -> Self {
+        let mut res = Self::identity(dim);
+        for &(to, by) in params {
+            res[to][from] = -by;
         }
         res
     }
@@ -71,8 +88,8 @@ mod tests {
     }
 
     #[test]
-    fn row_switching() {
-        let tr = Matrix::row_switching_matrix(5, 2, 4);
+    fn row_swapping() {
+        let tr = Matrix::row_swapping_matrix(5, 2, 4);
         let transformed = tr.clone() * M.clone();
         assert_eq!(
             transformed,
@@ -91,7 +108,7 @@ mod tests {
     #[test]
     #[rustfmt::skip]
     fn row_multiplication() {
-        let tr = Matrix::row_multiplying_matrix(5, &[(2, 4.), (4, 6.)]);
+        let tr = Matrix::row_multiplication_matrix(5, &[(2, 4.), (4, 6.)]);
         let transformed = tr.clone() * M.clone();
         assert_eq!(
             transformed,
@@ -103,7 +120,7 @@ mod tests {
                 vec![4., 7., 1., 3., 5.].into_iter().map(|x|6. * x).collect(),
             ])
         );
-        let tr_inv = tr.inverse_row_multiplying_matrix();
+        let tr_inv = tr.inverse_row_multiplication_matrix();
         let original = tr_inv * transformed;
         assert_eq!(original, *M);
     }

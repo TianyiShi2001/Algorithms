@@ -5,7 +5,7 @@
 [![Crates.io](https://img.shields.io/crates/l/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/TianyiShi2001/Algorithms/badge.svg?branch=main)](https://coveralls.io/github/TianyiShi2001/Algorithms?branch=main)
-![lines of code](https://img.shields.io/badge/lines%20of%20code-8432-blue)
+![lines of code](https://img.shields.io/badge/lines%20of%20code-9121-blue)
 
 This repository presents Rust implementations of common algorithms and data structures, many of which are based on William Fiset's Java implementation: https://github.com/williamfiset/Algorithms . I highly recommend [his YouTube channel](https://www.youtube.com/user/purpongie), where he explains many of these algorithms in detail using illustrations, animations and pseudocode. I recommend that you implement these algorithms by yourself before comparing them to my or William's implementations, since the best way to learn is by doing, and it's likely that you discover ways in which the code can be written in a more efficient, robust and/or readable way, in which case you're welcome to submit a PR!
 

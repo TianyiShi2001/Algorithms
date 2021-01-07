@@ -30,10 +30,9 @@ impl Solution {
 }
 
 impl Matrix {
-    fn swap_row(&mut self, i0: usize, i1: usize) {
+    pub fn swap_row(&mut self, i0: usize, i1: usize) {
         self.0.swap(i0, i1)
     }
-    #[allow(dead_code)]
     pub fn gauss_jordan_elimination(mut self, mut rhs: Vec<f64>) -> Solution {
         assert!(self.is_square_matrix());
         let dim = self.nrows();
