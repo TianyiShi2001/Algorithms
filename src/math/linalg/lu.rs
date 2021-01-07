@@ -11,6 +11,7 @@ impl Matrix {
             // if `matrix[i][i]` (which will become a pivot) is zero,
             // swap row `i` with a row where `matrix[i][i]` is not zero.
             if let Some(idx) = (i..dim).filter(|&idx| self[[idx, i]] != 0.).next() {
+                // TODO: swap to maximise `m[i][i]`? https://www.youtube.com/watch?v=HS7RadfcoFk 16:20
                 if idx != i {
                     self.swap_row(idx, i);
                     // rhs.swap(idx, i);
@@ -26,15 +27,18 @@ impl Matrix {
                 // subtract `m[curr_i][i] / pivot` * `m[i][j]` from `m[curr_i][j]` for each row below row `i`
                 // to make `m[curr_i][i]` zero
                 let params = (i + 1..dim)
-                    .map(|curr_i| (curr_i, -self[[curr_i, i]] / pivot))
+                    .map(|curr_i| (curr_i, self[[curr_i, i]] / pivot))
                     .collect::<Vec<_>>();
                 for &(curr_i, factor) in &params {
                     for j in i..dim {
-                        self[[curr_i, j]] += factor * self[[i, j]];
+                        self[[curr_i, j]] -= factor * self[[i, j]];
                     }
                     // rhs[curr_i] -= factor * rhs[i];
                 }
-                L *= Self::row_addition_matrix_inverse(dim, i, &params);
+                // the factors in `params` are negated.
+                // the row addition matrix made from the negated factors is equal to
+                // the inverse of the row addition matrix made from the original factors
+                L *= Self::row_addition_matrix(dim, i, &params);
             }
         }
         [L, self]

@@ -166,7 +166,8 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 - Basics (matrix representation, matrix/vector arithmetics)
 - Determinant of square matrix (Laplace expansion)
-- Gaussian Elimination (WIP)
+- Gauss-Jordan Elimination
+- LU Decomposition
 
 # Problems
 

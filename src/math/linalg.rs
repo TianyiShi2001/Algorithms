@@ -5,6 +5,7 @@
 pub mod eigen;
 pub mod elementary;
 pub mod gaussian_elimination;
+pub mod inverse;
 pub mod lu;
 
 use std::ops::{Index, IndexMut, Mul, MulAssign};
@@ -188,5 +189,26 @@ mod tests {
             m2x3 * m3x2,
             Matrix::new(vec![vec![15., 15.], vec![-3., 30.]])
         )
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Solution {
+    Unique(Vec<f64>),
+    Infinite((Vec<f64>, Vec<Vec<f64>>)),
+    None,
+}
+
+pub trait LinearSystemSolver {
+    fn solve(coefficients: Matrix, rhs: Vec<f64>) -> Solution;
+}
+
+impl Solution {
+    pub fn unwrap(self) -> Vec<f64> {
+        match self {
+            Self::Unique(res) => res,
+            Self::Infinite(_) => panic!("Infinite solutions!"),
+            Self::None => panic!("No solutions!"),
+        }
     }
 }
