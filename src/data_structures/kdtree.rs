@@ -66,6 +66,9 @@ impl<T: Clone + Float + Debug, const DIM: usize> KdTree<T, DIM> {
             points: &mut [Point<T, DIM>],
             depth: usize,
         ) -> Option<Box<Node<T, DIM>>> {
+            if points.is_empty() {
+                return None;
+            }
             let d = depth % DIM;
             points.sort_unstable_by(|a, b| a[d].partial_cmp(&b[d]).unwrap());
             let mut mid = points.len() / 2;
@@ -83,16 +86,8 @@ impl<T: Clone + Float + Debug, const DIM: usize> KdTree<T, DIM> {
 
             Some(Box::new(Node {
                 pivot,
-                left: if l.is_empty() {
-                    None
-                } else {
-                    build_node(l, depth + 1)
-                },
-                right: if r.len() == 1 {
-                    None
-                } else {
-                    build_node(&mut r[1..], depth + 1)
-                },
+                left: build_node(l, depth + 1),
+                right: build_node(&mut r[1..], depth + 1),
             }))
         }
         let root = build_node(points, 0);
