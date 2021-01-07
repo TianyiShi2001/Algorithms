@@ -2,6 +2,7 @@
 //!
 //! -[Determinant of a Matrix (mathsisfun.com)](https://www.mathsisfun.com/algebra/matrix-determinant.html)
 
+pub mod cholesky;
 pub mod determinant;
 pub mod eigen;
 pub mod elementary;
@@ -9,7 +10,11 @@ pub mod gaussian_elimination;
 pub mod inverse;
 pub mod lu;
 
-use std::ops::{Index, IndexMut, Mul, MulAssign};
+use rand::{distributions::uniform::SampleRange, Rng};
+use std::{
+    iter::repeat,
+    ops::{Index, IndexMut, Mul, MulAssign},
+};
 
 #[derive(Debug, Clone)]
 pub struct Matrix(pub Vec<Vec<f64>>);
@@ -28,6 +33,46 @@ impl Matrix {
     }
     pub fn zero(dim: [usize; 2]) -> Self {
         Self(vec![vec![0.; dim[1]]; dim[0]])
+    }
+    pub fn random<R: Rng, S: SampleRange<f64> + Clone>(
+        dim: [usize; 2],
+        rng: &mut R,
+        range: S,
+    ) -> Self {
+        Self(
+            (0..dim[0])
+                .map(|_| (0..dim[1]).map(|_| rng.gen_range(range.clone())).collect())
+                .collect(),
+        )
+    }
+    pub fn random_lower_triangular<R: Rng, S: SampleRange<f64> + Clone>(
+        dim: usize,
+        rng: &mut R,
+        range: S,
+    ) -> Self {
+        Self(
+            (0..dim)
+                .map(|i| {
+                    (0..=i)
+                        .map(|_| rng.gen_range(range.clone()))
+                        .chain(repeat(0.).take(dim - i - 1))
+                        .collect()
+                })
+                .collect(),
+        )
+    }
+    pub fn random_symmetric<R: Rng, S: SampleRange<f64> + Clone>(
+        dim: usize,
+        rng: &mut R,
+        range: S,
+    ) -> Self {
+        let mut m = Self::random_lower_triangular(dim, rng, range);
+        for i in 1..dim {
+            for j in 0..i {
+                m[j][i] = m[i][j];
+            }
+        }
+        m
     }
     pub fn nrows(&self) -> usize {
         self.0.len()
@@ -283,5 +328,16 @@ mod tests {
             vec![2., 5.],
             vec![3., 6.],
         ]));
+    }
+
+    #[test]
+    fn random_lower_triangular() {
+        let mut rng = rand::thread_rng();
+        let m = Matrix::random_lower_triangular(5, &mut rng, -1e3..1e3);
+        println!("{}", m);
+
+        let mut rng = rand::thread_rng();
+        let m = Matrix::random_symmetric(5, &mut rng, -1e3..1e3);
+        println!("{}", m);
     }
 }
