@@ -17,43 +17,70 @@ pub mod gaussian_elimination;
 pub mod inverse;
 pub mod lu;
 
+#[macro_export]
+macro_rules! matrix {
+    // Non-empty image of given channel type
+    ($( $( $x: expr ),* ;)*) => {
+        {
+            let nested_vec = vec![ $( vec![ $($x as f64),* ] ),* ];
+            Matrix::new(nested_vec)
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn mul() {
-        let m3x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.], vec![2., 8., 7.]]);
+    fn mul_scalar() {
+        let m3x3 = matrix! {
+            6, 1, 1;
+            4,-2, 5;
+            2, 8, 7;
+        };
         assert_eq!(
             m3x3 * 3.,
-            Matrix::new(vec![
-                vec![18., 3., 3.],
-                vec![12., -6., 15.],
-                vec![6., 24., 21.]
-            ])
+            matrix! {
+                18,  3,  3;
+                12, -6, 15;
+                6,  24, 21;
+            }
         );
-        let m2x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.]]);
-        let m3x2 = Matrix::new(vec![vec![3., 2.], vec![0., -1.], vec![-3., 4.]]);
+    }
+    #[test]
+    fn mul_matrix() {
+        let m2x3 = matrix! {
+            6, 1, 1;
+            4,-2, 5;
+        };
+        let m3x2 = matrix! {
+             3, 2;
+             0,-1;
+            -3, 4;
+        };
         assert_eq!(
             m2x3 * m3x2,
-            Matrix::new(vec![vec![15., 15.], vec![-3., 30.]])
+            matrix! {
+                15, 15;
+                -3, 30;
+            }
         )
     }
 
     #[test]
     #[rustfmt::skip]
     fn transpose() {
-        let m = Matrix(vec![
-            vec![1., 2., 3.],
-            vec![4., 5., 6.],
-        ]);
+        let m = matrix! {
+            1, 2, 3;
+            4, 5, 6;
+        };
         let t = m.transpose();
-        assert_eq!(t, Matrix(vec![
-            vec![1., 4.],
-            vec![2., 5.],
-            vec![3., 6.],
-        ]));
+        assert_eq!(t, matrix!{
+            1, 4;
+            2, 5;
+            3, 6;
+        });
     }
 
     #[test]
