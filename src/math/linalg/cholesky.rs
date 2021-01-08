@@ -37,13 +37,14 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix;
     #[test]
     fn cholesky() {
-        let m = Matrix(vec![
-            vec![4., 12., -16.],
-            vec![12., 37., -43.],
-            vec![-16., -43., 98.],
-        ]);
+        let m = matrix![
+              4,  12, -16;
+             12,  37, -43;
+            -16, -43,  98;
+        ];
         let mut c = m.cholesky();
         c *= c.transpose();
         assert_eq!(c, m);

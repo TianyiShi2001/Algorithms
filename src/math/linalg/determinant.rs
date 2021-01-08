@@ -31,12 +31,19 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use crate::matrix;
     #[test]
     fn determinant() {
-        let m2x2 = Matrix::new(vec![vec![1., 2.], vec![3., 4.]]);
+        let m2x2 = matrix![
+            1, 2;
+            3, 4;
+        ];
         assert_eq!(m2x2.determinant(), -2.);
-        let m3x3 = Matrix::new(vec![vec![6., 1., 1.], vec![4., -2., 5.], vec![2., 8., 7.]]);
+        let m3x3 = matrix![
+            6, 1, 1;
+            4,-2, 5;
+            2, 8, 7;
+        ];
         assert_eq!(m3x3.determinant(), -306.);
     }
 }

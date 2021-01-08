@@ -72,13 +72,15 @@ impl Matrix {
 mod tests {
     use super::super::gaussian_elimination::GaussJordanElimination;
     use super::*;
+    use crate::matrix;
     use lazy_static::lazy_static;
     #[rustfmt::skip]
     lazy_static! {
-        static ref M: Matrix = Matrix(vec![
-            vec![1., 2., 3. ],
-            vec![4., 5., 6. ],
-            vec![7., 8., 10.]]);
+        static ref M: Matrix = matrix![
+            1, 2, 3. ;
+            4, 5, 6. ;
+            7, 8, 10.;
+        ];
     }
     #[test]
     fn matrix_inverse() {

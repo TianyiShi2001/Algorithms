@@ -76,15 +76,16 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix;
     use lazy_static::lazy_static;
     lazy_static! {
-        static ref M: Matrix = Matrix(vec![
-            vec![1., 2., 3., 4., 5.],
-            vec![6., 7., 8., 9., 0.],
-            vec![5., 8., 3., 5., 8.],
-            vec![9., 3., 2., 5., 9.],
-            vec![4., 7., 1., 3., 5.],
-        ]);
+        static ref M: Matrix = matrix![
+            1, 2, 3, 4, 5;
+            6, 7, 8, 9, 0;
+            5, 8, 3, 5, 8;
+            9, 3, 2, 5, 9;
+            4, 7, 1, 3, 5;
+        ];
     }
 
     #[test]
@@ -93,13 +94,13 @@ mod tests {
         let transformed = tr.clone() * M.clone();
         assert_eq!(
             transformed,
-            Matrix(vec![
-                vec![1., 2., 3., 4., 5.],
-                vec![6., 7., 8., 9., 0.],
-                vec![4., 7., 1., 3., 5.],
-                vec![9., 3., 2., 5., 9.],
-                vec![5., 8., 3., 5., 8.],
-            ])
+            matrix![
+                1, 2, 3, 4, 5;
+                6, 7, 8, 9, 0;
+                4, 7, 1, 3, 5;
+                9, 3, 2, 5, 9;
+                5, 8, 3, 5, 8;
+            ]
         );
         let original = tr * transformed;
         assert_eq!(original, *M);
@@ -130,13 +131,13 @@ mod tests {
         let transformed = tr.clone() * M.clone();
         assert_eq!(
             transformed,
-            Matrix(vec![
-                vec![1.0, 2.0, 3.0, 4.0, 5.0],
-                vec![6.0, 7.0, 8.0, 9.0, 0.0],
-                vec![29., 36., 35., 41., 8.0],
-                vec![9.0, 3.0, 2.0, 5.0, 9.0],
-                vec![40., 49., 49., 57., 5.0],
-            ])
+            matrix![
+                 1,  2,  3,  4, 5;
+                 6,  7,  8,  9, 0;
+                29, 36, 35, 41, 8;
+                 9,  3,  2,  5, 9;
+                40, 49, 49, 57, 5;
+            ]
         );
         let tr_inv = tr.inverse_row_addition_matrix();
         let original = tr_inv * transformed;

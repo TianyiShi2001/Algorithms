@@ -47,15 +47,16 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix;
     use lazy_static::lazy_static;
     lazy_static! {
-        static ref M: Matrix = Matrix(vec![
-            vec![1., 2., 3., 4., 5.],
-            vec![6., 7., 8., 9., 0.],
-            vec![5., 8., 3., 5., 8.],
-            vec![9., 3., 2., 5., 9.],
-            vec![4., 7., 1., 3., 9.],
-        ]);
+        static ref M: Matrix = matrix![
+            1, 2, 3, 4, 5;
+            6, 7, 8, 9, 0;
+            5, 8, 3, 5, 8;
+            9, 3, 2, 5, 9;
+            4, 7, 1, 3, 9;
+        ];
     }
 
     #[test]

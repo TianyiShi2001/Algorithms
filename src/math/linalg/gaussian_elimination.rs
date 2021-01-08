@@ -161,49 +161,50 @@ impl Matrix {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::matrix;
     #[test]
     #[rustfmt::skip]
     fn simple() {
-        let m = Matrix::new(vec![
-            vec![1., 2., 3. ,   1.],
-            vec![2., 4., 7. ,   2.],
-            vec![3., 7., 11.,   2.],
-        ]);
+        let m = matrix![
+            1, 2,  3,   1;
+            2, 4,  7,   2;
+            3, 7, 11,   2;
+        ];
         let res = GaussJordanElimination::solve(m).unwrap_first();
         assert_eq!(&res, &[3., -1., 0.]);
     }
     #[test]
     #[rustfmt::skip]
     fn no_solution() {
-        let m = Matrix::new(vec![
-            vec![1., 2., 3.,    3.],
-            vec![4., 5., 6.,    9.],
-            vec![7., 8., 9.,    6.],
-        ]);
+        let m = matrix![
+            1, 2, 3,    3;
+            4, 5, 6,    9;
+            7, 8, 9,    6;
+        ];
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(res, Solution::None);
     }
     #[test]
     #[rustfmt::skip]
     fn infinite_solutions() {
-        let m = Matrix::new(vec![
-            vec![1., 2., 3.,    3.],
-            vec![4., 5., 6.,    9.],
-            vec![7., 8., 9.,    15.],
-        ]);
+        let m = matrix![
+            1, 2, 3,    3;
+            4, 5, 6,    9;
+            7, 8, 9,   15;
+        ];
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(
             &res,
             &Solution::Infinite(vec![1.0, 1.0, 0.0], vec![vec![-1.0, 2.0, -1.0]])
         );
 
-        let m = Matrix::new(vec![
-            vec![1., 2., 3., 4., 5.   ,   -4.],
-            vec![3., 7., 10., 13., 16.,  -16.],
-            vec![0., 0., 0., 0., 0.   ,    0.],
-            vec![0., 0., 0., 0., 0.   ,    0.],
-            vec![0., 0., 0., 0., 0.   ,    0.],
-        ]);
+        let m = matrix![
+            1, 2,  3,  4,  5   ,   -4;
+            3, 7, 10, 13, 16   ,  -16;
+            0, 0,  0,  0,  0   ,    0;
+            0, 0,  0,  0,  0   ,    0;
+            0, 0,  0,  0,  0   ,    0;
+        ];
         let res = GaussJordanElimination::solve(m).first();
         assert_eq!(
             &res,
