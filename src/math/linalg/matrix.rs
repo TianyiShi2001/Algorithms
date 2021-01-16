@@ -78,7 +78,7 @@ impl Matrix {
     pub fn row(&self, i: usize) -> &[f64] {
         &self.0[i]
     }
-    pub fn row_mut(&mut self, i: usize) -> &mut [f64] {
+    pub fn row_mut(&mut self, i: usize) -> &mut Vec<f64> {
         &mut self.0[i]
     }
     pub fn rows(&self) -> impl Iterator<Item = &Vec<f64>> {
@@ -110,7 +110,7 @@ impl Matrix {
         }
         res
     }
-    fn iter(&self) -> impl Iterator<Item = f64> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = f64> + '_ {
         self.rows().flat_map(move |row| row.iter().cloned())
     }
     // pub fn main_diagonal_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut f64> {

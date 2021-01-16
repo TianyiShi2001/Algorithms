@@ -1,4 +1,4 @@
-use super::Matrix;
+use super::{gaussian_elimination, Matrix};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Solution {
@@ -37,9 +37,6 @@ impl Solutions {
             .collect()
     }
     pub fn solutions_iter(&self) -> impl Iterator<Item = Solution> + '_ {
-        println!("{}", self.augmented);
-        println!("{:?}", self.nullspace_cols);
-        println!("{:?}", (self.nrows, self.ncols));
         let nullspace = self.nullspace();
         (self.nrows..self.ncols).map(move |j| {
             let sol = self.augmented.column(j).collect();
@@ -75,4 +72,10 @@ impl Solutions {
 
 pub trait LinearSystemSolver {
     fn solve(augmented: Matrix) -> Solutions;
+}
+
+impl Matrix {
+    pub fn solve(self) -> Solutions {
+        gaussian_elimination::GaussJordanElimination::solve(self)
+    }
 }

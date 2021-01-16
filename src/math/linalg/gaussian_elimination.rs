@@ -94,10 +94,12 @@ impl GaussJordanElimination {
         let nrows = augmented.nrows();
         let ncols = augmented.ncols();
         // from top to bottom (from left to right)
+        println!("{}", augmented);
+
         for i in 0..nrows {
             // if `matrix[i][i]` (which will become a pivot) is zero,
             // swap row `i` with a row where `matrix[i][i]` is not zero.
-            if let Some(idx) = (i..nrows).find(|&idx| augmented[[idx, i]] != 0.) {
+            if let Some(idx) = (i..nrows).find(|&idx| (augmented[[idx, i]] - 0.).abs() > 1e-6) {
                 if idx != i {
                     augmented.swap_row(idx, i);
                 }
@@ -120,12 +122,13 @@ impl GaussJordanElimination {
                     }
                 }
             }
+            println!("{}", augmented);
         }
 
         // from right to left
         let mut nullspace_cols = Vec::new();
         for i in (1..nrows).rev() {
-            if augmented[[i, i]] == 0.0 {
+            if (augmented[[i, i]] - 0.0).abs() < 1e-6 {
                 nullspace_cols.push(i);
                 continue;
             }
