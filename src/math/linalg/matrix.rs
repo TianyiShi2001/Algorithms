@@ -110,6 +110,13 @@ impl Matrix {
         }
         res
     }
+    pub fn pow(&self, n: u8) -> Self {
+        let mut res = self.clone();
+        for _ in 1..n {
+            res = res.multiply_matrix(self);
+        }
+        res
+    }
     pub fn iter(&self) -> impl Iterator<Item = f64> + '_ {
         self.rows().flat_map(move |row| row.iter().cloned())
     }
