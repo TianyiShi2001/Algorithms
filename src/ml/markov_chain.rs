@@ -22,9 +22,13 @@ impl MarkovChain {
     pub fn new(stochastic_matrix: Matrix) -> Self {
         Self::from_right_stochastic_matrix(stochastic_matrix)
     }
+    /// `A[i][j]` represents the probability of transition from `j` to `i`.
+    /// Every column sums up to 1.
     pub fn from_left_stochastic_matrix(stochastic_matrix: Matrix) -> Self {
         Self { stochastic_matrix }
     }
+    /// `A[i][j]` represents the probability of transition from `i` to `j`
+    /// Every row sums up to 1.
     pub fn from_right_stochastic_matrix(stochastic_matrix: Matrix) -> Self {
         Self {
             stochastic_matrix: stochastic_matrix.transpose(),
