@@ -110,7 +110,10 @@ impl Matrix {
         }
         res
     }
+    /// Take an identity matrix and multiply this matrix by n times.
+    /// The matrix must be a square matrix.
     pub fn pow(&self, n: u8) -> Self {
+        assert!(self.is_square_matrix());
         let mut res = self.clone();
         for _ in 1..n {
             res = res.multiply_matrix(self);
