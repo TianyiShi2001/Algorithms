@@ -6,3 +6,4 @@ pub mod math;
 pub mod misc;
 pub mod ml;
 pub mod problems;
+pub mod search;
