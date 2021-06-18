@@ -1,3 +1,7 @@
+//! An implementation of the binary search algorithm
+//!
+//! - Time Complexity: O(log(high-low))
+
 const EPS: f64 = 1e-6;
 
 pub fn binary_search<F>(mut lo: f64, mut hi: f64, target: f64, f: F) -> f64

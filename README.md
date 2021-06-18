@@ -1,6 +1,7 @@
 # Rusty Algorithms & Data Structures for Learners
 
 <!-- [![Crates.io](https://img.shields.io/crates/d/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu) -->
+
 [![Crates.io](https://img.shields.io/crates/v/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 [![Crates.io](https://img.shields.io/crates/l/algorithms-edu.svg)](https://crates.io/crates/algorithms-edu)
 ![Continuous Integration](https://github.com/TianyiShi2001/Algorithms/workflows/CI/badge.svg)
@@ -85,6 +86,11 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 # Contents
 
+## Search Algorithms
+
+- Binary Search
+- Interpolation Search
+
 ## Graph
 
 ### Graph Representations
@@ -133,7 +139,6 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Topological sorting of DAG graphs and DAG shortest path
 - Eulerian path/circuit
 - Strongly connected components (Tarjan's algorithm)
-
 
 ## Data Structures
 
