@@ -1,4 +1,5 @@
-use super::{Circle, Point2D, SafeArcSinCos, EPS};
+use super::{Circle, Point2D, SafeArcSinCos};
+use crate::utils::EPS;
 
 pub enum TangentError {
     PointInsideCircle,

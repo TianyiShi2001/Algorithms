@@ -4,8 +4,6 @@ pub mod tangent;
 
 use std::ops::Sub;
 
-pub const EPS: f64 = 1e-6;
-
 pub struct Vec2D {
     x: f64,
     y: f64,
