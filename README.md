@@ -167,6 +167,10 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 - GCD/LCM
 - log2
+- Prime numbers
+  - Prime check
+  - Sieve of Eratosthenes
+  - Prime factorization (Pollard's rho algorithm)
 
 ### Linear Algebra (docs/annotations WIP)
 
