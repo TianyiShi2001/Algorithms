@@ -44,3 +44,57 @@ mod tests {
         assert!((-1.5 - minimum).abs() < EPS);
     }
 }
+
+pub mod discrete {
+    use crate::utils::EPS;
+    /// Find the index at which the value is the miminum in `values`. The `values` must
+    /// be a discrete and unimodal function with one and only one minimum.
+    pub fn ternary_search(values: &[f64], mut lo: usize, mut hi: usize) -> usize {
+        assert!(hi >= lo, "hi must be no less than lo");
+        loop {
+            match hi - lo {
+                0 => return lo,
+                1 => return if values[lo] < values[hi] { lo } else { hi },
+                2 => {
+                    let (mut min_idx, mut min) = (lo, values[lo]);
+                    let mut v = values[lo + 1];
+                    if v < min {
+                        min_idx = lo + 1;
+                        min = v;
+                    }
+                    v = values[hi];
+                    if v < min {
+                        min_idx = hi;
+                    }
+                    return min_idx;
+                }
+                _ => {
+                    let mid1 = (2 * lo + hi) / 3;
+                    let mid2 = (lo + 2 * hi) / 3;
+                    let res1 = values[mid1];
+                    let res2 = values[mid2];
+                    if (res1 - res2).abs() < EPS {
+                        lo = mid1;
+                        hi = mid2;
+                    } else if res1 > res2 {
+                        lo = mid1;
+                    } else {
+                        hi = mid2;
+                    }
+                }
+            }
+        }
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        #[test]
+        fn test_ternary_search_discrete() {
+            let values = [16., 12., 10., 3., 6., 7., 9., 10., 11., 12., 13., 17.];
+            let min_index = ternary_search(&values, 0, values.len() - 1);
+            let min_value = values[min_index];
+            assert_eq!(min_index, 3);
+            assert!((min_value - values[min_index]).abs() < EPS);
+        }
+    }
+}

@@ -90,6 +90,7 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 
 - Binary Search
 - Interpolation Search
+- Ternary Search
 
 ## Graph
 
