@@ -166,7 +166,9 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 ## Math
 
 - GCD
-  - coprime
+  - Euclidean algorithm
+  - Coprime
+  - Extended euclidean algorithm
 - LCM
 - log2
 - Prime numbers
