@@ -8,6 +8,9 @@ pub trait Gcd: PrimInt + Signed {
             other.gcd(self % other)
         }
     }
+    fn coprime(self, other: Self) -> bool {
+        self.gcd(other) == Self::one()
+    }
 }
 
 pub trait GcdUnsigned: PrimInt + Unsigned {
@@ -42,5 +45,10 @@ mod tests {
         assert_eq!(12u32.gcd(18), 6);
         assert_eq!(12u128.gcd(18), 6);
         assert_eq!(12i128.gcd(18), 6);
+    }
+    #[test]
+    fn test_coprime() {
+        assert!(7.coprime(12));
+        assert!(!12.coprime(18));
     }
 }
