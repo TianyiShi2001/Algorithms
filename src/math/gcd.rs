@@ -6,13 +6,15 @@ pub trait Gcd: PrimInt + Signed {
         if other == Self::zero() {
             self.abs()
         } else {
-            // dividing a by b yields a quotient q and a remainder r (which is equal to a - bq); i.e.
-            // a = bq + r
-            // a = bq + (a - bq)
-            // let k be the common divisor of a and b, then a/k and b/k are integers,
-            // thus (a - bq)/k, which is r/k, must also be an integer, i.e.
-            // the common divisor of a and b must also be a common divisor of the remainder of a/b.
-            // Accordingly, a.gcd(b) = b.gcd(r) = b.gcd(a % b)
+            // Dviding a by b yields a quotient q and a remainder r,
+            // which is equal to (a - bq); i.e. a can be written as
+            //          a = bq + r
+            //          a = bq + (a - bq)
+            // let k be a common divisor of a and b, and divide the above equation by k:
+            // a/k = bq/k + (a - bq)/k
+            // Since a/k and bq/k are both integers, (a - bq)/k, which is r/k, must also
+            // be an integer, i.e. the common divisor of a and b must also be a divisor
+            // of r, the remainder of a/b.
             other.gcd(self % other)
         }
     }

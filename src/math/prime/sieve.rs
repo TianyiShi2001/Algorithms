@@ -36,10 +36,14 @@ mod tests {
 
     #[test]
     fn test_sieve_of_eratosthenes() {
-        let primes = sieve_of_eratosthenes(64);
+        let primes = sieve_of_eratosthenes(0x100);
         assert_eq!(
             primes,
-            vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]
+            vec![
+                2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79,
+                83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167,
+                173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251
+            ]
         )
     }
 }
@@ -88,7 +92,7 @@ pub mod memory_optimised {
         fn set_bit(&mut self, n: usize) {
             // if n is not even
             if n & 1 != 0 {
-                self.chunks[n >> SHIFT] |= 1u64 << ((n - 1) >> 1);
+                self.chunks[n >> SHIFT] |= 1u64.wrapping_shl(n as u32 >> 1);
             }
         }
 
@@ -103,7 +107,7 @@ pub mod memory_optimised {
                         false
                     } else {
                         let chunk = self.chunks[n >> SHIFT];
-                        let mask = 1u64 << ((n - 1) >> 1);
+                        let mask = 1u64.wrapping_shl(n as u32 >> 1);
                         chunk & mask == 0
                     }
                 }
@@ -142,11 +146,16 @@ pub mod memory_optimised {
         use super::*;
         #[test]
         fn test_sieve() {
-            let sieve = SieveOfEratosthenes::new(64);
+            let sieve = SieveOfEratosthenes::new(0x100);
             let primes: Vec<usize> = sieve.iter().collect();
             assert_eq!(
                 primes,
-                vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]
+                vec![
+                    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73,
+                    79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157,
+                    163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241,
+                    251
+                ]
             )
         }
     }
