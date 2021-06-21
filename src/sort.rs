@@ -1,5 +1,6 @@
 pub mod bubble_sort;
 pub mod counting_sort;
+pub mod insertion_sort;
 pub mod merge_sort;
 
 #[cfg(test)]
@@ -25,6 +26,10 @@ mod tests {
 
         let mut w = v.clone();
         counting_sort::counting_sort(&mut w);
+        assert_eq!(&w, &expected);
+
+        let mut w = v.clone();
+        insertion_sort::insertion_sort(&mut w);
         assert_eq!(&w, &expected);
     }
 }

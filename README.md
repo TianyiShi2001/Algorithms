@@ -92,6 +92,12 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Interpolation Search
 - Ternary Search
 
+## Sort Algorithms
+
+- Merge sort
+- Bubble sort
+- Counting sort
+
 ## Graph
 
 ### Graph Representations
