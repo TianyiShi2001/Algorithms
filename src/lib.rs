@@ -7,4 +7,5 @@ pub mod misc;
 pub mod ml;
 pub mod problems;
 pub mod search;
+pub mod sort;
 pub mod utils;
