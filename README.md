@@ -102,6 +102,8 @@ Genrerally, `Option::None` is an idiomatic representation of `null`.  This makes
 - Heap sort
 - Radix sort
 - Bucket sort
+- Quick sort
+  - Hoare partition
 
 ## Graph
 
