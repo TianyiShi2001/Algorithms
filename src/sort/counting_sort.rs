@@ -1,19 +1,10 @@
-use core::fmt;
+use crate::utils::MinMax;
 
 // Works best when the range of the values (i.e. max_value - min_value) is small.
 //
 // - Time complexity: O(n+maxVal-maxVal)
 pub fn counting_sort<T: num_traits::PrimInt>(v: &mut [T]) {
-    let mut min = T::max_value();
-    let mut max = T::min_value();
-    for &n in v.iter() {
-        if n < min {
-            min = n;
-        }
-        if n > max {
-            max = n;
-        }
-    }
+    let (min, max) = v.iter().min_max();
 
     let sz = (max - min + T::one()).to_usize().unwrap();
     // `frequency[i]` stores how many times `i` occured in the vector to be sorted;
