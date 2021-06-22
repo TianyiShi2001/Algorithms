@@ -1,5 +1,6 @@
 pub mod bubble_sort;
 pub mod counting_sort;
+pub mod heap_sort;
 pub mod insertion_sort;
 pub mod merge_sort;
 
@@ -30,6 +31,10 @@ mod tests {
 
         let mut w = v.clone();
         insertion_sort::insertion_sort(&mut w);
+        assert_eq!(&w, &expected);
+
+        let mut w = v.clone();
+        heap_sort::heap_sort(&mut w);
         assert_eq!(&w, &expected);
     }
 }
