@@ -3,16 +3,25 @@ pub mod counting_sort;
 pub mod heap_sort;
 pub mod insertion_sort;
 pub mod merge_sort;
+pub mod radix_sort;
 
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn test_sort_not_in_place() {
+    fn test_out_of_placee() {
         let v = [10, 4, 6, 4, 8, -13, 2, 3];
         let expected = [-13, 2, 3, 4, 4, 6, 8, 10];
         let mut sorted;
         sorted = merge_sort::merge_sort(&v);
+        assert_eq!(&sorted, &expected);
+    }
+
+    #[test]
+    fn test_radix_sort() {
+        let v = [387, 468, 134, 123, 68, 221, 769, 37, 7, 890, 1, 587];
+        let expected = [1, 7, 37, 68, 123, 134, 221, 387, 468, 587, 769, 890];
+        let sorted = radix_sort::radix_sort(&v);
         assert_eq!(&sorted, &expected);
     }
 
