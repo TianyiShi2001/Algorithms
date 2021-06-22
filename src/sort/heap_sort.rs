@@ -1,4 +1,4 @@
-pub fn heap_sort<T: Ord>(v: &mut [T]) {
+pub fn heap_sort<T: Ord + std::fmt::Debug>(v: &mut [T]) {
     let n = match v.len() {
         0 | 1 => return,
         n => n,
@@ -13,7 +13,7 @@ pub fn heap_sort<T: Ord>(v: &mut [T]) {
     // Sorting bit
     for k in (1..n).rev() {
         v.swap(0, k);
-        sink(&mut v[..k - 1], 0);
+        sink(&mut v[..k], 0);
     }
 }
 
