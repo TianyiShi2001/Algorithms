@@ -1,13 +1,16 @@
+use core::fmt;
+
 // Works best when the range of the values (i.e. max_value - min_value) is small.
 //
 // - Time complexity: O(n+maxVal-maxVal)
 pub fn counting_sort<T: num_traits::PrimInt>(v: &mut [T]) {
-    let mut min = T::min_value();
-    let mut max = T::max_value();
+    let mut min = T::max_value();
+    let mut max = T::min_value();
     for &n in v.iter() {
         if n < min {
             min = n;
-        } else if n > max {
+        }
+        if n > max {
             max = n;
         }
     }
