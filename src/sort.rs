@@ -24,31 +24,41 @@ mod tests {
             v.sort_unstable();
             v
         };
+        static ref V_USIZE: Vec<usize> = thread_rng()
+            .sample_iter(Uniform::new_inclusive(0, 400))
+            .take(50)
+            .collect();
+        static ref V_USIZE_SORTED: Vec<usize> = {
+            let mut v = V_USIZE.clone();
+            v.sort_unstable();
+            v
+        };
+    }
+    const V_I32_SINGLE: [i32; 1] = [5];
+
+    fn test_sort_out_of_place<F: Fn(&[i32]) -> Vec<i32>>(f: F) {
+        assert_eq!(&f(&*V_I32), &*V_I32_SORTED);
+        assert_eq!(&f(&V_I32_SINGLE), &V_I32_SINGLE);
     }
 
     #[test]
-    fn test_out_of_placee() {
-        let v = [10, 4, 6, 4, 8, -13, 2, 3];
-        let expected = [-13, 2, 3, 4, 4, 6, 8, 10];
-        let mut sorted;
-        sorted = merge_sort::merge_sort(&v);
-        assert_eq!(&sorted, &expected);
-        sorted = bucket_sort::bucket_sort(&v);
-        assert_eq!(&sorted, &expected);
+    fn test_merge_sort() {
+        test_sort_out_of_place(merge_sort::merge_sort);
     }
 
     #[test]
-    fn test_radix_sort() {
-        let v = [387, 468, 134, 123, 68, 221, 769, 37, 7, 890, 1, 587];
-        let expected = [1, 7, 37, 68, 123, 134, 221, 387, 468, 587, 769, 890];
-        let sorted = radix_sort::radix_sort(&v);
-        assert_eq!(&sorted, &expected);
+    fn test_bucket_sort() {
+        test_sort_out_of_place(bucket_sort::bucket_sort);
     }
 
     fn test_sort_in_place<F: Fn(&mut [i32])>(f: F) {
         let mut w = V_I32.clone();
         f(&mut w);
         assert_eq!(&w, &*V_I32_SORTED);
+
+        let mut single_item = V_I32_SINGLE.clone();
+        f(&mut single_item);
+        assert_eq!(&single_item, &V_I32_SINGLE);
     }
 
     #[test]
@@ -79,5 +89,11 @@ mod tests {
     #[test]
     fn test_quick_sort() {
         test_sort_in_place(quick_sort::quick_sort);
+    }
+
+    #[test]
+    fn test_radix_sort() {
+        let sorted = radix_sort::radix_sort(&*V_USIZE);
+        assert_eq!(&sorted, &*V_USIZE_SORTED);
     }
 }
