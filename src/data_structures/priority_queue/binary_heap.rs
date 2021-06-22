@@ -76,22 +76,21 @@ impl<T: PartialOrd> BinaryHeap<T> {
             let left = 2 * k + 1; // Left  node
             let right = 2 * k + 2; // Right node
 
-            // Find which is smaller left or right
-            let smallest = if right < heap_size && self.heap[right] < self.heap[left] {
-                right
-            } else {
-                left
+            let mut smallest = k;
+            // Find which is smaller than the parent, left or right
+            if left < heap_size && self.heap[left] < self.heap[smallest] {
+                smallest = left;
             };
-
-            // Stop if we're outside the bounds of the tree
-            // or stop early if we cannot sink k anymore
-            if left >= heap_size || self.heap[k] < self.heap[smallest] {
+            if right < heap_size && self.heap[right] < self.heap[smallest] {
+                smallest = right
+            }
+            if smallest != k {
+                self.heap.swap(smallest, k);
+                k = smallest;
+            } else {
+                // Stop if we cannot sink k anymore
                 break;
             }
-
-            // Move down the tree following the smallest node
-            self.heap.swap(smallest, k);
-            k = smallest;
         }
         k
     }
