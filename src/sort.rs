@@ -11,6 +11,23 @@ pub mod selection_sort;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use lazy_static::lazy_static;
+    use rand::{distributions::Uniform, thread_rng, Rng};
+
+    lazy_static! {
+        static ref V_i32: Vec<i32> = {
+            let mut rng = thread_rng();
+            rng.sample_iter(Uniform::new_inclusive(-200, 200))
+                .take(50)
+                .collect()
+        };
+        static ref V_i32_SORTED: Vec<i32> = {
+            let mut v = V_i32.clone();
+            v.sort_unstable();
+            v
+        };
+    }
+
     #[test]
     fn test_out_of_placee() {
         let v = [10, 4, 6, 4, 8, -13, 2, 3];
@@ -30,33 +47,39 @@ mod tests {
         assert_eq!(&sorted, &expected);
     }
 
+    fn test_sort_in_place<F: Fn(&mut [i32])>(f: F) {
+        let mut w = V_i32.clone();
+        f(&mut w);
+        assert_eq!(&w, &*V_i32_SORTED);
+    }
+
     #[test]
-    fn test_sort_in_place() {
-        let v = [10, 4, 6, 4, 8, -13, 2, 3];
-        let expected = [-13, 2, 3, 4, 4, 6, 8, 10];
+    fn test_selection_sort() {
+        test_sort_in_place(selection_sort::selection_sort);
+    }
 
-        let mut w = v.clone();
-        selection_sort::selection_sort(&mut w);
-        assert_eq!(&w, &expected);
+    #[test]
+    fn test_bubble_sort() {
+        test_sort_in_place(bubble_sort::bubble_sort);
+    }
 
-        let mut w = v.clone();
-        bubble_sort::bubble_sort(&mut w);
-        assert_eq!(&w, &expected);
+    #[test]
+    fn test_counting_sort() {
+        test_sort_in_place(counting_sort::counting_sort);
+    }
 
-        let mut w = v.clone();
-        counting_sort::counting_sort(&mut w);
-        assert_eq!(&w, &expected);
+    #[test]
+    fn test_insertion_sort() {
+        test_sort_in_place(insertion_sort::insertion_sort);
+    }
 
-        let mut w = v.clone();
-        insertion_sort::insertion_sort(&mut w);
-        assert_eq!(&w, &expected);
+    #[test]
+    fn test_heap_sort() {
+        test_sort_in_place(heap_sort::heap_sort);
+    }
 
-        let mut w = v.clone();
-        heap_sort::heap_sort(&mut w);
-        assert_eq!(&w, &expected);
-
-        let mut w = v.clone();
-        quick_sort::quick_sort(&mut w);
-        assert_eq!(&w, &expected);
+    #[test]
+    fn test_quick_sort() {
+        test_sort_in_place(quick_sort::quick_sort);
     }
 }
