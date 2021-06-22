@@ -10,6 +10,8 @@
 //! `nums`  - an ordered list containing uniformly distributed values.
 //! `target` - the value we're looking for in `items`
 
+use std::cmp::Ordering;
+
 pub fn interpolation_search(nums: &[i32], target: i32) -> Option<usize> {
     let mut lo = 0;
     let mut hi = nums.len() - 1;
@@ -17,12 +19,10 @@ pub fn interpolation_search(nums: &[i32], target: i32) -> Option<usize> {
     while hi > lo {
         mid =
             lo + (((target - nums[lo]) / (nums[hi] - nums[lo])) as f64 * (hi - lo) as f64) as usize;
-        if nums[mid] < target {
-            lo = mid + 1;
-        } else if nums[mid] > target {
-            hi = mid - 1;
-        } else {
-            return Some(mid);
+        match nums[mid].cmp(&target) {
+            Ordering::Less => lo = mid + 1,
+            Ordering::Greater => hi = mid - 1,
+            Ordering::Equal => return Some(mid),
         }
     }
     // hi == lo

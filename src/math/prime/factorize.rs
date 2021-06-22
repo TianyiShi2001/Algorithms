@@ -4,8 +4,8 @@ use rand::{thread_rng, Rng};
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
+#[allow(clippy::many_single_char_names)]
 pub fn prime_factorize(n: usize) -> Vec<usize> {
-    println!("Now factorizing {}", n);
     let mut rng = thread_rng();
     let mut pollard_rho = |n: usize| -> usize {
         if n % 2 == 0 {
@@ -35,13 +35,11 @@ pub fn prime_factorize(n: usize) -> Vec<usize> {
             let mut divisor_queue = BinaryHeap::new();
             divisor_queue.push(Reverse(n));
             while let Some(Reverse(divisor)) = divisor_queue.pop() {
-                println!("popping {}", divisor);
                 if is_prime(divisor) {
                     factors.push(divisor);
                     continue;
                 }
                 let next_divisor = pollard_rho(divisor);
-                println!("Next divisor: {}", next_divisor);
                 if next_divisor == divisor {
                     divisor_queue.push(Reverse(divisor));
                 } else {
@@ -52,7 +50,7 @@ pub fn prime_factorize(n: usize) -> Vec<usize> {
         }
     }
 
-    factors.sort();
+    factors.sort_unstable();
     factors
 }
 

@@ -77,7 +77,7 @@ pub mod with_parent {
         pub fn new(id: usize, parent: Option<&Rc<RefCell<Node>>>) -> Rc<RefCell<Node>> {
             Rc::new(RefCell::new(Self {
                 id,
-                parent: parent.map(|parent| Rc::downgrade(&parent)),
+                parent: parent.map(|parent| Rc::downgrade(parent)),
                 children: vec![],
             }))
         }

@@ -17,6 +17,7 @@ pub mod iterative {
         /// In this particular implementation we just increment a counter each time we
         /// visit a new node. This, by itself, is not of much use, but you'll soon see that
         /// many other advanced algorithms are based on this DFS prototype.
+        #[allow(clippy::vec_init_then_push)]
         pub fn dfs(&self, start: usize) -> usize {
             let mut count = 0;
             let mut visited = vec![false; self.node_count()];

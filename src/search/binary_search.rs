@@ -21,7 +21,7 @@ where
             lo = mid;
         }
     }
-    return mid;
+    mid
 }
 #[cfg(test)]
 mod tests {

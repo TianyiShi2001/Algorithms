@@ -38,7 +38,7 @@ impl Mul<Matrix> for Vec<f64> {
 
 impl MulAssign<Matrix> for Vec<f64> {
     fn mul_assign(&mut self, rhs: Matrix) {
-        *self = rhs.mul_by_row_vec(&self)
+        *self = rhs.mul_by_row_vec(self)
     }
 }
 

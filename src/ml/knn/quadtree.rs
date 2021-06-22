@@ -46,7 +46,7 @@ impl Node {
         let mut node_pq = BinaryHeap::new();
         // push the root onto the node priority queue
         node_pq.push((
-            -OrderedFloat(self.region.min_distance_to_point(&point)),
+            -OrderedFloat(self.region.min_distance_to_point(point)),
             self as *const Node, // `Ord` is not implemented for `&Node`; using a raw pointer is a quick and dirty solution
                                  // (we won't be modifying the tree while running this function so using a raw pointer is ok)
         ));
@@ -69,16 +69,19 @@ impl Node {
                     }
                 }
             }
-            for child in [&node.nw, &node.ne, &node.sw, &node.se].iter() {
-                if let Some(child) = child {
-                    let dist = child.region.min_distance_to_point(&point);
-                    // here is the heart of this algorithm.
-                    // only add a child onto the queue if it is possible to contain a point
-                    // that's closer to the query point than the worst point in the current
-                    // results.
-                    if dist <= result_pq.peek().unwrap().0.into_inner() {
-                        node_pq.push((-OrderedFloat(dist), child.as_ref() as *const Node));
-                    }
+            for child in [&node.nw, &node.ne, &node.sw, &node.se]
+                .iter()
+                .copied()
+                .flatten()
+            // flatten to ignore `None`s
+            {
+                let dist = child.region.min_distance_to_point(point);
+                // here is the heart of this algorithm.
+                // only add a child onto the queue if it is possible to contain a point
+                // that's closer to the query point than the worst point in the current
+                // results.
+                if dist <= result_pq.peek().unwrap().0.into_inner() {
+                    node_pq.push((-OrderedFloat(dist), child.as_ref() as *const Node));
                 }
             }
         }

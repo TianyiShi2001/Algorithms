@@ -7,7 +7,7 @@ pub fn heap_sort<T: Ord + std::fmt::Debug>(v: &mut [T]) {
     // Heapify, converts array into binary heap O(n), see:
     // http://www.cs.umd.edu/~meesh/351/mount/lectures/lect14-heapsort-analysis-part.pdf
     for i in (0..n / 2 - 1).rev() {
-        sink(&mut v[..], i);
+        sink(&mut *v, i);
     }
 
     // Sorting bit

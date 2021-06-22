@@ -11,7 +11,7 @@
 
 pub fn radix_sort(v: &[usize]) -> Vec<usize> {
     if v.len() <= 1 {
-        return v.to_owned();
+        v.to_owned()
     } else {
         let mx = *v.iter().max().unwrap();
         let mut ndigits = number_of_digits(mx);

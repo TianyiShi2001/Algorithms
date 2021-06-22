@@ -15,10 +15,10 @@ pub fn counting_sort<T: num_traits::PrimInt>(v: &mut [T]) {
         frequency[m] += 1;
     }
     let mut k = 0;
-    for idx in 0..sz {
-        let i = T::from(idx).unwrap() + min;
-        for _ in 0..frequency[idx] {
-            v[k] = i;
+    for (idx, &freq) in frequency.iter().enumerate().take(sz) {
+        let val = T::from(idx).unwrap() + min;
+        for _ in 0..freq {
+            v[k] = val;
             k += 1;
         }
     }

@@ -17,7 +17,7 @@ impl Matrix {
         Self::row_swapping_matrix(dim, i0, i1)
     }
     pub fn inverse_row_swapping_matrix(&self) -> &Self {
-        &self
+        self
     }
     pub fn row_multiplication_matrix(dim: usize, row_and_factors: &[(usize, f64)]) -> Self {
         let mut res = Self::identity(dim);

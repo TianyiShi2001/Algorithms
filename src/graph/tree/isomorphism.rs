@@ -19,6 +19,7 @@ impl From<Center> for Vec<usize> {
 }
 
 impl Node {
+    #[allow(clippy::vec_init_then_push)]
     pub fn encode(&self) -> Vec<u8> {
         let mut labels: Vec<_> = self.children.iter().map(|node| node.encode()).collect();
         labels.sort();
@@ -37,9 +38,9 @@ impl UnweightedAdjacencyList {
         let this_centers: Vec<usize> = self.center().into();
         let other_centers: Vec<usize> = other.center().into();
         for &c1 in &this_centers {
-            let tree1 = Node::from_adjacency_list(&self, c1);
+            let tree1 = Node::from_adjacency_list(self, c1);
             for &c2 in &other_centers {
-                let tree2 = Node::from_adjacency_list(&self, c2);
+                let tree2 = Node::from_adjacency_list(self, c2);
                 if tree1.encode() == tree2.encode() {
                     return true;
                 }

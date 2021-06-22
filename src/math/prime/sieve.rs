@@ -1,6 +1,7 @@
 /// Use the sieve of eratosthenes to find all the prime numbers up to a certain limit.
 ///
 /// - Time Complexity: O(nlog(logn))
+#[allow(clippy::needless_range_loop)]
 pub fn sieve_of_eratosthenes(n: usize) -> Vec<usize> {
     if n <= 2 {
         vec![]

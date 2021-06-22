@@ -15,14 +15,12 @@ mod tests {
     use rand::{distributions::Uniform, thread_rng, Rng};
 
     lazy_static! {
-        static ref V_i32: Vec<i32> = {
-            let mut rng = thread_rng();
-            rng.sample_iter(Uniform::new_inclusive(-200, 200))
-                .take(50)
-                .collect()
-        };
-        static ref V_i32_SORTED: Vec<i32> = {
-            let mut v = V_i32.clone();
+        static ref V_I32: Vec<i32> = thread_rng()
+            .sample_iter(Uniform::new_inclusive(-200, 200))
+            .take(50)
+            .collect();
+        static ref V_I32_SORTED: Vec<i32> = {
+            let mut v = V_I32.clone();
             v.sort_unstable();
             v
         };
@@ -48,9 +46,9 @@ mod tests {
     }
 
     fn test_sort_in_place<F: Fn(&mut [i32])>(f: F) {
-        let mut w = V_i32.clone();
+        let mut w = V_I32.clone();
         f(&mut w);
-        assert_eq!(&w, &*V_i32_SORTED);
+        assert_eq!(&w, &*V_I32_SORTED);
     }
 
     #[test]

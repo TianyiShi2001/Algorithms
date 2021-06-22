@@ -125,7 +125,7 @@ impl Node {
 
     /// Count how many points are found within a certain rectangular region
     pub fn count(&self, area: &Rectangle) -> usize {
-        if !self.region.intersects(&area) {
+        if !self.region.intersects(area) {
             0
         } else {
             let count = if area.contains_rectangle(&self.region) {
@@ -144,17 +144,17 @@ impl Node {
             // Dig into each of the quadrants and count all points
             // which overlap with the area and sum their count
             count
-                + self.nw.as_ref().map_or(0, |node| node.count(&area))
-                + self.ne.as_ref().map_or(0, |node| node.count(&area))
-                + self.sw.as_ref().map_or(0, |node| node.count(&area))
-                + self.se.as_ref().map_or(0, |node| node.count(&area))
+                + self.nw.as_ref().map_or(0, |node| node.count(area))
+                + self.ne.as_ref().map_or(0, |node| node.count(area))
+                + self.sw.as_ref().map_or(0, |node| node.count(area))
+                + self.se.as_ref().map_or(0, |node| node.count(area))
         }
     }
     // Find all points that lie within a certain rectangular region
     pub fn query(&self, area: &Rectangle) -> Vec<&Point2D> {
         let mut res = Vec::new();
         fn _query<'a>(node: &'a Node, area: &Rectangle, res: &mut Vec<&'a Point2D>) {
-            if node.region.intersects(&area) {
+            if node.region.intersects(area) {
                 if area.contains_rectangle(&node.region) {
                     res.extend(node.points.iter());
                 } else {
@@ -174,7 +174,7 @@ impl Node {
                 }
             }
         }
-        _query(&self, area, &mut res);
+        _query(self, area, &mut res);
         res
     }
 }

@@ -114,6 +114,7 @@ impl<T: Ord + Debug + PartialEq + Eq + Clone> AvlTree<T> {
     }
 
     /// re-balance a node if its balance factor is +2 or -2
+    #[allow(clippy::branches_sharing_code)]
     fn balance(node: &mut Box<Node<T>>) {
         // left heavy
         match node.balance_factor {

@@ -51,7 +51,7 @@ impl WeightedAdjacencyList {
 
         for at in 0..n {
             if !visited[at] {
-                i = _dfs(i, at, &mut visited, &mut ordering, &self);
+                i = _dfs(i, at, &mut visited, &mut ordering, self);
             }
         }
 
