@@ -1,5 +1,3 @@
-use rand::{thread_rng, Rng};
-
 /// Tests whether a number is a prime number or not Time Complexity: O(sqrt(n))
 pub fn is_prime(n: usize) -> bool {
     match n {

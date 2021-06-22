@@ -1,4 +1,5 @@
 pub mod bubble_sort;
+pub mod bucket_sort;
 pub mod counting_sort;
 pub mod heap_sort;
 pub mod insertion_sort;
@@ -14,6 +15,8 @@ mod tests {
         let expected = [-13, 2, 3, 4, 4, 6, 8, 10];
         let mut sorted;
         sorted = merge_sort::merge_sort(&v);
+        assert_eq!(&sorted, &expected);
+        sorted = bucket_sort::bucket_sort(&v);
         assert_eq!(&sorted, &expected);
     }
 
