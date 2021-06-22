@@ -5,6 +5,7 @@ pub mod heap_sort;
 pub mod insertion_sort;
 pub mod merge_sort;
 pub mod radix_sort;
+pub mod selection_sort;
 
 #[cfg(test)]
 mod tests {
@@ -32,8 +33,12 @@ mod tests {
     fn test_sort_in_place() {
         let v = [10, 4, 6, 4, 8, -13, 2, 3];
         let expected = [-13, 2, 3, 4, 4, 6, 8, 10];
-        let mut w = v.clone();
 
+        let mut w = v.clone();
+        selection_sort::selection_sort(&mut w);
+        assert_eq!(&w, &expected);
+
+        let mut w = v.clone();
         bubble_sort::bubble_sort(&mut w);
         assert_eq!(&w, &expected);
 
