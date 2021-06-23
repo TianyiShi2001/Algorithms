@@ -11,23 +11,17 @@ pub mod selection_sort;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::_test_utils::random_uniform_vec;
     use lazy_static::lazy_static;
-    use rand::{distributions::Uniform, thread_rng, Rng};
 
     lazy_static! {
-        static ref V_I32: Vec<i32> = thread_rng()
-            .sample_iter(Uniform::new_inclusive(-200, 200))
-            .take(50)
-            .collect();
+        static ref V_I32: Vec<i32> = random_uniform_vec(-200, 200);
         static ref V_I32_SORTED: Vec<i32> = {
             let mut v = V_I32.clone();
             v.sort_unstable();
             v
         };
-        static ref V_USIZE: Vec<usize> = thread_rng()
-            .sample_iter(Uniform::new_inclusive(0, 400))
-            .take(50)
-            .collect();
+        static ref V_USIZE: Vec<usize> = random_uniform_vec(0, 400);
         static ref V_USIZE_SORTED: Vec<usize> = {
             let mut v = V_USIZE.clone();
             v.sort_unstable();
