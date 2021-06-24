@@ -15,13 +15,13 @@ mod tests {
     use lazy_static::lazy_static;
 
     lazy_static! {
-        static ref V_I32: Vec<i32> = random_uniform_vec(-200, 200);
+        static ref V_I32: Vec<i32> = random_uniform_vec(-200, 200, 50);
         static ref V_I32_SORTED: Vec<i32> = {
             let mut v = V_I32.clone();
             v.sort_unstable();
             v
         };
-        static ref V_USIZE: Vec<usize> = random_uniform_vec(0, 400);
+        static ref V_USIZE: Vec<usize> = random_uniform_vec(0, 400, 50);
         static ref V_USIZE_SORTED: Vec<usize> = {
             let mut v = V_USIZE.clone();
             v.sort_unstable();
