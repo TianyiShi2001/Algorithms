@@ -148,6 +148,6 @@ mod tests {
         assert_eq!(ST1.longest_repeated_substr(2), b"abra".to_vec());
         assert_eq!(ST1.longest_repeated_substr(3), vec![b'a']);
         assert_eq!(ST1.longest_repeated_substr(5), vec![b'a']);
-        assert_eq!(ST1.longest_repeated_substr(6), vec![]);
+        assert_eq!(ST1.longest_repeated_substr(6), Vec::<u8>::new());
     }
 }

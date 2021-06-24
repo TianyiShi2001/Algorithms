@@ -8,17 +8,39 @@
 //! - [30:00, in Ben Langmead's lecture on "Suffix tries and trees" (2013)](https://www.youtube.com/watch?v=hLsrPsFHPcQ)
 
 // use super::super::suffix_trie::single::{Node as TrieNode, Trie};
+use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Eq)]
 pub struct Tree<'a> {
     pub root: Node<'a>,
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq)]
 pub enum Node<'a> {
     Branches(HashMap<&'a [u8], Box<Node<'a>>>),
     Leaf(usize), // offset
+}
+
+use std::fmt;
+impl<'a> fmt::Debug for Node<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Branches(children) => {
+                for (&edge, child) in children.iter() {
+                    let mut edge = unsafe { std::str::from_utf8_unchecked(edge) };
+                    if edge.is_empty() {
+                        edge = "(empty}"
+                    }
+                    writeln!(f, "{}: {:?}", edge, child)?;
+                }
+            }
+            Self::Leaf(_offset) => {
+                write!(f, "$")?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl<'a> Default for Node<'a> {
@@ -43,6 +65,10 @@ impl<'a> Tree<'a> {
     ///
     /// First, build a single-edge tree representing only the longest suffix, then
     /// augment to include the 2nd-longest, then augment to include 3rd-longest, etc.
+    ///
+    /// (There is another naive method, which is to build a suffix trie first, then
+    /// coalesce non-branching paths and relabel edges. This is too inefficient that
+    /// I won't bother implementing it.)
     pub fn from_str_naive(s: &'a [u8]) -> Self {
         //-> Self {
         let mut root = Node::default();
@@ -92,8 +118,8 @@ impl<'a> Tree<'a> {
                         let child_original = unsafe { &mut *children_ptr }.remove(edge).unwrap();
                         branches.insert(lower_original, child_original);
                         branches.insert(lower_suffix, Box::new(Node::Leaf(offset)));
-                        unsafe { &mut *children_ptr }
-                            .insert(upper, Box::new(Node::Branches(branches)));
+                        let branches = Box::new(Node::Branches(branches));
+                        unsafe { &mut *children_ptr }.insert(upper, branches);
                         // we have finished inserting the suffix, so break the outer loop
                         break 'outer;
                     }
@@ -134,11 +160,12 @@ impl<'a> Tree<'a> {
                 }
                 Node::Leaf(_) => descendents_leaves += 1,
             }
-            if descendents_leaves >= n
-                && buffer.iter().map(|substr| substr.len()).sum::<usize>() > *longest_len
-            {
-                *longest = buffer.clone();
-                *longest_len = buffer.len();
+            if descendents_leaves >= n {
+                let substr_len = buffer.iter().map(|substr| substr.len()).sum::<usize>();
+                if substr_len > *longest_len {
+                    *longest = buffer.clone();
+                    *longest_len = substr_len;
+                }
             }
             descendents_leaves
         }
@@ -149,48 +176,40 @@ impl<'a> Tree<'a> {
             .flat_map(|x| x.into_iter().copied())
             .collect()
     }
-    // pub fn from_trie(trie: &Trie) -> Tree {
-    //     fn process_node(
-    //         trie_node: &TrieNode,
-    //         tree_node_parent: &mut Node,
-    //         buffer: &mut Vec<u8>,
-    //     ) -> Vec<u8> {
-    //         match trie_node.children.len() {
-    //             0 => buffer.to_vec(),
-    //             1 => {
-    //                 let (c, trie_node_child) = trie_node.children.iter().next().unwrap();
-    //                 buffer.push(*c);
-    //                 process_node(trie_node_child, tree_node_parent, buffer)
-    //             }
-    //             _ => {
-    //                 for (&c, child) in &trie_node.children {
-    //                     let mut buffer = Vec::new();
-    //                     buffer.push(c);
-    //                     let mut child_tree_node = Node::default();
-    //                     let link_to_child = process_node(child, &mut child_tree_node, &mut buffer);
-    //                     tree_node_parent
-    //                         .children
-    //                         .insert(link_to_child, Box::new(child_tree_node));
-    //                 }
-    //                 buffer.to_vec()
-    //             }
-    //         }
-    //     }
-    //     let mut slf = Self::default();
-    //     process_node(&trie.root, &mut slf.root, &mut Vec::new());
-    //     slf
-    // }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::hash::Hash;
+
     use super::*;
     use lazy_static::lazy_static;
+    use maplit::hashmap;
     lazy_static! {
         static ref S1: &'static [u8] = b"abracadabra";
         static ref ST1: Tree<'static> = Tree::from_str_naive(&S1);
+        static ref ST1_EXPECTED: Tree<'static> = Tree {
+            root: Node::Branches(hashmap!{
+                &S1[0..1] => Box::new(Node::Branches( // a
+                    hashmap! {
+                        &S1[10..] => Box::new(Node::Leaf(10)),
+                        &S1[4..] => Box::new(Node::Leaf(3)),
+                        &S1[1..4] => Box::new(Node::Branches(
+                            hashmap! {
+                                &S1[10..] => Box::new(Node::Leaf(7)),
+                                &S1[4..] => Box::new(Node::Leaf(0)), // cadabra ==> abracadabra
+                            }
+                        ))
+                    }
+                )),
+                &S1[1..4] => Box::new(Node::Branches(hashmap!{
+                   // &S1[..]
+                }))
+            })
+        };
         // see ![visual representation of the suffix trie of `abracadabra`](https://i.imgur.com/oes5dxo.png)
     }
+
     // #[test]
     // fn contains_substr_1() {
     //     assert!(ST1.contains_substr(b"abra"));
@@ -213,6 +232,16 @@ mod tests {
         assert_eq!(ST1.longest_repeated_substr(2), b"abra".to_vec());
         assert_eq!(ST1.longest_repeated_substr(3), vec![b'a']);
         assert_eq!(ST1.longest_repeated_substr(5), vec![b'a']);
-        assert_eq!(ST1.longest_repeated_substr(6), vec![]);
+        assert_eq!(ST1.longest_repeated_substr(6), Vec::<u8>::new());
     }
+
+    // #[test]
+    // fn print_abracadabra_suffix_tree() {
+    //     // let serialized = serde_json::to_string_pretty(&*ST1).unwrap();
+    //     for _ in 0..10 {
+    //         let st = Tree::from_str_naive(&S1);
+    //         println!("{}", &st == &*ST1);
+    //     }
+    //     // println!("{:?}", &*ST1);
+    // }
 }
