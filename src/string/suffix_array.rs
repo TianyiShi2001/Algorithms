@@ -1,9 +1,9 @@
-pub struct SuffixArray {
-    sa: Vec<usize>,
-}
+// pub struct SuffixArray {
+//     sa: Vec<usize>,
+// }
 
-impl SuffixArray {
-    // pub fn lcp(&self) -> Vec<usize> {
-    //     self.sa.windows(2).map(|f|)
-    // }
-}
+// impl SuffixArray {
+//     // pub fn lcp(&self) -> Vec<usize> {
+//     //     self.sa.windows(2).map(|f|)
+//     // }
+// }

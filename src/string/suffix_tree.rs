@@ -5,3 +5,5 @@
 // pub struct SuffixTreeNode {
 
 // }
+pub mod improved;
+pub mod naive;
