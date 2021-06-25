@@ -49,31 +49,21 @@ impl<'a> Default for Node<'a> {
     }
 }
 
-// impl<'a> Node<'a> {
-//     fn dummy() -> Self {
-//         Self::Leaf(0)
-//     }
-// }
-
-// #[derive(Default, Debug)]
-// pub struct Node<'a> {
-//     pub children: HashMap<&'a [u8], Box<Node<'a>>>,
-// }
-
 impl<'a> Tree<'a> {
     /// A naive method to construct the suffix tree from a string.
     ///
     /// First, build a single-edge tree representing only the longest suffix, then
     /// augment to include the 2nd-longest, then augment to include 3rd-longest, etc.
     ///
+    /// - Time complexity: $O(m^2)$
+    /// - Space complexity: $O(m)$
+    ///
     /// (There is another naive method, which is to build a suffix trie first, then
     /// coalesce non-branching paths and relabel edges. This is too inefficient that
     /// I won't bother implementing it.)
     pub fn from_str_naive(s: &'a [u8]) -> Self {
-        //-> Self {
         let mut root = Node::default();
         for offset in 0..s.len() {
-            // let suffix_len = s.len() - offset;
             let mut suffix = &s[offset..];
             let mut node = &mut root;
             'outer: while let Node::Branches(children) = node {
@@ -234,14 +224,4 @@ mod tests {
         assert_eq!(ST1.longest_repeated_substr(5), vec![b'a']);
         assert_eq!(ST1.longest_repeated_substr(6), Vec::<u8>::new());
     }
-
-    // #[test]
-    // fn print_abracadabra_suffix_tree() {
-    //     // let serialized = serde_json::to_string_pretty(&*ST1).unwrap();
-    //     for _ in 0..10 {
-    //         let st = Tree::from_str_naive(&S1);
-    //         println!("{}", &st == &*ST1);
-    //     }
-    //     // println!("{:?}", &*ST1);
-    // }
 }
