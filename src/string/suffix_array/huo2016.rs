@@ -1,3 +1,9 @@
+use std::usize;
+
+const EMPTY: usize = usize::MAX;
+const UNIQUE: usize = usize::MAX - 1;
+const MULTI: usize = usize::MAX - 2;
+
 pub struct Huo2016 {
     pub s: Vec<u8>,
     pub sa: Vec<usize>,
@@ -27,9 +33,13 @@ impl Huo2016 {
         // store them in `sa`. Then we perform a prefix sum computation to determine the
         // starting position of each character (i.e. bucket head) in `sa`. Finally we scan
         // `s` once again to rename each character as the index of its bucket head.
+
+        // count occurence
         for &c in &self.s {
             self.sa[c as usize] += 1;
         }
+
+        // compute head indices
         let mut prev = 1; // or self.sa[0]; the sentinel always occurs once
         let mut curr;
         for i in 1..=self.sigma {
@@ -60,9 +70,7 @@ impl Huo2016 {
         //       previous scanned character `s[i+1]`
 
         // clear `sa`
-        for i in 0..=self.sigma {
-            self.sa[i] = 0;
-        }
+        self.reset_sa(self.sigma);
         // count occurence
         for &c in &self.s {
             self.sa[c as usize] += 1;
@@ -96,6 +104,147 @@ impl Huo2016 {
             prev_val = *curr_val;
         }
     }
+
+    /// Sort all LMS characters of `s`, i.e. place the indices of the LMS characters in
+    /// the tail of their corresponding buckets in `sa`.
+    /// Unlike Nong et al. (2009), we do not use a bucket array, meaning we do not have extra
+    /// space to store the LF/RF pointers/counters for each bucket to inidcate the position of
+    /// the free entries in the process. For this purpose, we develop the "inferior counter
+    /// trick", which allows us to carefully use the space in `sa` to store the information of
+    /// both the indices and the pointers.
+    fn sort_all_lms_chars(&mut self) {
+        self.fill_sa(EMPTY);
+        // Clear `sa`, then scan `s` from right to left. For every `s[i]` which is an LMS
+        // character (which can be determined in constant time),  do the following:
+        //   - if `sa[s[i]] = Empty`, let `sa[s[i]] = Unique`, meaning it is the unique LMS
+        //     character in this bucket
+        //   - if `sa[s[i]] = Unique`, let `sa[s[i]] = Multi`, meaning the number of LMS
+        //     characters in this bucket is at least 2
+        //   - otherwise, do nothing
+
+        // `s[0]` must not be LMS by definition
+        // starting from `s[n - 2]` i.e. the second last character
+        let mut s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
+        let mut s_im1_is_s;
+        let mut s_i = self.s[self.n - 2];
+        let mut s_im1;
+        // `i_minus_1` ranges from `n-3` to `0` inclusive, meaning `i` ranges from `n-2` to `1` inclusive.
+        // `s[0]` must not be an LMS character by definition so it is fine that `i` does not include `0`.
+        // `s[n-1]` is the sentinel character which is dealt with as a special case later.
+        for i_minus_1 in (0..self.n - 2).rev() {
+            s_im1 = self.s[i_minus_1];
+            s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+            if !s_im1_is_s && s_i_is_s {
+                // `s[i]` is LMS
+                let sa_s_i = &mut self.sa[s_i as usize];
+                match *sa_s_i {
+                    EMPTY => *sa_s_i = UNIQUE,
+                    UNIQUE => *sa_s_i = MULTI,
+                    _ => (),
+                }
+            }
+            s_i = s_im1;
+            s_i_is_s = s_im1_is_s;
+        }
+        // sentinel is LMS character by definition, and it always uniquely occupies bucket 0
+        self.sa[0] = UNIQUE;
+
+        // We scan `s` from right to left. For every `s[i]` which is an LMS character,
+        // we distinguish the following cases:
+        //   - `sa[s[i]] == UNIQUE`: let `sa[s[i]] = i`, i.e. `s[i]` is the unique LMS
+        //     character in its bucket, so we just put its index into its bucket (at the tail)
+        //   - `sa[s[i]] == MULTI` and `SA`
+
+        // In this case, `s[i]` is the first (i.e. largest index, since we scan `s` from right
+        // to left) LMS-character in its bucket. So if `sa[s[i] − 2] = EMPTY`, we let
+        // `sa[s[i]−2] = i` and `sa[s[i]−1] = 1` (i.e., we use `sa[s[i]−1]` as the counter for
+        // the number of LMS characters which has been added to this bucket so far).
+        // Otherwise, `sa[s[i]−2] != EMPTY` (i.e., `sa[s[i] - 2]` is in a differentbucket, which
+        // implies that this bucket has only two LMS characters). Then we let `sa[s[i]] = i`
+        // and `sa[s[i]−1] = EMPTY`. (We do not need a counter in this case and the last LMS
+        // character belonging to this bucket will be dealt with in the later process)
+
+        let mut s_i_is_s = false;
+        let mut s_im1_is_s;
+        let mut s_i = self.s[self.n - 2];
+        let mut s_im1;
+        let mut i = self.n - 2;
+        let sa = &mut self.sa as *mut Vec<usize>;
+        unsafe {
+            for i_minus_1 in (0..self.n - 2).rev() {
+                s_im1 = self.s[i_minus_1];
+                s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+                if !s_im1_is_s && s_i_is_s {
+                    // `s[i]` is LMS
+                    let sa_s_i = &mut (*sa)[s_i as usize];
+                    match *sa_s_i {
+                        UNIQUE => *sa_s_i = i,
+                        MULTI => {
+                            let sa_sim1 = &mut (*sa)[s_i as usize - 1];
+                            if *sa_sim1 == EMPTY {
+                                let sa_sim2 = &mut (*sa)[s_i as usize - 2];
+                                match *sa_sim2 {
+                                    EMPTY => {
+                                        *sa_sim2 = i;
+                                        *sa_sim1 = 1;
+                                    }
+                                    _ => {
+                                        *sa_s_i = i;
+                                        *sa_sim1 = EMPTY;
+                                    }
+                                }
+                            } else {
+                                let x = &mut (*sa)[s_i as usize - *sa_sim1 - 2] as *mut usize;
+                                if *x == EMPTY {
+                                    *x = i;
+                                    *sa_sim1 += 1;
+                                } else {
+                                    for j in (s_i as usize - *sa_sim1 + 1..=s_i as usize).rev() {
+                                        (*sa)[j] = (*sa)[j - 2];
+                                    }
+                                    (*sa)[s_i as usize - *sa_sim1] = i;
+                                    (*sa)[s_i as usize - *sa_sim1 - 1] = EMPTY;
+                                }
+                            }
+                        }
+                        _ => {
+                            let mut j = s_i as usize;
+                            while self.sa[j] != EMPTY {
+                                j -= 1;
+                            }
+                            self.sa[j] = i;
+                        }
+                    }
+                }
+                s_i = s_im1;
+                s_i_is_s = s_im1_is_s;
+                i = i_minus_1;
+            }
+            (*sa)[0] = UNIQUE;
+        }
+        for i in (0..self.n).rev() {
+            if self.sa[i] == MULTI {
+                let c = self.sa[self.s[i] as usize - 1];
+                for j in (i - c + 1..=i).rev() {
+                    self.sa[j] = self.sa[j - 2];
+                }
+                self.sa[i - c - 1] = EMPTY;
+                self.sa[i - c] = EMPTY;
+            }
+        }
+        self.sa[0] = self.n - 1; // sentinel as a special case
+    }
+
+    fn reset_sa(&mut self, n: usize) {
+        for i in 0..n {
+            self.sa[i] = 0;
+        }
+    }
+    fn fill_sa(&mut self, val: usize) {
+        for i in 0..self.n {
+            self.sa[i] = val;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -103,14 +252,27 @@ mod tests {
     use super::*;
     use lazy_static::lazy_static;
     const EXAMPLE_HUO: [u8; 13] = [2, 1, 1, 3, 3, 1, 1, 3, 3, 1, 2, 1, 0];
+    const EXAMPLE_HUO_STEP_1_S: [u8; 13] = [7, 6, 6, 9, 9, 6, 6, 9, 9, 6, 7, 1, 0];
+    const EXAMPLE_HUO_STEP_2_SA: [usize; 13] = [
+        12, EMPTY, EMPTY, EMPTY, 1, 5, 9, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+    ];
     // lazy_static! {
     //     static ref EXAMPLE_HUO:
     // }
     #[test]
-    fn test_rename() {
+    fn test_step_1() {
         let s = EXAMPLE_HUO.iter().copied().collect();
         let mut solver = Huo2016::new(s, Some(3));
         solver.rename();
-        assert_eq!(&solver.s, &[7, 6, 6, 9, 9, 6, 6, 9, 9, 6, 7, 1, 0]);
+        assert_eq!(&solver.s, &EXAMPLE_HUO_STEP_1_S);
+    }
+
+    #[test]
+    fn test_step_2() {
+        let s = EXAMPLE_HUO.iter().copied().collect();
+        let mut solver = Huo2016::new(s, Some(3));
+        solver.rename();
+        solver.sort_all_lms_chars();
+        assert_eq!(&solver.sa, &EXAMPLE_HUO_STEP_2_SA);
     }
 }
