@@ -1,3 +1,5 @@
+pub mod huo2016;
+
 pub struct SuffixArray<'a> {
     pub text: &'a str,
     pub sa: Vec<usize>,
