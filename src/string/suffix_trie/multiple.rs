@@ -32,6 +32,7 @@ impl Trie {
         }
     }
 
+    #[allow(clippy::explicit_counter_loop)]
     pub fn from_ascii_alphabetic_strs(ss: &[&[u8]]) -> Self {
         let n = ss.len();
         let mut slf = Trie::new(n);
@@ -53,7 +54,10 @@ impl Trie {
             for c in suffix {
                 let nd = unsafe { &mut *node };
                 nd.contained_in[sentinel as usize] = true;
-                node = &mut **nd.children.entry(*c).or_insert(Box::new(Node::new(self.n)));
+                node = &mut **nd
+                    .children
+                    .entry(*c)
+                    .or_insert_with(|| Box::new(Node::new(self.n)));
             }
         }
     }

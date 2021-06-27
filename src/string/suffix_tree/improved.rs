@@ -7,8 +7,6 @@
 //!
 //! - [30:00, in Ben Langmead's lecture on "Suffix tries and trees" (2013)](https://www.youtube.com/watch?v=hLsrPsFHPcQ)
 
-// use super::super::suffix_trie::single::{Node as TrieNode, Trie};
-use serde::Serialize;
 use std::collections::HashMap;
 
 #[derive(Default, Debug, PartialEq, Eq)]
@@ -163,40 +161,38 @@ impl<'a> Tree<'a> {
         dfs(&self.root, &mut Vec::new(), &mut longest, &mut 0, n);
         longest
             .into_iter()
-            .flat_map(|x| x.into_iter().copied())
+            .flat_map(|x| x.iter().copied())
             .collect()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::hash::Hash;
 
     use super::*;
     use lazy_static::lazy_static;
-    use maplit::hashmap;
     lazy_static! {
         static ref S1: &'static [u8] = b"abracadabra";
         static ref ST1: Tree<'static> = Tree::from_str_naive(&S1);
-        static ref ST1_EXPECTED: Tree<'static> = Tree {
-            root: Node::Branches(hashmap!{
-                &S1[0..1] => Box::new(Node::Branches( // a
-                    hashmap! {
-                        &S1[10..] => Box::new(Node::Leaf(10)),
-                        &S1[4..] => Box::new(Node::Leaf(3)),
-                        &S1[1..4] => Box::new(Node::Branches(
-                            hashmap! {
-                                &S1[10..] => Box::new(Node::Leaf(7)),
-                                &S1[4..] => Box::new(Node::Leaf(0)), // cadabra ==> abracadabra
-                            }
-                        ))
-                    }
-                )),
-                &S1[1..4] => Box::new(Node::Branches(hashmap!{
-                   // &S1[..]
-                }))
-            })
-        };
+        // static ref ST1_EXPECTED: Tree<'static> = Tree {
+        //     root: Node::Branches(hashmap!{
+        //         &S1[0..1] => Box::new(Node::Branches( // a
+        //             hashmap! {
+        //                 &S1[10..] => Box::new(Node::Leaf(10)),
+        //                 &S1[4..] => Box::new(Node::Leaf(3)),
+        //                 &S1[1..4] => Box::new(Node::Branches(
+        //                     hashmap! {
+        //                         &S1[10..] => Box::new(Node::Leaf(7)),
+        //                         &S1[4..] => Box::new(Node::Leaf(0)), // cadabra ==> abracadabra
+        //                     }
+        //                 ))
+        //             }
+        //         )),
+        //         &S1[1..4] => Box::new(Node::Branches(hashmap!{
+        //            // &S1[..]
+        //         }))
+        //     })
+        // };
         // see ![visual representation of the suffix trie of `abracadabra`](https://i.imgur.com/oes5dxo.png)
     }
 

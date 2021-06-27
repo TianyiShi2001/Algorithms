@@ -27,7 +27,7 @@ impl Trie {
                 node = &mut **(unsafe { &mut *node }
                     .children
                     .entry(*c)
-                    .or_insert(Box::new(Node::default())));
+                    .or_insert_with(|| Box::new(Node::default())));
             }
         }
     }

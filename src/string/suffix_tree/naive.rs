@@ -23,6 +23,7 @@ pub struct Node {
 }
 
 impl Tree {
+    #[allow(clippy::vec_init_then_push)]
     pub fn from_trie(trie: &Trie) -> Tree {
         fn process_node(
             trie_node: &TrieNode,

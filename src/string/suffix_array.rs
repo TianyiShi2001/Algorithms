@@ -7,9 +7,9 @@ pub struct SuffixArray<'a> {
 }
 
 impl<'a> SuffixArray<'a> {
-    fn from_str_very_naive(s: &'a str) -> Self {
+    pub fn from_str_very_naive(s: &'a str) -> Self {
         let mut sa = (0..s.len()).collect::<Vec<_>>();
-        sa.sort_by(|&a, &b| *&s[a..].cmp(&s[b..]));
+        sa.sort_by(|&a, &b| s[a..].cmp(&s[b..]));
         let lcp = Self::lcp(&sa, s);
         Self { sa, text: s, lcp }
     }

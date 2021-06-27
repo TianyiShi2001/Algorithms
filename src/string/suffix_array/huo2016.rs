@@ -12,14 +12,19 @@ pub struct Huo2016 {
 }
 
 impl Huo2016 {
-    fn new(s: Vec<u8>, sigma: Option<usize>) -> Self {
+    pub fn new(s: Vec<u8>, sigma: Option<usize>) -> Self {
         let n = s.len();
-        Self {
+        let mut slf = Self {
             s,
             sa: vec![0; n],
             n,
             sigma: sigma.unwrap_or(u8::MAX as usize),
-        }
+        };
+        slf.rename();
+        slf.sort_all_lms_chars();
+        slf.induced_sort_lms_substrs();
+        slf.induced_sort_all_suffixes();
+        slf
     }
 
     /// Rename each L-type character of `s` to be the index of its bucket head and each
@@ -246,7 +251,7 @@ impl Huo2016 {
         // the bucket). We need to free these positions. We scan `sa` once more from right to left. If
         // `sa[i] == MULTI`, we shift the indices of LMS-characters in this bucket to the right by two
         // positions (i.e., `sa[i−c−1..=i−2]` to `sa[i−c+ 1..=i]`) and let `sa[i−c−1] = sa[i−c] = EMPTY`,
-        // where `c=SA[i−1]` denotes the counter.
+        // where `c=sa[i−1]` denotes the counter.
         for i in (0..self.n).rev() {
             if self.sa[i] == MULTI {
                 let c = self.sa[self.s[i] as usize - 1];
