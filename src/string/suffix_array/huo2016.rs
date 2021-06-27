@@ -90,18 +90,18 @@ impl Huo2016 {
                 prev = *curr;
             }
         }
-        let mut prev_is_s = true; // the last character (sentinel) is always S
-        let mut prev_val = 0; // the sentinel character is always 0
-        let mut curr_val;
+        let mut s_ip1_is_s = true; // the last character (sentinel) is always S
+        let mut s_ip1 = 0; // the sentinel character is always 0
+        let mut s_i;
         for i in (0..self.n - 1).rev() {
-            curr_val = &mut self.s[i];
-            if *curr_val < prev_val || (*curr_val == prev_val && prev_is_s) {
-                *curr_val = self.sa[*curr_val as usize] as u8;
-                prev_is_s = true;
+            s_i = &mut self.s[i];
+            if *s_i < s_ip1 || (*s_i == s_ip1 && s_ip1_is_s) {
+                *s_i = self.sa[*s_i as usize] as u8;
+                s_ip1_is_s = true;
             } else {
-                prev_is_s = false;
+                s_ip1_is_s = false;
             }
-            prev_val = *curr_val;
+            s_ip1 = *s_i;
         }
     }
 
@@ -116,9 +116,9 @@ impl Huo2016 {
         self.fill_sa(EMPTY);
         // Clear `sa`, then scan `s` from right to left. For every `s[i]` which is an LMS
         // character (which can be determined in constant time),  do the following:
-        //   - if `sa[s[i]] = Empty`, let `sa[s[i]] = Unique`, meaning it is the unique LMS
+        //   - if `sa[s[i]] = EMPTY`, let `sa[s[i]] = UNIQUE`, meaning it is the unique LMS
         //     character in this bucket
-        //   - if `sa[s[i]] = Unique`, let `sa[s[i]] = Multi`, meaning the number of LMS
+        //   - if `sa[s[i]] = UNIQUE`, let `sa[s[i]] = MULTI`, meaning the number of LMS
         //     characters in this bucket is at least 2
         //   - otherwise, do nothing
 
@@ -153,16 +153,7 @@ impl Huo2016 {
         // we distinguish the following cases:
         //   - `sa[s[i]] == UNIQUE`: let `sa[s[i]] = i`, i.e. `s[i]` is the unique LMS
         //     character in its bucket, so we just put its index into its bucket (at the tail)
-        //   - `sa[s[i]] == MULTI` and `SA`
-
-        // In this case, `s[i]` is the first (i.e. largest index, since we scan `s` from right
-        // to left) LMS-character in its bucket. So if `sa[s[i] − 2] = EMPTY`, we let
-        // `sa[s[i]−2] = i` and `sa[s[i]−1] = 1` (i.e., we use `sa[s[i]−1]` as the counter for
-        // the number of LMS characters which has been added to this bucket so far).
-        // Otherwise, `sa[s[i]−2] != EMPTY` (i.e., `sa[s[i] - 2]` is in a differentbucket, which
-        // implies that this bucket has only two LMS characters). Then we let `sa[s[i]] = i`
-        // and `sa[s[i]−1] = EMPTY`. (We do not need a counter in this case and the last LMS
-        // character belonging to this bucket will be dealt with in the later process)
+        //   - `sa[s[i]] == MULTI` and ``sa`
 
         let mut s_i_is_s = false;
         let mut s_im1_is_s;
@@ -178,10 +169,22 @@ impl Huo2016 {
                     // `s[i]` is LMS
                     let sa_s_i = &mut (*sa)[s_i as usize];
                     match *sa_s_i {
+                        // Case 1: `sa[s[i]] == UNIQUE`: let `sa[s[i]] = i`, i.e. `s[i]` is the unique LMS
+                        // character in its bucket, so we just put its index into its bucket (at the tail)
                         UNIQUE => *sa_s_i = i,
+
                         MULTI => {
                             let sa_sim1 = &mut (*sa)[s_i as usize - 1];
                             if *sa_sim1 == EMPTY {
+                                // Case 2: `sa[s[i]] == MULTI` and `sa[s[i]-1] == EMPTY`
+                                // In this case, `s[i]` is the first (i.e. largest index, since we scan `s` from right
+                                // to left) LMS-character in its bucket. So if `sa[s[i] − 2] = EMPTY`, we let
+                                // `sa[s[i]−2] = i` and `sa[s[i]−1] = 1` (i.e., we use `sa[s[i]−1]` as the counter for
+                                // the number of LMS characters which has been added to this bucket so far).
+                                // Otherwise, `sa[s[i]−2] != EMPTY` (i.e., `sa[s[i] - 2]` is in a differentbucket, which
+                                // implies that this bucket has only two LMS characters). Then we let `sa[s[i]] = i`
+                                // and `sa[s[i]−1] = EMPTY`. (We do not need a counter in this case and the last LMS
+                                // character belonging to this bucket will be dealt with in the later process)
                                 let sa_sim2 = &mut (*sa)[s_i as usize - 2];
                                 match *sa_sim2 {
                                     EMPTY => {
@@ -194,6 +197,16 @@ impl Huo2016 {
                                     }
                                 }
                             } else {
+                                // Case 3: `sa[s[i]] =MULTI` and `sa[s[i]−1] !=EMPTY`
+                                // In this case,`sa[s[i]−1]` is maintained as the counter. Let `c = sa[s[i]−1]`.
+                                // We check whether the position (`sa[s[i]−c−2]`), i.e. `c + 2` positions before
+                                // its tail, is `EMPTY` or not. If `sa[s[i]−c−2] == EMPTY`, let `sa[s[i]−c−2] =i`
+                                // and increase `sa[s[i]−1]` by one (i.e., update the counter number). Otherwise
+                                // `sa[s[i]−c−2] != EMPTY` (i.e., reaching another bucket), we need to shift
+                                // these `c` indices to the right by two positions (i.e., move `sa[s[i]−c−1..=s[i]−2]`
+                                // to `sa[s[i]−c+ 1..=s[i]])`, and let `sa[s[i]−c] = i` and `sa[s[i]−c−1] =EMPTY`.
+                                // After this, only one LMS-character needs to be added into this bucket in the later
+                                // process.
                                 let x = &mut (*sa)[s_i as usize - *sa_sim1 - 2] as *mut usize;
                                 if *x == EMPTY {
                                     *x = i;
@@ -208,6 +221,12 @@ impl Huo2016 {
                             }
                         }
                         _ => {
+                            // Case 4: `sa[s[i]]` is an index
+                            // From case (2) and (3), we know the current `s[i]` must be the last LMS-character in
+                            // its bucket. So we scan `sa` from right to left, starting with `sa[s[i]]`, to find
+                            // the first position `j` such that `sa[j] = EMPTY`. Then we let `sa[j] = i`. Now, we
+                            // have filled the entire bucket. However, we note that not every bucket is fully filled
+                            // as we have only processed LMS-characters so far.
                             let mut j = s_i as usize;
                             while self.sa[j] != EMPTY {
                                 j -= 1;
@@ -222,6 +241,12 @@ impl Huo2016 {
             }
             (*sa)[0] = UNIQUE;
         }
+        // After the above Step 1 and 2, there may be still some special symbols `MULTI` and the counters
+        // (because the bucket is not fully filled, so we have not shifted these indices to the right in
+        // the bucket). We need to free these positions. We scan `sa` once more from right to left. If
+        // `sa[i] == MULTI`, we shift the indices of LMS-characters in this bucket to the right by two
+        // positions (i.e., `sa[i−c−1..=i−2]` to `sa[i−c+ 1..=i]`) and let `sa[i−c−1] = sa[i−c] = EMPTY`,
+        // where `c=SA[i−1]` denotes the counter.
         for i in (0..self.n).rev() {
             if self.sa[i] == MULTI {
                 let c = self.sa[self.s[i] as usize - 1];
@@ -233,6 +258,98 @@ impl Huo2016 {
             }
         }
         self.sa[0] = self.n - 1; // sentinel as a special case
+    }
+
+    /// Sort all LMS substrings from the sorted LMS characters using induced sorting.
+    fn induced_sort_lms_substrs(&mut self) {
+        // sort the LMS prefix of all suffixes from the sorted LMS characters
+    }
+
+    fn induced_sort_all_suffixes(&mut self) {
+        // induced sort of L suffixes from sorted LMS suffixes
+        let mut s_ip1_is_l = false;
+        let mut s_ip1 = 0;
+        let mut s_i;
+        for i in (0..self.n - 1).rev() {
+            s_i = self.s[i];
+            if s_i > s_ip1 || (s_i == s_ip1 && s_ip1_is_l) {
+                // `s[i]` is L
+                let sa_si = &mut self.sa[s_i as usize];
+                if *sa_si == EMPTY {
+                    *sa_si = UNIQUE;
+                } else if *sa_si == UNIQUE {
+                    *sa_si = MULTI;
+                }
+                s_ip1_is_l = true;
+            } else {
+                s_ip1_is_l = false;
+            }
+            s_ip1 = s_i;
+        }
+        // TODO: sentinel case?
+        // scan `sa` from left to right to sort all L suffixes
+        let mut i = 0;
+        while i <= self.n {
+            let sa_i = self.sa[i];
+            if sa_i == MULTI {
+                i += 2;
+                continue;
+            }
+            if sa_i != UNIQUE && sa_i != EMPTY {
+                let j = sa_i - 1;
+                // TODO: implement suf(j) is L
+                let mut suf_j_is_l = true;
+                if suf_j_is_l {
+                    // place suf_j into the LF entry of the bucket and increase counter by one
+                }
+            }
+            i += 1;
+        }
+        // Now all L-suffixes are sorted
+        // TODO: free MULTI and counters
+
+        // Remove LMS suffixes from `sa`
+        // TODO
+
+        // * step 3: induced sort of S suffixes from sorted L suffixes
+        let mut s_ip1_is_s = false;
+        let mut s_ip1 = 0;
+        let mut s_i;
+        for i in (0..self.n - 1).rev() {
+            s_i = self.s[i];
+            if s_i < s_ip1 || (s_i == s_ip1 && s_ip1_is_s) {
+                // `s[i]` is S
+                let sa_si = &mut self.sa[s_i as usize];
+                if *sa_si == EMPTY {
+                    *sa_si = UNIQUE;
+                } else if *sa_si == UNIQUE {
+                    *sa_si = MULTI;
+                }
+                s_ip1_is_s = true;
+            } else {
+                s_ip1_is_s = false;
+            }
+            s_ip1 = s_i;
+        }
+        // TODO: sentinel case?
+        // scan `sa` from left to right to sort all L suffixes
+        let mut i = 0;
+        while i <= self.n {
+            let sa_i = self.sa[i];
+            if sa_i == MULTI {
+                i += 2;
+                continue;
+            }
+            if sa_i != UNIQUE && sa_i != EMPTY {
+                let j = sa_i - 1;
+                // TODO: implement suf(j) is S
+                let mut suf_j_is_s = true;
+                if suf_j_is_s {
+                    // place suf_j into the RF entry of the bucket and increase counter by one
+                }
+            }
+            i += 1;
+        }
     }
 
     fn reset_sa(&mut self, n: usize) {
