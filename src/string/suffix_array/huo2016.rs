@@ -82,26 +82,25 @@ impl Huo2016 {
         //       previous scanned character `s[i+1]`
 
         // clear `sa`
+
         self.reset_sa(self.sigma);
         // count occurence
         for &c in &self.s {
             self.sa[c as usize] += 1;
         }
         // compute tail indices (inclusive)
-        let mut i = 0;
         let mut prev = 0; // tail of bucket 0 is always 0 because there is one
                           // and only one sentinel
         let mut curr;
-        loop {
-            i += 1;
+        for i in 1..self.n {
+
             curr = &mut self.sa[i];
-            if *curr == 0 {
-                break;
-            } else {
+
                 *curr += prev;
                 prev = *curr;
-            }
+            
         }
+        
         let mut s_ip1_is_s = true; // the last character (sentinel) is always S
         let mut s_ip1 = 0; // the sentinel character is always 0
         let mut s_i;
@@ -139,17 +138,17 @@ impl Huo2016 {
                     // implies that this bucket has only two LMS characters). Then we let `sa[s[i]] = i`
                     // and `sa[s[i]−1] = EMPTY`. (We do not need a counter in this case and the last LMS
                     // character belonging to this bucket will be dealt with in the later process)
-                    let sa_sim2 = &mut (*sa)[s_i as usize - 2];
-                    match *sa_sim2 {
-                        EMPTY => {
+                    if s_i >= 2 {
+                        let sa_sim2 = &mut (*sa)[s_i as usize - 2];
+                        if *sa_sim2 == EMPTY {
                             *sa_sim2 = i;
                             *counter = 1;
-                        }
-                        _ => {
-                            *sa_s_i = i;
-                            *counter = EMPTY;
+                            return false;
                         }
                     }
+                    // reach left end, or reach the bucket to the left
+                    *sa_s_i = i;
+                    *counter = EMPTY;
                 } else {
                     // Case 3: `sa[s[i]] == MULTI` and `sa[s[i]−1] != EMPTY`
                     // In this case,`sa[s[i]−1]` is maintained as the counter. Let `c = sa[s[i]−1]`.
@@ -161,20 +160,23 @@ impl Huo2016 {
                     // to `sa[s[i]−c+1..=s[i]])`, and let `sa[s[i]−c] = i` and `sa[s[i]−c−1] =EMPTY`.
                     // After this, only one LMS-character needs to be added into this bucket in the later
                     // process.
-                    let x = &mut (*sa)[s_i as usize - *counter - 2] as *mut usize;
-                    if *x == EMPTY {
-                        *x = i;
-                        *counter += 1;
-                    } else {
-                        let counter = *counter;
-                        // will mutate, so copy the counter value out
-                        for j in (s_i as usize - counter + 1..=s_i as usize).rev() {
-                            (*sa)[j] = (*sa)[j - 2];
+                    if s_i as usize >= *counter + 2 {
+                        let x = &mut (*sa)[s_i as usize - *counter - 2] as *mut usize;
+                        if *x == EMPTY {
+                            *x = i;
+                            *counter += 1;
+                            return false;
                         }
-                        (*sa)[s_i as usize - counter] = i;
-                        (*sa)[s_i as usize - counter - 1] = EMPTY;
-                        shifted = true;
                     }
+
+                    let counter = *counter;
+                    // will mutate, so copy the counter value out
+                    for j in (s_i as usize - counter + 1..=s_i as usize).rev() {
+                        (*sa)[j] = (*sa)[j - 2];
+                    }
+                    (*sa)[s_i as usize - counter] = i;
+                    (*sa)[s_i as usize - counter - 1] = EMPTY;
+                    shifted = true;
                 }
             }
             _ => {
@@ -304,7 +306,9 @@ impl Huo2016 {
                 s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
                 if !s_im1_is_s && s_i_is_s {
                     // `s[i]` is LMS
+                    // println!("{} is LMS, tail is {}", i, s_i);
                     Self::place_i_into_sa_ti_right_to_left(sa, i, s_i);
+                    // println!("{:?}", self.sa);
                 }
                 s_i = s_im1;
                 s_i_is_s = s_im1_is_s;
@@ -318,17 +322,26 @@ impl Huo2016 {
         // `sa[i] == MULTI`, we shift the indices of LMS-characters in this bucket to the right by two
         // positions (i.e., `sa[i−c−1..=i−2]` to `sa[i−c+ 1..=i]`) and let `sa[i−c−1] = sa[i−c] = EMPTY`,
         // where `c=sa[i−1]` denotes the counter.
-        for i in (0..self.n).rev() {
+        let mut i = self.n - 1;
+        while i != 0 {
             if self.sa[i] == MULTI {
-                let c = self.sa[self.s[i] as usize - 1];
+                let c = self.sa[i - 1];
                 for j in (i - c + 1..=i).rev() {
                     self.sa[j] = self.sa[j - 2];
                 }
-                self.sa[i - c - 1] = EMPTY;
-                self.sa[i - c] = EMPTY;
+                i -= c;
+                self.sa[i] = EMPTY;
+                i -= 1;
+                self.sa[i] = EMPTY;
+                // self.sa[i - c - 1] = EMPTY;
+                // self.sa[i - c] = EMPTY;
+                // i = i - c - 2;
+                // continue;
             }
+            i -= 1;
         }
         self.sa[0] = self.n - 1; // sentinel as a special case
+        // println!("End of step 2: {:?}", self.sa);
     }
 
     fn remove_all_lms_chars(&mut self) {
@@ -422,9 +435,11 @@ impl Huo2016 {
         //       (the symbol `MULTI`)and the counter of this bucket, respectively.
         //       Then we skip these two entries and continue to scan `sa[i+ 2]`.
         let mut i = 0;
+        let mut shifted_bucket_head = None;
         while i < self.n {
             let sa_i = self.sa[i];
             if sa_i == MULTI {
+                shifted_bucket_head = Some(i);
                 i += 2;
                 continue;
             }
@@ -450,10 +465,18 @@ impl Huo2016 {
                     });
                 if suf_j_is_l {
                     unsafe {
+                        // println!("{} is L, place into SA[{}]", j, s_j);
                         if Self::place_i_into_sa_ti_left_to_right(&mut self.sa, j, s_j) {
                             // if shifted, need to shift `i` back
-                            i -= 1;
+                            if let Some(idx) = shifted_bucket_head {
+                                if idx == s_j as usize {
+                                    // if shifted bucket is the one that is shifted back
+                                    i -= 1;
+                            println!("shift {} to {}", i +1, i);
                             continue;
+                                }
+                            }
+                            
                         }
                     }
                 }
@@ -477,10 +500,10 @@ impl Huo2016 {
         //       so-called "LMS suffixes". Are these two terms the same? If they are the same, what is the
         //       purpose of section 3.4, 3.5, and 3.6? Why is the end result of section 3.6 the same as
         //       3.3? Is this just because they chose a bad example and they turn out to be the same by coincidence?
-        println!("After sorting L: {:?}", self.sa);
+        // println!("After sorting L: {:?}", self.sa);
         self.remove_all_lms_chars();
 
-        println!("After removing LMS: {:?}", self.sa);
+       // println!("After removing LMS: {:?}", self.sa);
 
         // Step 3. Induced sort all S-suffixes from the sorted L-suffixes
         // Now, this step is completely symmetrical to the above Step 1 (Sort all L-suffixes using
@@ -505,15 +528,17 @@ impl Huo2016 {
             }
             s_ip1 = s_i;
         }
-        println!("After init S: {:?}", self.sa);
+        // println!("After init S: {:?}", self.sa);
         // sentinel skipped, so `sa[0]` should not change
         assert!(self.sa[0] == self.n - 1);
         // TODO: sentinel case?
         // scan `sa` from left to right to sort all L suffixes
         let mut i = self.n - 1;
+        let mut shifted_bucket_tail = None;
         while i != 0 {
             let sa_i = self.sa[i];
             if sa_i == MULTI {
+                shifted_bucket_tail = Some(i);
                 i -= 2;
                 continue;
             }
@@ -522,8 +547,9 @@ impl Huo2016 {
                 let s_j = self.s[j];
                 // TODO: if correct, simplify
                 let suf_j_is_s = s_j < self.s[sa_i]
-                    || (s_j == self.s[sa_i] && {
-                        s_j as usize > i || 
+                    || (s_j == self.s[sa_i]
+                        && {
+                            s_j as usize > i || 
                         // we know `s[j]` and `s[sa[i]]` (i.e. `s[j + 1`) are both in the current bucket (which contains index `i`)
                         // if `s_j > i`, then `s_j` must be a tail pointer of this bucket which is used to sort S suffixes
                         // if `s_j < i`, then `s_j` must be a head pointer which is used to sort L suffixes
@@ -538,13 +564,18 @@ impl Huo2016 {
                         // //   - if this bucket has been shifted, we still need to check?
                         
                         (s_j as usize == i && {i != self.n - 1 && i + 1 == self.s[self.sa[i + 1]] as usize})
-                    });
-                println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
+                        });
+                // println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
                 if suf_j_is_s {
                     unsafe {
                         if Self::place_i_into_sa_ti_right_to_left(&mut self.sa, j, s_j) {
-                            i += 1;
-                            continue;
+                            if let Some(idx) = shifted_bucket_tail {
+                                if idx == s_j as usize {
+                                    i += 1;
+                                    continue;
+                                }
+                            }
+                            
                         }
                     }
                 }
@@ -554,7 +585,7 @@ impl Huo2016 {
     }
 
     fn reset_sa(&mut self, n: usize) {
-        for i in 0..n {
+        for i in 0..=n {
             self.sa[i] = 0;
         }
     }
@@ -599,7 +630,25 @@ mod tests {
         solver.rename();
         solver.sort_all_lms_chars();
         solver.induced_sort_all_suffixes();
-       // println!("{:?}", solver.sa);
-         assert_eq!(&solver.sa, &EXAMPLE_HUO_FINAL_SA);
+        // println!("{:?}", solver.sa);
+        assert_eq!(&solver.sa, &EXAMPLE_HUO_FINAL_SA);
+    }
+
+    use super::super::SuffixArray;
+
+    #[test]
+    fn test_manual() {
+        let s = vec![
+            1, 6, 4, 2, 7, 4, 5, 8, 6, 2, 2, 4, 5, 6, 3, 4, 1, 6, 4, 5, 6, 2, 1, 3, 4, 0,
+        ];
+        let expected = SuffixArray::from_str_very_naive(&s);
+        println!("Expected: {:?}", expected.sa);
+        let mut solver = Huo2016::init(s.clone(), Some(8));
+        solver.rename();
+        // println!("After rename T: {:?}", solver.s);
+        solver.sort_all_lms_chars();
+        solver.induced_sort_all_suffixes();
+        println!("Computed: {:?}", solver.sa);
+        assert_eq!(&expected.sa, &solver.sa);
     }
 }

@@ -2,22 +2,22 @@ pub mod huo2016;
 pub mod huo2016_read_only;
 
 pub struct SuffixArray<'a> {
-    pub text: &'a str,
+    pub text: &'a [u8],
     pub sa: Vec<usize>,
     pub lcp: Vec<usize>,
 }
 
 impl<'a> SuffixArray<'a> {
-    pub fn from_str_very_naive(s: &'a str) -> Self {
+    pub fn from_str_very_naive(s: &'a [u8]) -> Self {
         let mut sa = (0..s.len()).collect::<Vec<_>>();
         sa.sort_by(|&a, &b| s[a..].cmp(&s[b..]));
         let lcp = Self::lcp(&sa, s);
         Self { sa, text: s, lcp }
     }
-    fn lcp(sa: &[usize], text: &str) -> Vec<usize> {
-        fn _lcp(a: &str, b: &str) -> usize {
-            a.chars()
-                .zip(b.chars())
+    fn lcp(sa: &[usize], text: &[u8]) -> Vec<usize> {
+        fn _lcp(a: &[u8], b: &[u8]) -> usize {
+            a.iter()
+                .zip(b.iter())
                 .take_while(|(ca, cb)| ca == cb)
                 .count()
         }
@@ -39,7 +39,7 @@ mod tests {
     }
     #[test]
     fn suffix_array() {
-        let sa = SuffixArray::from_str_very_naive(&*ABRACADABRA_STR);
+        let sa = SuffixArray::from_str_very_naive(&*ABRACADABRA);
         assert_eq!(&sa.sa, &[10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2]);
         assert_eq!(&sa.lcp, &[0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]);
         // idx   sorted suffix     lcp
