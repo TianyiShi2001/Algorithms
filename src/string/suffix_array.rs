@@ -1,4 +1,5 @@
 pub mod huo2016;
+pub mod huo2016_read_only;
 
 pub struct SuffixArray<'a> {
     pub text: &'a str,
