@@ -51,17 +51,17 @@ impl Huo2016 {
             self.sa[c as usize] += 1;
         }
 
+        // println!("Rename part 1 (sa) before accumulation: {:?}", self.sa);
+
         // compute head indices
         let mut prev = 1; // or self.sa[0]; the sentinel always occurs once
         let mut curr;
-        for i in 1..=self.sigma {
+        for i in 1..self.sigma {
             curr = &mut self.sa[i];
-            if *curr == 0 {
-                break;
-            } else {
+
                 *curr += prev;
                 prev = *curr;
-            }
+            
         }
         // Rename
         for c in &mut self.s[..self.n - 1] {
@@ -69,6 +69,10 @@ impl Huo2016 {
             // the string is transformed
             *c = self.sa[*c as usize - 1] as u8
         }
+
+
+        // println!("Rename part 1 (s) : {:?}", self.s);
+        // println!("Rename part 1 (sa): {:?}", self.sa);
 
         // Now we need to let the S-type characters to be the index of its bucket tail.
         // Again we count the occurence of each character, store them and compute the
@@ -378,7 +382,7 @@ impl Huo2016 {
                 UNIQUE => self.sa[i] = EMPTY,
                 MULTI => {
                     let c = self.sa[i - 1];
-                    for j in i - c + 1..=i {
+                    for j in i  + 1 - c..=i {
                         self.sa[j] = EMPTY;
                     }
                 }
@@ -486,9 +490,28 @@ impl Huo2016 {
         // Now all L-suffixes are sorted. Note that we still need to scan `sa` once more
         // to free these positions occupied by `MULTI` and counters. After this, the
         // indices of all L-suffixes are intheir final positions in `sa`.
-        // TODO: free MULTI and counters
+
         // Do we really need to do so? If there are remaining MULTI and counters,
         // the L suffixes must not be resting at their final positions
+        // Yes we need. For example, input [10, 2, 6, 8, 10, 1, 6, 7, 9, 6, 1, 10, 10, 6, 2, 0]
+        // will produce [15, 5, 10, 14, 1, M, 2, 9, 13, E, E, 8, 4, 0, 12, 11] at this stage
+        // (final SA should be [15, 5, 10, 14, 1, 9, 13, 6, 2, 7, 3, 8, 4, 0, 12, 11])
+        let mut i = 1;
+        // don't touch sentinel at `sa[0]`
+        while i < self.n {
+            if self.sa[i] == MULTI {
+                let c = self.sa[i + 1];
+                for j in (i..i + c ).rev() {
+                    self.sa[j] = self.sa[j + 2];
+                }
+                i += c;
+                self.sa[i] = EMPTY;
+                i += 1;
+                self.sa[i] = EMPTY;
+            }
+            i += 1;
+        }
+        self.sa[0] = self.n - 1; // sentinel as a special case
 
         // Step 2. Remove LMS-Suffixes from `sa`
         // We can use a trick similar to the previous Step 2 in Section 3.3, i.e., placing
@@ -501,6 +524,7 @@ impl Huo2016 {
         //       purpose of section 3.4, 3.5, and 3.6? Why is the end result of section 3.6 the same as
         //       3.3? Is this just because they chose a bad example and they turn out to be the same by coincidence?
         // println!("After sorting L: {:?}", self.sa);
+        // println!("Before removing lms chars: {:?}", self.sa);
         self.remove_all_lms_chars();
 
        // println!("After removing LMS: {:?}", self.sa);
@@ -599,6 +623,7 @@ impl Huo2016 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::_test_utils::random_uniform_vec;
     const EXAMPLE_HUO: [u8; 13] = [2, 1, 1, 3, 3, 1, 1, 3, 3, 1, 2, 1, 0];
     const EXAMPLE_HUO_STEP_1_S: [u8; 13] = [7, 6, 6, 9, 9, 6, 6, 9, 9, 6, 7, 1, 0];
     const EXAMPLE_HUO_STEP_2_SA: [usize; 13] = [
@@ -647,6 +672,25 @@ mod tests {
         solver.rename();
         // println!("After rename T: {:?}", solver.s);
         solver.sort_all_lms_chars();
+        solver.induced_sort_all_suffixes();
+        println!("Computed: {:?}", solver.sa);
+        assert_eq!(&expected.sa, &solver.sa);
+    }
+
+    #[test]
+    fn test_rand() {
+        let sigma = 10;
+        //  let mut s = random_uniform_vec(1, sigma, 15);
+        //  s.push(0);
+       let mut s = vec![7, 8, 2, 4, 8, 2, 2, 5, 9, 4, 9, 1, 1, 5, 2, 0];
+        println!("Input: {:?}", &s);
+        let expected = SuffixArray::from_str_very_naive(&s);
+        println!("Expected: {:?}", expected.sa);
+        let mut solver = Huo2016::init(s.clone(), Some(sigma as usize));
+        solver.rename();
+        println!("After rename T: {:?}", solver.s);
+        solver.sort_all_lms_chars();
+        println!("After sorting LMS chars: {:?}", solver.sa);
         solver.induced_sort_all_suffixes();
         println!("Computed: {:?}", solver.sa);
         assert_eq!(&expected.sa, &solver.sa);
