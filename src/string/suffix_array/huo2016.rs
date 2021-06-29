@@ -84,8 +84,7 @@ impl Huo2016 {
         //       previous scanned character `s[i+1]`
 
         // clear `sa`
-
-        self.reset_sa(self.sigma);
+        self.sa[0..=self.sigma].fill(0);
         // count occurence
         for &c in &self.s {
             self.sa[c as usize] += 1;
@@ -115,7 +114,7 @@ impl Huo2016 {
             s_ip1 = *s_i;
         }
         // clear SA
-        self.fill_sa(EMPTY);
+        self.sa.fill(EMPTY);
     }
 
     unsafe fn place_i_into_sa_ti_right_to_left(sa: *mut Vec<usize>, i: usize, s_i: u8) -> bool {
@@ -406,7 +405,7 @@ impl Huo2016 {
         //   2) let `j` be the smallest index such that `s[k] = s[sa[i]]` for any `k ∈ [j, sa[i]]`.
         //      Then we increase `num` by `sa[i] - j + 1`, where `num` counts the number of S-type
         //      characters in this bucket and initially is 0.
-        // TODO: why no complex? why not just decrement `i` and check whether `s[sa[i]] == tail`
+        // TODO: why so complex? why not just decrement `i` and check whether `s[sa[i]] == tail`
 
         let mut i = self.n - 1;
         let s = &mut self.s as *mut Vec<u8>;
@@ -687,17 +686,6 @@ impl Huo2016 {
                 }
             }
             i -= 1;
-        }
-    }
-
-    fn reset_sa(&mut self, n: usize) {
-        for i in 0..=n {
-            self.sa[i] = 0;
-        }
-    }
-    fn fill_sa(&mut self, val: usize) {
-        for i in 0..self.n {
-            self.sa[i] = val;
         }
     }
 }
