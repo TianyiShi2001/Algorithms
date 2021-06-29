@@ -59,9 +59,8 @@ impl Huo2016 {
         for i in 1..self.sigma {
             curr = &mut self.sa[i];
 
-                *curr += prev;
-                prev = *curr;
-            
+            *curr += prev;
+            prev = *curr;
         }
         // Rename
         for c in &mut self.s[..self.n - 1] {
@@ -69,7 +68,6 @@ impl Huo2016 {
             // the string is transformed
             *c = self.sa[*c as usize - 1] as u8
         }
-
 
         // println!("Rename part 1 (s) : {:?}", self.s);
         // println!("Rename part 1 (sa): {:?}", self.sa);
@@ -97,14 +95,12 @@ impl Huo2016 {
                           // and only one sentinel
         let mut curr;
         for i in 1..self.n {
-
             curr = &mut self.sa[i];
 
-                *curr += prev;
-                prev = *curr;
-            
+            *curr += prev;
+            prev = *curr;
         }
-        
+
         let mut s_ip1_is_s = true; // the last character (sentinel) is always S
         let mut s_ip1 = 0; // the sentinel character is always 0
         let mut s_i;
@@ -345,7 +341,7 @@ impl Huo2016 {
             i -= 1;
         }
         self.sa[0] = self.n - 1; // sentinel as a special case
-        // println!("End of step 2: {:?}", self.sa);
+                                 // println!("End of step 2: {:?}", self.sa);
     }
 
     fn remove_all_lms_chars(&mut self) {
@@ -382,7 +378,7 @@ impl Huo2016 {
                 UNIQUE => self.sa[i] = EMPTY,
                 MULTI => {
                     let c = self.sa[i - 1];
-                    for j in i  + 1 - c..=i {
+                    for j in i + 1 - c..=i {
                         self.sa[j] = EMPTY;
                     }
                 }
@@ -394,6 +390,91 @@ impl Huo2016 {
     /// Sort all LMS substrings from the sorted LMS characters using induced sorting.
     fn induced_sort_lms_substrs(&mut self) {
         // sort the LMS prefix of all suffixes from the sorted LMS characters
+    }
+
+    fn place_sorted_lms_substrs_to_the_end(&mut self) {
+        //println!("Before moving lms substrs to end: {:?}", self.sa);
+
+        // Observation 1: For any bucket in `sa`, let `h`/`t` be its bucket head/tail.
+        // Then `s[sa[t]]` is S-type <=> `s[sa[t]] < s[sa[t]+1]`.
+        // Similarly, `s[sa[h]]` is L-type <=> `s[sa[h]] > s[sa[h]+1]`
+
+        // Lemma 5: if a bucket contains S-type characters, then one can scan this bucket
+        // once to compute the number of S-type characters in this bucket and initially is 0.
+        // Proof: scan this bucket from tail to head. For every `sa[i]`:
+        //   1) If `s[sa[i]] >= s[sa[i] + 1]`, do nothing
+        //   2) let `j` be the smallest index such that `s[k] = s[sa[i]]` for any `k ∈ [j, sa[i]]`.
+        //      Then we increase `num` by `sa[i] - j + 1`, where `num` counts the number of S-type
+        //      characters in this bucket and initially is 0.
+        // TODO: why no complex? why not just decrement `i` and check whether `s[sa[i]] == tail`
+
+        let mut i = self.n - 1;
+        let s = &mut self.s as *mut Vec<u8>;
+        let is_s_type_bucket_tail =
+            |sa_i: usize| -> bool { unsafe { (*s)[sa_i] < (*s)[sa_i + 1] } };
+        // let mut count;
+        let mut tail;
+        let mut sa_i;
+        let mut end_ptr = self.n - 1;
+        'outer: while i > 0 {
+            sa_i = self.sa[i];
+            if is_s_type_bucket_tail(sa_i) {
+                println!(
+                    "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
+                    i,
+                    sa_i,
+                    unsafe { (*s)[sa_i] },
+                    unsafe { (*s)[sa_i + 1] }
+                );
+                tail = i; // i.e. `s[sa[i]]`
+                          // count number of S characters in this bucket
+                loop {
+                    // s[0] cannot be LMS by definition; skip `sa_i == 0`
+                    if sa_i != 0 && self.s[sa_i - 1] > self.s[sa_i] {
+                        // println!("{} is LMS", sa_i);
+                        // is LMS
+                        self.sa[end_ptr] = sa_i;
+                        end_ptr -= 1;
+                    }
+
+                    i -= 1;
+                    if i == 0 {
+                        // sentinel dealt with separately
+                        break 'outer;
+                    }
+                    sa_i = self.sa[i];
+                    if self.s[sa_i] as usize != tail {
+                        // not an S char in the same bucket
+                        println!(
+                            "{} is not s in the current bucket with tail/head {} instead of {}",
+                            sa_i, self.s[sa_i], tail
+                        );
+                        if is_s_type_bucket_tail(sa_i) {
+                            tail = i;
+                            println!(
+                                "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
+                                i,
+                                sa_i,
+                                unsafe { (*s)[sa_i] },
+                                unsafe { (*s)[sa_i + 1] }
+                            );
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+                    println!(
+                        "{} is also s in the current bucket with tail {}",
+                        sa_i, tail
+                    );
+                }
+            }
+            i -= 1;
+        }
+        // sentinel as a special case because cannot compare `sa[i] == n - 1` and cannot compare
+        // `s[n-1]` to `s[n]`, the latter doesn't exist
+        self.sa[end_ptr] = self.n - 1;
+        self.sa[0..end_ptr].fill(EMPTY);
     }
 
     fn induced_sort_all_suffixes(&mut self) {
@@ -476,11 +557,10 @@ impl Huo2016 {
                                 if idx == s_j as usize {
                                     // if shifted bucket is the one that is shifted back
                                     i -= 1;
-                            println!("shift {} to {}", i +1, i);
-                            continue;
+                                    println!("shift {} to {}", i + 1, i);
+                                    continue;
                                 }
                             }
-                            
                         }
                     }
                 }
@@ -501,7 +581,7 @@ impl Huo2016 {
         while i < self.n {
             if self.sa[i] == MULTI {
                 let c = self.sa[i + 1];
-                for j in (i..i + c ).rev() {
+                for j in (i..i + c).rev() {
                     self.sa[j] = self.sa[j + 2];
                 }
                 i += c;
@@ -524,10 +604,9 @@ impl Huo2016 {
         //       purpose of section 3.4, 3.5, and 3.6? Why is the end result of section 3.6 the same as
         //       3.3? Is this just because they chose a bad example and they turn out to be the same by coincidence?
         // println!("After sorting L: {:?}", self.sa);
-        // println!("Before removing lms chars: {:?}", self.sa);
+        println!("Before removing lms chars: {:?}", self.sa);
         self.remove_all_lms_chars();
-
-       // println!("After removing LMS: {:?}", self.sa);
+        println!("After removing LMS: {:?}", self.sa);
 
         // Step 3. Induced sort all S-suffixes from the sorted L-suffixes
         // Now, this step is completely symmetrical to the above Step 1 (Sort all L-suffixes using
@@ -536,7 +615,7 @@ impl Huo2016 {
         let mut s_ip1_is_s = true; // sentinel
         let mut s_ip1 = 0;
         let mut s_i;
-        for i in (1..self.n - 1).rev() {
+        for i in (0..self.n - 1).rev() {
             s_i = self.s[i];
             if s_i < s_ip1 || (s_i == s_ip1 && s_ip1_is_s) {
                 // `s[i]` is S
@@ -552,7 +631,7 @@ impl Huo2016 {
             }
             s_ip1 = s_i;
         }
-        // println!("After init S: {:?}", self.sa);
+        println!("After init S: {:?}", self.sa);
         // sentinel skipped, so `sa[0]` should not change
         assert!(self.sa[0] == self.n - 1);
         // TODO: sentinel case?
@@ -586,11 +665,15 @@ impl Huo2016 {
                         // // If this bucket contains multiple S-suffixes, then:
                         // //   - if this bucket has not been shifted, `sa[i]` contains `MULTI` and we cannot reach here (skipped)
                         // //   - if this bucket has been shifted, we still need to check?
-                        
-                        (s_j as usize == i && {i != self.n - 1 && i + 1 == self.s[self.sa[i + 1]] as usize})
+                        // TODO: make this correct
+                        (s_j as usize == i && {i != self.n - 1 && i < self.s[self.sa[i + 1]] as usize})
                         });
-                // println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
+                println!("{:?}", self.sa);
+                println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
+
                 if suf_j_is_s {
+                    println!("place {} into {}", j, s_j);
+                    println!();
                     unsafe {
                         if Self::place_i_into_sa_ti_right_to_left(&mut self.sa, j, s_j) {
                             if let Some(idx) = shifted_bucket_tail {
@@ -599,7 +682,6 @@ impl Huo2016 {
                                     continue;
                                 }
                             }
-                            
                         }
                     }
                 }
@@ -649,6 +731,17 @@ mod tests {
     }
 
     #[test]
+    fn test_step_3() {
+        let s = EXAMPLE_HUO.iter().copied().collect();
+        let mut solver = Huo2016::init(s, Some(3));
+        solver.rename();
+        solver.sort_all_lms_chars();
+        solver.induced_sort_all_suffixes();
+        solver.place_sorted_lms_substrs_to_the_end();
+        println!("{:?}", solver.sa);
+    }
+
+    #[test]
     fn test_step_6() {
         let s = EXAMPLE_HUO.iter().copied().collect();
         let mut solver = Huo2016::init(s, Some(3));
@@ -682,7 +775,7 @@ mod tests {
         let sigma = 10;
         //  let mut s = random_uniform_vec(1, sigma, 15);
         //  s.push(0);
-       let mut s = vec![7, 8, 2, 4, 8, 2, 2, 5, 9, 4, 9, 1, 1, 5, 2, 0];
+        let mut s = vec![7, 8, 2, 4, 8, 2, 2, 5, 9, 4, 9, 1, 1, 5, 2, 0];
         println!("Input: {:?}", &s);
         let expected = SuffixArray::from_str_very_naive(&s);
         println!("Expected: {:?}", expected.sa);
@@ -692,7 +785,9 @@ mod tests {
         solver.sort_all_lms_chars();
         println!("After sorting LMS chars: {:?}", solver.sa);
         solver.induced_sort_all_suffixes();
+
+        solver.place_sorted_lms_substrs_to_the_end();
         println!("Computed: {:?}", solver.sa);
-        assert_eq!(&expected.sa, &solver.sa);
+        // assert_eq!(&expected.sa, &solver.sa);
     }
 }
