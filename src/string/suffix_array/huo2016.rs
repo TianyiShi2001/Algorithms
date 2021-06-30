@@ -45,7 +45,7 @@ where
 {
     pub fn new(s: &'a mut [T], sa: &'a mut [usize], sigma: Option<usize>) -> Self {
         let mut slf = Self::init(s, sa, sigma);
-        slf.solve();
+        slf.solve(true);
         slf
     }
     pub fn init(s: &'a mut [T], sa: &'a mut [usize], sigma: Option<usize>) -> Self {
@@ -61,21 +61,36 @@ where
         let n = s.len();
         Self { s, sa, n, sigma }
     }
-    pub fn solve(&mut self) {
-        println!("original string: {:?}", self.s);
+    pub fn solve(&mut self, recursive: bool) {
+        // println!("original string: {:?}", self.s);
+        println!("sigma: {:?}", self.sigma);
         self.rename();
-        println!("renamed string: {:?}", self.s);
+        // println!("renamed string: {:?}", self.s);
         let n1 = self.sort_all_lms_chars();
         println!("n1: {}", n1);
         if n1 == 1 {
             // if there is only one LMS character i.e. the sentinel we can solve without ambiguity
             self.induced_sort_all_suffixes();
         } else {
+            println!("Induced sorting all LMS substrs from chars...");
             self.induced_sort_lms_substrs();
+            if !recursive {
+                println!("Retaining LMSs...");
+                self.retain_sorted_lms_substrs();
+                println!("Induced sorting all suffixes (bottom of recusion)...");
+                self.induced_sort_all_suffixes();
+                println!("Finished sorting all suffixes (bottom of recusion)...");
+                return;
+            }
             let e = self.move_sorted_lms_substrs_to_the_end();
-            let max_rank = self.construct_t1(e);
-
+            println!("Constructing T1...");
+            let (max_rank, has_duplicate) = self.construct_t1(e);
+            println!(
+                "T1 max rank: {}; has duplicate: {}",
+                max_rank, has_duplicate
+            );
             let (mut s1, sa1) = self.sa.split_at_mut(self.n - n1);
+            sa1.fill(0); // prepare for renaming
             s1 = &mut s1[..n1]; // s1 from 0 to n1-1; sa1 from n-n1 to n-1; both have length n1
             let mut subproblem = Huo2016::init(
                 // &mut self.sa[..n1],
@@ -84,11 +99,14 @@ where
                 sa1,
                 Some(max_rank),
             );
-            subproblem.solve();
+            subproblem.solve(has_duplicate);
+            println!("Moving T1 result from SA1 to the head");
             let sa = s1; // Just for readability
             for i in 0..n1 {
                 sa[i] = sa1[i];
             }
+
+            println!("Putting all LMS characters (unsorted) to the end");
             let lms = sa1; // for readability
                            // place unsorted LMS to the end
             let mut j = n1 - 1; // tail pointer
@@ -113,6 +131,8 @@ where
                 s_i = s_im1;
                 s_i_is_s = s_im1_is_s;
             }
+
+            println!("Sorting LMS substrs in SA[0..=n1-1], using `sa[i] = lms[sa[i]]`...");
             // LMS substrs finally sorted in `SA[0..=n1-1]`
             let mut sa_i;
             for i in 0..n1 {
@@ -120,30 +140,34 @@ where
                 *sa_i = lms[*sa_i];
             }
             lms.fill(EMPTY);
+            println!("Placing sorted LMS substrs back to corresponding buckets...");
             // place sorted LMS substrs back to corresponding buckets
             let sa = self.sa as *mut [usize];
             unsafe {
                 let mut sa_i;
                 let mut sa_i_val;
                 let mut j;
-                let mut sa_j;
+                let mut curr_tail = 0; // dummy
+                let mut offset = 0;
                 for i in (1..n1).rev() {
                     sa_i = &mut (*sa)[i];
                     sa_i_val = *sa_i;
                     *sa_i = EMPTY;
                     j = self.s[sa_i_val].to_usize().unwrap(); // start scanning at the tail to the left
-                    loop {
-                        sa_j = &mut (*sa)[j];
-                        if *sa_j == EMPTY {
-                            *sa_j = sa_i_val;
-                            break;
-                        }
-                        j -= 1;
+                    if j == curr_tail {
+                        offset += 1;
+                    } else {
+                        curr_tail = j;
+                        offset = 0;
                     }
+                    // println!("tail: {}; offset: {}", curr_tail, offset);
+                    (*sa)[curr_tail - offset] = sa_i_val;
                 }
             }
             // then we can finally solve!
+            println!("Induced sorting all suffixes...");
             self.induced_sort_all_suffixes();
+            println!("Finished sorting (sigma={})", self.sigma);
         }
     }
 
@@ -489,19 +513,22 @@ where
             s_i_is_s = s_im1_is_s;
         }
         // don't touch sentinel
-
-        // TODO: scan from right to left to achieve actual linear time
-        for i in 1..self.n {
+        let mut i = self.n - 1;
+        while i != 0 {
             let sa_i = self.sa[i];
-            match sa_i {
-                UNIQUE => self.sa[i] = EMPTY,
+            i -= match sa_i {
+                UNIQUE => {
+                    self.sa[i] = EMPTY;
+                    1
+                }
                 MULTI => {
                     let c = self.sa[i - 1];
                     for j in i + 1 - c..=i {
                         self.sa[j] = EMPTY;
                     }
+                    c
                 }
-                _ => (),
+                _ => 1,
             }
         }
     }
@@ -542,13 +569,13 @@ where
         'outer: while i > 0 {
             sa_i = self.sa[i];
             if is_s_type_bucket_tail(sa_i) {
-                println!(
-                    "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
-                    i,
-                    sa_i,
-                    unsafe { (*s)[sa_i] },
-                    unsafe { (*s)[sa_i + 1] }
-                );
+                // println!(
+                //     "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
+                //     i,
+                //     sa_i,
+                //     unsafe { (*s)[sa_i] },
+                //     unsafe { (*s)[sa_i + 1] }
+                // );
                 tail = i; // i.e. `s[sa[i]]`
                           // count number of S characters in this bucket
                 loop {
@@ -568,28 +595,28 @@ where
                     sa_i = self.sa[i];
                     if self.s[sa_i].to_usize().unwrap() != tail {
                         // not an S char in the same bucket
-                        println!(
-                            "{} is not s in the current bucket with tail/head {} instead of {}",
-                            sa_i, self.s[sa_i], tail
-                        );
+                        // println!(
+                        //     "{} is not s in the current bucket with tail/head {} instead of {}",
+                        //     sa_i, self.s[sa_i], tail
+                        // );
                         if is_s_type_bucket_tail(sa_i) {
                             tail = i;
-                            println!(
-                                "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
-                                i,
-                                sa_i,
-                                unsafe { (*s)[sa_i] },
-                                unsafe { (*s)[sa_i + 1] }
-                            );
+                            // println!(
+                            //     "i = {:>2}, sa[i] = {:>2} is S-type bucket tail, and {} < {}",
+                            //     i,
+                            //     sa_i,
+                            //     unsafe { (*s)[sa_i] },
+                            //     unsafe { (*s)[sa_i + 1] }
+                            // );
                             continue;
                         } else {
                             break;
                         }
                     }
-                    println!(
-                        "{} is also s in the current bucket with tail {}",
-                        sa_i, tail
-                    );
+                    // println!(
+                    //     "{} is also s in the current bucket with tail {}",
+                    //     sa_i, tail
+                    // );
                 }
             }
             i -= 1;
@@ -601,9 +628,54 @@ where
         end_ptr
     }
 
+    fn retain_sorted_lms_substrs(&mut self) {
+        let mut i = self.n - 1;
+        let s = self.s as *mut [T];
+        let is_s_type_bucket_tail =
+            |sa_i: usize| -> bool { unsafe { (*s)[sa_i] < (*s)[sa_i + 1] } };
+        let mut tail;
+        let mut sa_i;
+        'outer: while i > 0 {
+            sa_i = self.sa[i];
+            if is_s_type_bucket_tail(sa_i) {
+                tail = i;
+                loop {
+                    if sa_i != 0 && self.s[sa_i - 1] > self.s[sa_i] {
+                        // println!("{} is LMS", sa_i);
+                        // is LMS
+                        // self.sa[end_ptr] = sa_i;
+                        // end_ptr -= 1;
+                    } else {
+                        // println!("{} is not LMS, empty sa[{}]", sa_i, i);
+                        self.sa[i] = EMPTY;
+                    }
+
+                    i -= 1;
+                    if i == 0 {
+                        // sentinel dealt with separately
+                        break 'outer;
+                    }
+                    sa_i = self.sa[i];
+                    if self.s[sa_i].to_usize().unwrap() != tail {
+                        if is_s_type_bucket_tail(sa_i) {
+                            tail = i;
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            // println!("{} is not LMS, empty sa[{}]", sa_i, i);
+            self.sa[i] = EMPTY;
+
+            i -= 1;
+        }
+    }
+
     /// Section 3.5: Construct the reduced problem T1
-    /// Returns the max rank
-    fn construct_t1(&mut self, end_ptr: usize) -> usize {
+    /// Returns the max rank and if there are duplicated ranks
+    fn construct_t1(&mut self, end_ptr: usize) -> (usize, bool) {
         let sa = self.sa as *mut [usize];
         let length_of_lms_string = |k: usize| -> usize {
             let mut prev = self.s[k];
@@ -628,13 +700,14 @@ where
         let mut curr_lms_index;
         let mut prev_lms_index = 0; // dummy
         let mut rank = 0;
+        let mut has_duplicated_ranks = false;
         for i in end_ptr + 1..self.n {
             curr_lms_index = self.sa[i];
             curr_lms_len = length_of_lms_string(curr_lms_index);
-            println!(
-                "Prev: LMS index={}, len={}; Curr: LMS index={}, len={}",
-                prev_lms_index, prev_lms_len, curr_lms_index, curr_lms_len
-            );
+            // println!(
+            //     "Prev: LMS index={}, len={}; Curr: LMS index={}, len={}",
+            //     prev_lms_index, prev_lms_len, curr_lms_index, curr_lms_len
+            // );
             if curr_lms_len != prev_lms_len {
                 rank += 1
             } else {
@@ -642,6 +715,7 @@ where
                     == self.s[prev_lms_index..prev_lms_index + prev_lms_len]
                 {
                     // same rank
+                    has_duplicated_ranks = true;
                 } else {
                     rank += 1;
                 }
@@ -667,7 +741,7 @@ where
         }
         self.sa[j] = 0; // sentinel
         self.sa[j + 1..end_ptr].fill(EMPTY);
-        rank
+        (rank, has_duplicated_ranks)
     }
 
     fn solve_t1_recursively(&mut self, n1: usize, max_rank: usize) {
@@ -711,7 +785,7 @@ where
             s_ip1 = s_i;
         }
         assert!(self.sa[0] == self.n - 1); // sentinel should not change // TODO: remove this assertion
-        println!("After init L {:?}", self.sa);
+                                           // println!("After init L {:?}", self.sa);
 
         // (2) Then we scan `sa` from left to right to sort all the L-suffixes.
         //   (a) If `sa[i] == EMPTY`, do nothing.
@@ -756,9 +830,9 @@ where
                     });
                 if suf_j_is_l {
                     unsafe {
-                        println!("SA: {:?}", self.sa);
-                        println!("S:  {:?}", self.s);
-                        println!("{} is L, place into SA[{}]", j, s_j);
+                        // println!("SA: {:?}", self.sa);
+                        // println!("S:  {:?}", self.s);
+                        // println!("{} is L, place into SA[{}]", j, s_j);
 
                         if Self::place_i_into_sa_ti_left_to_right(self.sa, j, s_j) {
                             // if shifted, need to shift `i` back
@@ -766,7 +840,7 @@ where
                                 if idx == s_j.to_usize().unwrap() {
                                     // if shifted bucket is the one that is shifted back
                                     i -= 1;
-                                    println!("shift {} to {}", i + 1, i);
+                                    // println!("shift {} to {}", i + 1, i);
                                     continue;
                                 }
                             }
@@ -813,9 +887,9 @@ where
         //       purpose of section 3.4, 3.5, and 3.6? Why is the end result of section 3.6 the same as
         //       3.3? Is this just because they chose a bad example and they turn out to be the same by coincidence?
         // println!("After sorting L: {:?}", self.sa);
-        println!("Before removing lms chars: {:?}", self.sa);
+        // println!("Before removing lms chars: {:?}", self.sa);
         self.remove_all_lms_chars();
-        println!("After removing LMS: {:?}", self.sa);
+        // println!("After removing LMS: {:?}", self.sa);
 
         // Step 3. Induced sort all S-suffixes from the sorted L-suffixes
         // Now, this step is completely symmetrical to the above Step 1 (Sort all L-suffixes using
@@ -840,7 +914,7 @@ where
             }
             s_ip1 = s_i;
         }
-        println!("After init S: {:?}", self.sa);
+        // println!("After init S: {:?}", self.sa);
         // sentinel skipped, so `sa[0]` should not change
         assert!(self.sa[0] == self.n - 1);
         // TODO: sentinel case?
@@ -890,12 +964,12 @@ where
                         }
                             //  (s_j .to_usize().unwrap() == i && {i != self.n - 1 && i < self.s[self.sa[i + 1]] .to_usize().unwrap()})
                         });
-                println!("{:?}", self.sa);
-                println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
+                // println!("{:?}", self.sa);
+                // println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
 
                 if suf_j_is_s {
-                    println!("place {} into {}", j, s_j);
-                    println!();
+                    // println!("place {} into {}", j, s_j);
+                    // println!();
                     unsafe {
                         if Self::place_i_into_sa_ti_right_to_left(self.sa, j, s_j) {
                             if let Some(idx) = shifted_bucket_tail {
@@ -984,7 +1058,7 @@ mod tests {
         let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
         let mut sa = vec![0; s.len()];
         let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
-        solver.solve();
+        solver.solve(true);
         assert_eq!(&solver.sa, &EXAMPLE_HUO_FINAL_SA);
     }
 
@@ -993,42 +1067,35 @@ mod tests {
     #[test]
     fn test_manual() {
         let mut s = vec![
-            1, 6, 4, 2, 7, 4, 5, 8, 6, 2, 2, 4, 5, 6, 3, 4, 1, 6, 4, 5, 6, 2, 1, 3, 4, 0,
+            1u8, 6, 4, 2, 7, 4, 5, 8, 6, 2, 2, 4, 5, 6, 3, 4, 1, 6, 4, 5, 6, 2, 1, 3, 4, 0,
         ];
         let mut sa = vec![0; s.len()];
         let sc = s.clone();
         let expected = SuffixArray::from_str_very_naive(&sc);
-        println!("Expected: {:?}", expected.sa);
+        // println!("Expected: {:?}", expected.sa);
         let mut solver = Huo2016::init(&mut s, &mut sa, Some(8));
         solver.rename();
         // println!("After rename T: {:?}", solver.s);
         solver.sort_all_lms_chars();
         solver.induced_sort_all_suffixes();
-        println!("Computed: {:?}", solver.sa);
+        // println!("Computed: {:?}", solver.sa);
         assert_eq!(&expected.sa, &solver.sa);
     }
 
     #[test]
     fn test_rand() {
-        let sigma = 10;
-        let mut s = random_uniform_vec(1, sigma, 100);
-        s.push(0);
-        let mut sa = vec![0; s.len()];
-        // let mut s = vec![7, 8, 2, 4, 8, 2, 2, 5, 9, 4, 9, 1, 1, 5, 2, 0];
-        println!("Input: {:?}", &s);
-        let expected = SuffixArray::from_str_very_naive(&s).sa.clone();
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(sigma as usize));
-        // solver.rename();
-        // println!("After rename T           : {:?}", solver.s);
-        // solver.sort_all_lms_chars();
-        // println!("After sorting LMS chars  : {:?}", solver.sa);
-        // solver.induced_sort_all_suffixes();
-        // println!("After sorting LMS substrs: {:?}", solver.sa);
-        // let e = solver.move_sorted_lms_substrs_to_the_end();
-        // solver.construct_t1(e);
-        solver.solve();
-        println!("Computed: {:?}", solver.sa);
-        println!("Expected: {:?}", expected);
-        assert_eq!(&expected, &solver.sa);
+        let sigma = 200u32;
+        for _ in 0..100 {
+            let mut s = random_uniform_vec(1, sigma, 1000);
+            s.push(0);
+            let mut sa = vec![0; s.len()];
+            // println!("Input: {:?}", &s);
+            let expected = SuffixArray::from_str_very_naive(&s).sa.clone();
+            let mut solver = Huo2016::init(&mut s, &mut sa, Some(sigma as usize));
+            solver.solve(true);
+            // println!("Computed: {:?}", solver.sa);
+            // println!("Expected: {:?}", expected);
+            assert_eq!(&expected, &solver.sa);
+        }
     }
 }
