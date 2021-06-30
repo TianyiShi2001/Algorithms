@@ -1,39 +1,73 @@
+use num_traits::{PrimInt, Unsigned};
+use std::fmt::Display;
 use std::usize;
+
+// trait UnsignedInt = PrimInt + Unsigned;
 
 const EMPTY: usize = usize::MAX;
 const UNIQUE: usize = usize::MAX - 1;
 const MULTI: usize = usize::MAX - 2;
 
-pub struct Huo2016 {
-    pub s: Vec<u8>,
-    pub sa: Vec<usize>,
+// pub struct Huo2016Wrapper<'a> {
+//     pub s: Vec<T>,
+//     pub sa: Vec<usize>,
+//     inner: Huo2016<'a>,
+// }
+
+// impl<'a> Huo2016Wrapper<'a> {
+//     pub fn init(s: Vec<T>, sigma: Option<usize>) -> Self {
+//         let n = s.len();
+//         Self {
+//             s,
+//             sa: vec![0; n],
+//             // n,
+//             // sigma: sigma.unwrap_or(T::MAX .to_usize().unwrap()),
+//             inner: Huo2016::init(&mut self.s, &mut self.sa, sigma),
+//         }
+//     }
+// }
+
+pub struct Huo2016<'a, T>
+where
+    //  S: PrimInt + Unsigned,
+    T: PrimInt + Unsigned + Display,
+{
+    pub s: &'a mut [T],
+    pub sa: &'a mut [usize],
     pub n: usize,
     pub sigma: usize,
 }
 
-impl Huo2016 {
-    pub fn new(s: Vec<u8>, sigma: Option<usize>) -> Self {
-        let mut slf = Self::init(s, sigma);
-        slf.rename();
-        slf.sort_all_lms_chars();
-        slf.induced_sort_lms_substrs();
-        slf.induced_sort_all_suffixes();
-        let e = slf.move_sorted_lms_substrs_to_the_end();
-        slf.construct_t1(e);
+impl<'a, T> Huo2016<'a, T>
+where
+    // S: PrimInt + Unsigned,
+    T: PrimInt + Unsigned + Display,
+{
+    pub fn new(s: &'a mut [T], sa: &'a mut [usize], sigma: Option<usize>) -> Self {
+        let mut slf = Self::init(s, sa, sigma);
+        slf.solve();
         slf
     }
-    pub fn init(s: Vec<u8>, sigma: Option<usize>) -> Self {
+    pub fn init(s: &'a mut [T], sa: &'a mut [usize], sigma: Option<usize>) -> Self {
         let n = s.len();
         Self {
             s,
-            sa: vec![0; n],
+            sa,
             n,
-            sigma: sigma.unwrap_or(u8::MAX as usize),
+            sigma: sigma.unwrap_or(T::max_value().to_usize().unwrap()),
         }
     }
-    fn _from_inner(s: Vec<u8>, sa: Vec<usize>, sigma: usize) -> Self {
+    fn _from_inner(s: &'a mut [T], sa: &'a mut [usize], sigma: usize) -> Self {
         let n = s.len();
         Self { s, sa, n, sigma }
+    }
+    pub fn solve(&mut self) {
+        self.rename();
+        self.sort_all_lms_chars();
+        self.induced_sort_lms_substrs();
+        self.induced_sort_all_suffixes();
+        let e = self.move_sorted_lms_substrs_to_the_end();
+        self.construct_t1(e);
     }
 
     /// Rename each L-type character of `s` to be the index of its bucket head and each
@@ -49,8 +83,8 @@ impl Huo2016 {
         // `s` once again to rename each character as the index of its bucket head.
 
         // count occurence
-        for &c in &self.s {
-            self.sa[c as usize] += 1;
+        for &c in self.s.iter() {
+            self.sa[c.to_usize().unwrap()] += 1;
         }
 
         // println!("Rename part 1 (sa) before accumulation: {:?}", self.sa);
@@ -68,7 +102,7 @@ impl Huo2016 {
         for c in &mut self.s[..self.n - 1] {
             // `s[n - 1]` is the sentinel which always remains to be 0 no matter how
             // the string is transformed
-            *c = self.sa[*c as usize - 1] as u8
+            *c = T::from(self.sa[c.to_usize().unwrap() - 1]).unwrap()
         }
 
         // println!("Rename part 1 (s) : {:?}", self.s);
@@ -88,8 +122,8 @@ impl Huo2016 {
         // clear `sa`
         self.sa[0..=self.sigma].fill(0);
         // count occurence
-        for &c in &self.s {
-            self.sa[c as usize] += 1;
+        for &c in self.s.iter() {
+            self.sa[c.to_usize().unwrap()] += 1;
         }
         // compute tail indices (inclusive)
         let mut prev = 0; // tail of bucket 0 is always 0 because there is one
@@ -103,12 +137,12 @@ impl Huo2016 {
         }
 
         let mut s_ip1_is_s = true; // the last character (sentinel) is always S
-        let mut s_ip1 = 0; // the sentinel character is always 0
+        let mut s_ip1 = T::zero(); // the sentinel character is always 0
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = &mut self.s[i];
             if *s_i < s_ip1 || (*s_i == s_ip1 && s_ip1_is_s) {
-                *s_i = self.sa[*s_i as usize] as u8;
+                *s_i = T::from(self.sa[s_i.to_usize().unwrap()]).unwrap();
                 s_ip1_is_s = true;
             } else {
                 s_ip1_is_s = false;
@@ -119,16 +153,16 @@ impl Huo2016 {
         self.sa.fill(EMPTY);
     }
 
-    unsafe fn place_i_into_sa_ti_right_to_left(sa: *mut Vec<usize>, i: usize, s_i: u8) -> bool {
+    unsafe fn place_i_into_sa_ti_right_to_left(sa: *mut [usize], i: usize, s_i: T) -> bool {
         let mut shifted = false;
-        let sa_s_i = &mut (*sa)[s_i as usize];
+        let sa_s_i = &mut (*sa)[s_i.to_usize().unwrap()];
         match *sa_s_i {
             // Case 1: `sa[s[i]] == UNIQUE`: let `sa[s[i]] = i`, i.e. `s[i]` is the unique LMS
             // character in its bucket, so we just put its index into its bucket (at the tail)
             UNIQUE => *sa_s_i = i,
 
             MULTI => {
-                let counter = &mut (*sa)[s_i as usize - 1];
+                let counter = &mut (*sa)[s_i.to_usize().unwrap() - 1];
                 if *counter == EMPTY {
                     // Case 2: `sa[s[i]] == MULTI` and `sa[s[i]-1] == EMPTY`
                     // In this case, `s[i]` is the first (i.e. largest index, since we scan `s` from right
@@ -139,8 +173,8 @@ impl Huo2016 {
                     // implies that this bucket has only two LMS characters). Then we let `sa[s[i]] = i`
                     // and `sa[s[i]−1] = EMPTY`. (We do not need a counter in this case and the last LMS
                     // character belonging to this bucket will be dealt with in the later process)
-                    if s_i >= 2 {
-                        let sa_sim2 = &mut (*sa)[s_i as usize - 2];
+                    if s_i >= T::from(2).unwrap() {
+                        let sa_sim2 = &mut (*sa)[s_i.to_usize().unwrap() - 2];
                         if *sa_sim2 == EMPTY {
                             *sa_sim2 = i;
                             *counter = 1;
@@ -161,8 +195,8 @@ impl Huo2016 {
                     // to `sa[s[i]−c+1..=s[i]])`, and let `sa[s[i]−c] = i` and `sa[s[i]−c−1] =EMPTY`.
                     // After this, only one LMS-character needs to be added into this bucket in the later
                     // process.
-                    if s_i as usize >= *counter + 2 {
-                        let x = &mut (*sa)[s_i as usize - *counter - 2] as *mut usize;
+                    if s_i.to_usize().unwrap() >= *counter + 2 {
+                        let x = &mut (*sa)[s_i.to_usize().unwrap() - *counter - 2] as *mut usize;
                         if *x == EMPTY {
                             *x = i;
                             *counter += 1;
@@ -172,11 +206,12 @@ impl Huo2016 {
 
                     let counter = *counter;
                     // will mutate, so copy the counter value out
-                    for j in (s_i as usize - counter + 1..=s_i as usize).rev() {
+                    for j in (s_i.to_usize().unwrap() - counter + 1..=s_i.to_usize().unwrap()).rev()
+                    {
                         (*sa)[j] = (*sa)[j - 2];
                     }
-                    (*sa)[s_i as usize - counter] = i;
-                    (*sa)[s_i as usize - counter - 1] = EMPTY;
+                    (*sa)[s_i.to_usize().unwrap() - counter] = i;
+                    (*sa)[s_i.to_usize().unwrap() - counter - 1] = EMPTY;
                     shifted = true;
                 }
             }
@@ -187,7 +222,7 @@ impl Huo2016 {
                 // the first position `j` such that `sa[j] = EMPTY`. Then we let `sa[j] = i`. Now, we
                 // have filled the entire bucket. However, we note that not every bucket is fully filled
                 // as we have only processed LMS-characters so far.
-                let mut j = s_i as usize;
+                let mut j = s_i.to_usize().unwrap();
                 while (*sa)[j] != EMPTY {
                     j -= 1;
                 }
@@ -196,15 +231,15 @@ impl Huo2016 {
         }
         shifted
     }
-    unsafe fn place_i_into_sa_ti_left_to_right(sa: *mut Vec<usize>, i: usize, s_i: u8) -> bool {
+    unsafe fn place_i_into_sa_ti_left_to_right(sa: *mut [usize], i: usize, s_i: T) -> bool {
         let mut shifted = false;
-        let sa_s_i = &mut (*sa)[s_i as usize];
+        let sa_s_i = &mut (*sa)[s_i.to_usize().unwrap()];
         match *sa_s_i {
             UNIQUE => *sa_s_i = i,
             MULTI => {
-                let counter = &mut (*sa)[s_i as usize + 1];
+                let counter = &mut (*sa)[s_i.to_usize().unwrap() + 1];
                 if *counter == EMPTY {
-                    let j = s_i as usize + 2;
+                    let j = s_i.to_usize().unwrap() + 2;
                     if j < (*sa).len() {
                         let sa_sip2 = &mut (*sa)[j];
                         if *sa_sip2 == EMPTY {
@@ -216,9 +251,9 @@ impl Huo2016 {
                     *sa_s_i = i;
                     *counter = EMPTY;
                 } else {
-                    let j = s_i as usize + *counter + 2;
+                    let j = s_i.to_usize().unwrap() + *counter + 2;
                     if j < (*sa).len() {
-                        let x = &mut (*sa)[s_i as usize + *counter + 2] as *mut usize;
+                        let x = &mut (*sa)[s_i.to_usize().unwrap() + *counter + 2] as *mut usize;
                         if *x == EMPTY {
                             *x = i;
                             *counter += 1;
@@ -227,16 +262,16 @@ impl Huo2016 {
                     }
 
                     let counter = *counter;
-                    for j in s_i as usize..s_i as usize + counter {
+                    for j in s_i.to_usize().unwrap()..s_i.to_usize().unwrap() + counter {
                         (*sa)[j] = (*sa)[j + 2];
                     }
-                    (*sa)[s_i as usize + counter] = i;
-                    (*sa)[s_i as usize + counter + 1] = EMPTY;
+                    (*sa)[s_i.to_usize().unwrap() + counter] = i;
+                    (*sa)[s_i.to_usize().unwrap() + counter + 1] = EMPTY;
                     shifted = true;
                 }
             }
             _ => {
-                let mut j = s_i as usize;
+                let mut j = s_i.to_usize().unwrap();
                 while (*sa)[j] != EMPTY {
                     j += 1;
                 }
@@ -276,7 +311,7 @@ impl Huo2016 {
             s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
             if !s_im1_is_s && s_i_is_s {
                 // `s[i]` is LMS
-                let sa_s_i = &mut self.sa[s_i as usize];
+                let sa_s_i = &mut self.sa[s_i.to_usize().unwrap()];
                 match *sa_s_i {
                     EMPTY => *sa_s_i = UNIQUE,
                     UNIQUE => *sa_s_i = MULTI,
@@ -300,7 +335,7 @@ impl Huo2016 {
         let mut s_i = self.s[self.n - 2];
         let mut s_im1;
         let mut i = self.n - 2;
-        let sa = &mut self.sa as *mut Vec<usize>;
+        let sa = self.sa as *mut [usize];
         unsafe {
             for i_minus_1 in (0..self.n - 2).rev() {
                 s_im1 = self.s[i_minus_1];
@@ -355,14 +390,14 @@ impl Huo2016 {
             s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
             if !s_im1_is_s && s_i_is_s {
                 // `s[i]` is LMS
-                let sa_s_i = &mut self.sa[s_i as usize];
+                let sa_s_i = &mut self.sa[s_i.to_usize().unwrap()];
                 match *sa_s_i {
                     MULTI => {
-                        self.sa[s_i as usize - 1] += 1;
+                        self.sa[s_i.to_usize().unwrap() - 1] += 1;
                     }
                     UNIQUE => {
                         *sa_s_i = MULTI;
-                        self.sa[s_i as usize - 1] = 2; // set counter
+                        self.sa[s_i.to_usize().unwrap() - 1] = 2; // set counter
                     }
                     _ => *sa_s_i = UNIQUE,
                 }
@@ -413,7 +448,7 @@ impl Huo2016 {
         // TODO: why so complex? why not just decrement `i` and check whether `s[sa[i]] == tail`
 
         let mut i = self.n - 1;
-        let s = &mut self.s as *mut Vec<u8>;
+        let s = self.s as *mut [T];
         let is_s_type_bucket_tail =
             |sa_i: usize| -> bool { unsafe { (*s)[sa_i] < (*s)[sa_i + 1] } };
         // let mut count;
@@ -447,7 +482,7 @@ impl Huo2016 {
                         break 'outer;
                     }
                     sa_i = self.sa[i];
-                    if self.s[sa_i] as usize != tail {
+                    if self.s[sa_i].to_usize().unwrap() != tail {
                         // not an S char in the same bucket
                         println!(
                             "{} is not s in the current bucket with tail/head {} instead of {}",
@@ -483,8 +518,9 @@ impl Huo2016 {
     }
 
     /// Section 3.5: Construct the reduced problem T1
-    fn construct_t1(&mut self, end_ptr: usize) {
-        let sa = &mut self.sa as *mut Vec<usize>;
+    /// Returns length of t1
+    fn construct_t1(&mut self, end_ptr: usize) -> usize {
+        let sa = self.sa as *mut [usize];
         let length_of_lms_string = |k: usize| -> usize {
             let mut prev = self.s[k];
             let mut curr;
@@ -547,6 +583,18 @@ impl Huo2016 {
         }
         self.sa[j] = 0; // sentinel
         self.sa[j + 1..end_ptr].fill(EMPTY);
+        j
+    }
+
+    fn solve_t1_recursively(&mut self, n1: usize) {
+        let sigma = Some(self.sa[n1 - 1]);
+        let (s, sa) = self.sa.split_at_mut(n1);
+        let subproblem = Huo2016::init(
+            // &mut self.sa[..n1],
+            // &mut self.sa[n1 + 1..],
+            s, sa, sigma,
+        );
+        // subproblem.solve();
     }
 
     fn induced_sort_all_suffixes(&mut self) {
@@ -559,13 +607,13 @@ impl Huo2016 {
         //       characters in this bucket is at least 2)
         //   (c) Otherwise do nothing.
         let mut s_ip1_is_l = false;
-        let mut s_ip1 = 0;
+        let mut s_ip1 = T::zero();
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = self.s[i];
             if s_i > s_ip1 || (s_i == s_ip1 && s_ip1_is_l) {
                 // `s[i]` is L
-                let sa_si = &mut self.sa[s_i as usize];
+                let sa_si = &mut self.sa[s_i.to_usize().unwrap()];
                 if *sa_si == EMPTY {
                     *sa_si = UNIQUE;
                 } else if *sa_si == UNIQUE {
@@ -626,10 +674,10 @@ impl Huo2016 {
                         println!("{:?}", self.sa);
                         println!("{} is L, place into SA[{}]", j, s_j);
 
-                        if Self::place_i_into_sa_ti_left_to_right(&mut self.sa, j, s_j) {
+                        if Self::place_i_into_sa_ti_left_to_right(self.sa, j, s_j) {
                             // if shifted, need to shift `i` back
                             if let Some(idx) = shifted_bucket_head {
-                                if idx == s_j as usize {
+                                if idx == s_j.to_usize().unwrap() {
                                     // if shifted bucket is the one that is shifted back
                                     i -= 1;
                                     println!("shift {} to {}", i + 1, i);
@@ -688,13 +736,13 @@ impl Huo2016 {
         // induced sorting). We use S-type and RF-entry instead of L-typeand LF-entry, and scan `sa`
         // from right to left instead of left to right.
         let mut s_ip1_is_s = true; // sentinel
-        let mut s_ip1 = 0;
+        let mut s_ip1 = T::zero();
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = self.s[i];
             if s_i < s_ip1 || (s_i == s_ip1 && s_ip1_is_s) {
                 // `s[i]` is S
-                let sa_si = &mut self.sa[s_i as usize];
+                let sa_si = &mut self.sa[s_i.to_usize().unwrap()];
                 if *sa_si == EMPTY {
                     *sa_si = UNIQUE;
                 } else if *sa_si == UNIQUE {
@@ -725,12 +773,13 @@ impl Huo2016 {
                 let s_j = self.s[j];
                 // TODO: if correct, simplify
                 let suf_j_is_s = s_j < self.s[sa_i]
-                    || (s_j == self.s[sa_i] && {
-                        //if self.sa[s_j]
-                        // if self.s[self.sa[suspected_tail]] < self.s[self.sa[suspected_tail + 1]] {
-                        //     // is tail; bucket is S type
-                        // }
-                        s_j as usize > i ||
+                    || (s_j == self.s[sa_i]
+                        && {
+                            //if self.sa[s_j]
+                            // if self.s[self.sa[suspected_tail]] < self.s[self.sa[suspected_tail + 1]] {
+                            //     // is tail; bucket is S type
+                            // }
+                            s_j .to_usize().unwrap() > i ||
                         // we know `s[j]` and `s[sa[i]]` (i.e. `s[j + 1]`) are both in the current bucket (which contains index `i`)
                         // if `s_j > i`, then `s_j` must be a tail pointer of this bucket which is used to sort S suffixes
                         // if `s_j < i`, then `s_j` must be a head pointer which is used to sort L suffixes
@@ -745,16 +794,16 @@ impl Huo2016 {
                         // //   - if this bucket has been shifted, we still need to check?
                         // TODO: make this correct
                         {
-                            let suspected_tail = s_j as usize;
+                            let suspected_tail = s_j .to_usize().unwrap();
                             let sa_sj = self.sa[suspected_tail];
                             if sa_sj == MULTI {
                                 true
                             } else {
-                               suspected_tail < self.s[self.sa[suspected_tail + 1]] as usize
+                               suspected_tail < self.s[self.sa[suspected_tail + 1]] .to_usize().unwrap()
                             }
                         }
-                        //  (s_j as usize == i && {i != self.n - 1 && i < self.s[self.sa[i + 1]] as usize})
-                    });
+                            //  (s_j .to_usize().unwrap() == i && {i != self.n - 1 && i < self.s[self.sa[i + 1]] .to_usize().unwrap()})
+                        });
                 println!("{:?}", self.sa);
                 println!("i: {}, sa_i: {}, j: {}, is_s: {}", i, sa_i, j, suf_j_is_s);
 
@@ -762,9 +811,9 @@ impl Huo2016 {
                     println!("place {} into {}", j, s_j);
                     println!();
                     unsafe {
-                        if Self::place_i_into_sa_ti_right_to_left(&mut self.sa, j, s_j) {
+                        if Self::place_i_into_sa_ti_right_to_left(self.sa, j, s_j) {
                             if let Some(idx) = shifted_bucket_tail {
-                                if idx == s_j as usize {
+                                if idx == s_j.to_usize().unwrap() {
                                     i += 1;
                                     continue;
                                 }
@@ -793,22 +842,31 @@ mod tests {
     const EXAMPLE_HUO_STEP_4_SA: [usize; 13] =
         [1, 1, 2, 0, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, 12, 1, 5, 9];
     const EXAMPLE_HUO_FINAL_SA: [usize; 13] = [12, 11, 1, 5, 9, 2, 6, 10, 0, 4, 8, 3, 7];
-    fn init_example_huo_solver(sa: &[usize]) -> Huo2016 {
-        Huo2016::_from_inner((&EXAMPLE_HUO_STEP_1_S).to_vec(), sa.to_vec(), 3)
-    }
+    // fn init_example_huo_solver(sa: &[usize]) -> Huo2016 {
+    //     Huo2016::_from_inner((&EXAMPLE_HUO_STEP_1_S).to_vec(), sa.to_vec(), 3)
+    // }
+    // macro_rules! gen_huo_example_solver {
+    //     ($sa:expr) => {
+    //         let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
+    //         let mut sa: Vec<usize> = $sa.iter().copied().collect();
+    //         let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+    //     };
+    // }
 
     #[test]
     fn test_step_1() {
-        let s = EXAMPLE_HUO.iter().copied().collect();
-        let mut solver = Huo2016::init(s, Some(3));
+        let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
+        let mut sa = vec![0; s.len()];
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
         solver.rename();
         assert_eq!(&solver.s, &EXAMPLE_HUO_STEP_1_S);
     }
 
     #[test]
     fn test_step_2() {
-        let s = EXAMPLE_HUO.iter().copied().collect();
-        let mut solver = Huo2016::init(s, Some(3));
+        let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
+        let mut sa = vec![0; s.len()];
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
         solver.rename();
         solver.sort_all_lms_chars();
         assert_eq!(&solver.sa, &EXAMPLE_HUO_STEP_2_SA);
@@ -816,7 +874,10 @@ mod tests {
 
     #[test]
     fn test_step_3() {
-        let mut solver = init_example_huo_solver(&EXAMPLE_HUO_STEP_2_SA);
+        let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
+        let mut sa: Vec<usize> = EXAMPLE_HUO_STEP_2_SA.iter().copied().collect();
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+
         solver.induced_sort_all_suffixes();
         let end_ptr = solver.move_sorted_lms_substrs_to_the_end();
         assert_eq!(&solver.sa, &EXAMPLE_HUO_STEP_3_SA);
@@ -825,32 +886,37 @@ mod tests {
 
     #[test]
     fn test_step_4() {
-        let mut solver = init_example_huo_solver(&EXAMPLE_HUO_STEP_3_SA);
+        let mut s: Vec<u8> = EXAMPLE_HUO.iter().copied().collect();
+        let mut sa: Vec<usize> = EXAMPLE_HUO_STEP_3_SA.iter().copied().collect();
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+
         solver.construct_t1(9);
         assert_eq!(&solver.sa, &EXAMPLE_HUO_STEP_4_SA);
     }
 
-    #[test]
-    fn test_step_6() {
-        let s = EXAMPLE_HUO.iter().copied().collect();
-        let mut solver = Huo2016::init(s, Some(3));
-        solver.rename();
-        solver.sort_all_lms_chars();
-        solver.induced_sort_all_suffixes();
-        // println!("{:?}", solver.sa);
-        assert_eq!(&solver.sa, &EXAMPLE_HUO_FINAL_SA);
-    }
+    // #[test]
+    // fn test_step_6() {
+    //     let s = EXAMPLE_HUO.iter().copied().collect();
+    //     let mut solver = Huo2016::init(s, Some(3));
+    //     solver.rename();
+    //     solver.sort_all_lms_chars();
+    //     solver.induced_sort_all_suffixes();
+    //     // println!("{:?}", solver.sa);
+    //     assert_eq!(&solver.sa, &EXAMPLE_HUO_FINAL_SA);
+    // }
 
     use super::super::SuffixArray;
 
     #[test]
     fn test_manual() {
-        let s = vec![
+        let mut s = vec![
             1, 6, 4, 2, 7, 4, 5, 8, 6, 2, 2, 4, 5, 6, 3, 4, 1, 6, 4, 5, 6, 2, 1, 3, 4, 0,
         ];
-        let expected = SuffixArray::from_str_very_naive(&s);
+        let mut sa = vec![0; s.len()];
+        let sc = s.clone();
+        let expected = SuffixArray::from_str_very_naive(&sc);
         println!("Expected: {:?}", expected.sa);
-        let mut solver = Huo2016::init(s.clone(), Some(8));
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(8));
         solver.rename();
         // println!("After rename T: {:?}", solver.s);
         solver.sort_all_lms_chars();
@@ -864,11 +930,12 @@ mod tests {
         let sigma = 10;
         let mut s = random_uniform_vec(1, sigma, 100);
         s.push(0);
+        let mut sa = vec![0; s.len()];
         // let mut s = vec![7, 8, 2, 4, 8, 2, 2, 5, 9, 4, 9, 1, 1, 5, 2, 0];
         println!("Input: {:?}", &s);
         let expected = SuffixArray::from_str_very_naive(&s);
         println!("Expected: {:?}", expected.sa);
-        let mut solver = Huo2016::init(s.clone(), Some(sigma as usize));
+        let mut solver = Huo2016::init(&mut s, &mut sa, Some(sigma as usize));
         solver.rename();
         println!("After rename T           : {:?}", solver.s);
         solver.sort_all_lms_chars();
