@@ -6,7 +6,7 @@ extern crate test;
 mod tests {
     use algorithms_edu::{
         _test_utils::random_uniform_vec,
-        string::suffix_array::{li2016::Huo2016, SuffixArray},
+        string::suffix_array::{li2016::Li2016, SuffixArray},
     };
     use test::{black_box, Bencher};
 
@@ -27,7 +27,7 @@ mod tests {
                 s.push(0);
                 let mut sa = vec![0; s.len()];
                 // let expected = SuffixArray::from_str_very_naive(&s).sa.clone();
-                let mut solver = Huo2016::init(&mut s, &mut sa, Some(sigma as usize));
+                let mut solver = Li2016::init(&mut s, &mut sa, Some(sigma as usize));
                 solver.solve(true);
             });
         });

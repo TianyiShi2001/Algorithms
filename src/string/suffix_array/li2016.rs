@@ -8,7 +8,7 @@ const EMPTY: usize = usize::MAX;
 const UNIQUE: usize = usize::MAX - 1;
 const MULTI: usize = usize::MAX - 2;
 
-pub struct Huo2016<'a, T>
+pub struct Li2016<'a, T>
 where
     //  S: PrimInt + Unsigned,
     T: PrimInt + Unsigned + Display + Debug,
@@ -19,7 +19,7 @@ where
     pub sigma: usize,
 }
 
-impl<'a, T> Huo2016<'a, T>
+impl<'a, T> Li2016<'a, T>
 where
     // S: PrimInt + Unsigned,
     T: PrimInt + Unsigned + Display + Debug,
@@ -73,7 +73,7 @@ where
             let (mut s1, sa1) = self.sa.split_at_mut(self.n - n1);
             sa1.fill(0); // prepare for renaming
             s1 = &mut s1[..n1]; // s1 from 0 to n1-1; sa1 from n-n1 to n-1; both have length n1
-            let mut subproblem = Huo2016::init(
+            let mut subproblem = Li2016::init(
                 // &mut self.sa[..n1],
                 // &mut self.sa[n1 + 1..],
                 s1,
@@ -843,7 +843,7 @@ mod tests {
     fn test_step_1() {
         let mut s: Vec<u8> = EXAMPLE_LI.iter().copied().collect();
         let mut sa = vec![0; s.len()];
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(3));
         solver.rename();
         assert_eq!(&solver.s, &EXAMPLE_LI_RENAMED_S);
     }
@@ -852,7 +852,7 @@ mod tests {
     fn test_step_2() {
         let mut s: Vec<u8> = EXAMPLE_LI.iter().copied().collect();
         let mut sa = vec![0; s.len()];
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(3));
         solver.rename();
         solver.sort_all_lms_chars();
         assert_eq!(&solver.sa, &EXAMPLE_LI_STEP_2_SA);
@@ -862,7 +862,7 @@ mod tests {
     fn test_step_3() {
         let mut s: Vec<u8> = EXAMPLE_LI_RENAMED_S.iter().copied().collect();
         let mut sa: Vec<usize> = EXAMPLE_LI_STEP_2_SA.iter().copied().collect();
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(3));
         solver.induced_sort_all_suffixes();
         let end_ptr = solver.move_sorted_lms_substrs_to_the_end();
         assert_eq!(&solver.sa, &EXAMPLE_LI_STEP_3_SA);
@@ -873,7 +873,7 @@ mod tests {
     fn test_step_4() {
         let mut s: Vec<u8> = EXAMPLE_LI.iter().copied().collect();
         let mut sa: Vec<usize> = EXAMPLE_LI_STEP_3_SA.iter().copied().collect();
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(3));
 
         solver.construct_t1(9);
         assert_eq!(&solver.sa, &EXAMPLE_LI_STEP_4_SA);
@@ -883,7 +883,7 @@ mod tests {
     fn test_solve() {
         let mut s: Vec<u8> = EXAMPLE_LI.iter().copied().collect();
         let mut sa = vec![0; s.len()];
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(3));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(3));
         solver.solve(true);
         assert_eq!(&solver.sa, &EXAMPLE_LI_FINAL_SA);
     }
@@ -899,7 +899,7 @@ mod tests {
         let sc = s.clone();
         let expected = SuffixArray::from_str_very_naive(&sc);
         // println!("Expected: {:?}", expected.sa);
-        let mut solver = Huo2016::init(&mut s, &mut sa, Some(8));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(8));
         solver.rename();
         // println!("After rename T: {:?}", solver.s);
         solver.sort_all_lms_chars();
@@ -917,7 +917,7 @@ mod tests {
             let mut sa = vec![0; s.len()];
             // println!("Input: {:?}", &s);
             let expected = SuffixArray::from_str_very_naive(&s).sa.clone();
-            let mut solver = Huo2016::init(&mut s, &mut sa, Some(sigma as usize));
+            let mut solver = Li2016::init(&mut s, &mut sa, Some(sigma as usize));
             solver.solve(true);
             // println!("Computed: {:?}", solver.sa);
             // println!("Expected: {:?}", expected);
