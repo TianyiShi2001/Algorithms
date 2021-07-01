@@ -1,7 +1,7 @@
 use algorithms_edu::{_test_utils::random_uniform_vec, string::suffix_array::SuffixArray};
 
 fn main() {
-    solve(500, 100_000_000);
+    solve(500, 300_000_000);
 }
 
 fn solve(sigma: u32, len: usize) {
