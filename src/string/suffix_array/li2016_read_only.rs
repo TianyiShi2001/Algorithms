@@ -14,6 +14,7 @@ pub struct Li2016Ro<'a, T: UnsignedInt> {
     sa: &'a mut [usize],
     sigma: T,
     n: usize,
+    d: T,
 }
 
 impl<'a, T> Li2016Ro<'a, T>
@@ -22,10 +23,11 @@ where
 {
     fn init(s: &'a [T], sa: &'a mut [usize], sigma: T) -> Self {
         let n = s.len();
-        Self { s, sa, sigma, n }
+        let d = T::from((sigma.to_f32().unwrap() / n as f32).ceil()).unwrap();
+        Self { s, sa, sigma, n, d }
     }
 
-    fn count_l_s_lms_lml(&self) -> (bool, usize) {
+    fn count_l_s_lms_lml(&self) -> (bool, usize, usize, usize) {
         let mut l = 1; // the char before sentinel must be L (index is n-2)
         let mut s = 1; // sentinel at n-1
         let mut lms = 1; // sentinel
@@ -59,106 +61,189 @@ where
             s_i_is_s = s_im1_is_s;
         }
         if l <= s {
-            (true, lms)
+            (true, l, s, lms)
         } else {
-            (false, lml)
+            (false, l, s, lml)
         }
     }
 
     /// STEP 1: use counting sort to sort LMS chars
     fn sort_lms_chars(&mut self, n1: usize) {
-        // * the formula given by Li may actually give blocks that is of size `n/2+1`
-        // * e.g. when |sigma| = 50, n = 9, 2d = 12; intervals 6 and 12 each span 5 chars
-        // * So I made a few modifications
-        //   * The workspace for counting sort is `sa[0..=n/2+1]`
-        //   * The sentinel is dealt with at the end, so even in the case where there are
-        //   *    `n/2` LMS chars, using position `sa[n/1+1]` is fine
-        //   * Since the sentinel is dealt with later, we start `lo_char` at 1 instead of 0,
-        //   *    and use `i * self.sigma / n_intervals + 1` (with plus one) to generate each
-        //   *    `hi_char`. This way, char = `sigma` is covered, and indexing works fine
-        //   *    try without plus one and you'll see what I mean.
-        let n_intervals =
-            T::from((self.sigma.to_f32().unwrap() / self.n as f32).ceil() * 2.).unwrap(); // i.e. 2d
-        let mut lo_char = T::one();
+        let mut lo_char = T::one(); // sentinel dealt with as a special case
         let mut hi_char;
         let mut output_curr_head = self.n - n1 + 1; // plus one to skip sentinel
-        let counting_sort = |slf: *mut Self, lo_char: T, hi_char: T, output_curr_head| -> usize {
-            unsafe {
-                let range = (hi_char - lo_char).to_usize().unwrap();
-                let mut s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
-                let mut s_im1_is_s;
-                let mut s_i = (*slf).s[(*slf).n - 2];
-                let mut s_im1;
-                // `i_minus_1` ranges from `n-3` to `0` inclusive, meaning `i` ranges from `n-2` to `1` inclusive.
-                // `s[0]` must not be an LMS character by definition so it is fine that `i` does not include `0`.
-                // `s[n-1]` is the sentinel character which is dealt with as a special case later
-                for i_minus_1 in (0..(*slf).n - 2).rev() {
-                    s_im1 = (*slf).s[i_minus_1];
-                    s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
-                    if !s_im1_is_s && s_i_is_s {
-                        // `s[i]` is LMS
-                        if lo_char <= s_i && s_i < hi_char {
-                            // if in current interval
-                            let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
-                            (*slf).sa[idx_in_counting_arr] += 1;
-                        }
+                                                    // println!("sigma: {}|half_n: {}", self.sigma, self.n / 2 + 1);
+        let mut half_n = T::from(self.n / 2).unwrap() + T::one();
+        // * since the sentinel is dealt with as a special case at the end, we can use one more slot
+        if self.n % 2 == 1 {
+            // * when n is odd, we can use one more slot.
+            // * for example, when n = 9, there will be a maximum of 4 LMS chars,
+            // * one of which is sentinel, so there are 3 LMS chars need to be sorted
+            // * by counting sort, leaving 6 slots for counting array
+            half_n = half_n + T::one();
+        }
+        loop {
+            hi_char = lo_char + half_n;
+            let range = (hi_char - lo_char).to_usize().unwrap();
+            let mut s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
+            let mut s_im1_is_s;
+            let mut s_i = self.s[self.n - 2];
+            let mut s_im1;
+            for i_minus_1 in (0..self.n - 2).rev() {
+                s_im1 = self.s[i_minus_1];
+                s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+                if !s_im1_is_s && s_i_is_s {
+                    if lo_char <= s_i && s_i < hi_char {
+                        let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
+                        self.sa[idx_in_counting_arr] += 1;
                     }
-                    s_i = s_im1;
-                    s_i_is_s = s_im1_is_s;
                 }
-                // accumulation
-                let mut prev = (*slf).sa[0];
-                let mut curr;
-                for i in 1..range {
-                    curr = &mut (*slf).sa[i];
-                    *curr += prev;
-                    prev = *curr;
-                }
-                // At the end return `prev`, which is the total number of LMS chars
-                // in this interval
+                s_i = s_im1;
+                s_i_is_s = s_im1_is_s;
+            }
+            // accumulation
+            let mut prev = self.sa[0];
+            let mut curr;
+            for i in 1..range {
+                curr = &mut self.sa[i];
+                *curr += prev;
+                prev = *curr;
+            }
+            // `prev` is the total number of LMS chars in this interval, and
+            // will be added to `output_curr_head` after processing this interval
 
-                // Scan S again to place LMS chars
-                s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
-                s_i = (*slf).s[(*slf).n - 2];
-                // `i_minus_1` ranges from `n-3` to `0` inclusive, meaning `i` ranges from `n-2` to `1` inclusive.
-                // `s[0]` must not be an LMS character by definition so it is fine that `i` does not include `0`.
-                // `s[n-1]` is the sentinel character which is dealt with as a special case later
-                let mut i = (*slf).n - 2;
-                for i_minus_1 in (0..(*slf).n - 2).rev() {
-                    s_im1 = (*slf).s[i_minus_1];
-                    s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
-                    if !s_im1_is_s && s_i_is_s {
-                        // `s[i]` is LMS
-                        if lo_char <= s_i && s_i < hi_char {
-                            println!("{} {} {}", lo_char, s_i, hi_char);
-                            // if in current interval
-                            let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
-                            let idx_in_output_without_offset = &mut (*slf).sa[idx_in_counting_arr];
-                            *idx_in_output_without_offset -= 1;
-                            (*slf).sa[output_curr_head + *idx_in_output_without_offset] = i;
-                        }
+            // Scan S again to place LMS chars
+            s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
+            s_i = self.s[self.n - 2];
+            // `i_minus_1` ranges from `n-3` to `0` inclusive, meaning `i` ranges from `n-2` to `1` inclusive.
+            // `s[0]` must not be an LMS character by definition so it is fine that `i` does not include `0`.
+            // `s[n-1]` is the sentinel character which is dealt with as a special case later
+            let mut i = self.n - 2;
+            for i_minus_1 in (0..self.n - 2).rev() {
+                s_im1 = self.s[i_minus_1];
+                s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+                if !s_im1_is_s && s_i_is_s {
+                    // `s[i]` is LMS
+                    if lo_char <= s_i && s_i < hi_char {
+                        // println!("{} {} {}", lo_char, s_i, hi_char);
+                        // if in current interval
+                        let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
+                        let idx_in_output_without_offset = &mut self.sa[idx_in_counting_arr];
+                        *idx_in_output_without_offset -= 1;
+                        self.sa[output_curr_head + *idx_in_output_without_offset] = i;
                     }
-                    i = i_minus_1;
-                    s_i = s_im1;
-                    s_i_is_s = s_im1_is_s;
                 }
-                (*slf).sa[0..range].fill(0); // clear the counting array
-                prev
+                i = i_minus_1;
+                s_i = s_im1;
+                s_i_is_s = s_im1_is_s;
             }
-        };
-        // println!("sigma: {}|half_n: {}", self.sigma, self.n / 2 + 1);
-        if self.sigma.to_usize().unwrap() <= self.n / 2 + 1 {
-            hi_char = self.sigma + T::one(); // lo <= c < hi, so hi = sigma + 1
-            counting_sort(self, lo_char, hi_char, output_curr_head);
-        } else {
-            for i in T::one()..=n_intervals {
-                hi_char = i * self.sigma / n_intervals + T::one();
-                // println!("i: {}, lo: {}, hi: {}", i, lo_char, hi_char);
-                output_curr_head += counting_sort(self, lo_char, hi_char, output_curr_head);
-                lo_char = hi_char;
+            self.sa[0..range].fill(0); // clear the counting array
+            if hi_char > self.sigma {
+                break;
             }
+            lo_char = hi_char;
+            output_curr_head += prev; // recall that prev is the number of LMS chars in this interval
         }
         self.sa[self.n - n1] = self.n - 1; // sentinel as a special case
+    }
+
+    fn sort_lml_chars(&mut self, n1: usize) {
+        // * Observation: when `n` is even, `nLML <= n/2-1`, and this occurs when `nL==nS`
+        // *   e.g. `n=10`, `type=LSLSLSLSLS` or `type=SLSLSLSLLS`, in which case this function
+        // *   will not be called (LMS chars are sorted instead), so the actual maximum of `nLML`
+        // *   is practically `n/2-2`
+        // *   When `n` is odd, the practical maximum of `nLML` is `n/2-1`.
+        // *   e.g. `n=9`, `type=LSLSLSLLS`
+        let mut lo_char = T::one(); // sentinel dealt with as a special case
+        let mut hi_char;
+        let mut output_curr_head = self.n - n1;
+        let mut half_n = T::from(self.n / 2).unwrap() + T::one();
+        if self.n % 2 == 0 {
+            half_n = half_n + T::one();
+        }
+        loop {
+            hi_char = lo_char + half_n;
+            let range = (hi_char - lo_char).to_usize().unwrap();
+            let mut s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
+            let mut s_im1_is_s;
+            let mut s_i = self.s[self.n - 2];
+            let mut s_im1;
+            for i_minus_1 in (0..self.n - 2).rev() {
+                s_im1 = self.s[i_minus_1];
+                s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+                if s_im1_is_s && !s_i_is_s {
+                    // is LML
+                    if lo_char <= s_i && s_i < hi_char {
+                        let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
+                        self.sa[idx_in_counting_arr] += 1;
+                    }
+                }
+                s_i = s_im1;
+                s_i_is_s = s_im1_is_s;
+            }
+            // accumulation
+            let mut prev = self.sa[0];
+            let mut curr;
+            for i in 1..range {
+                curr = &mut self.sa[i];
+                *curr += prev;
+                prev = *curr;
+            }
+            // `prev` is the total number of LML chars in this interval, and
+            // will be added to `output_curr_head` after processing this interval
+
+            // Scan `s` again to place LML chars
+            s_i_is_s = false; // `s[n - 2]` must be L, because it is greater than the sentinel at `s[n - 1]`
+            s_i = self.s[self.n - 2];
+            // `i_minus_1` ranges from `n-3` to `0` inclusive, meaning `i` ranges from `n-2` to `1` inclusive.
+            // `s[0]` must not be an LML character by definition so it is fine that `i` does not include `0`.
+            let mut i = self.n - 2;
+            for i_minus_1 in (0..self.n - 2).rev() {
+                s_im1 = self.s[i_minus_1];
+                s_im1_is_s = s_im1 < s_i || (s_im1 == s_i && s_i_is_s);
+                if s_im1_is_s && !s_i_is_s {
+                    // `s[i]` is LML
+                    if lo_char <= s_i && s_i < hi_char {
+                        let idx_in_counting_arr = (s_i - lo_char).to_usize().unwrap();
+                        let idx_in_output_without_offset = &mut self.sa[idx_in_counting_arr];
+                        *idx_in_output_without_offset -= 1;
+                        self.sa[output_curr_head + *idx_in_output_without_offset] = i;
+                    }
+                }
+                i = i_minus_1;
+                s_i = s_im1;
+                s_i_is_s = s_im1_is_s;
+            }
+            self.sa[0..range].fill(0); // clear the counting array
+            if hi_char > self.sigma {
+                break;
+            }
+            lo_char = hi_char;
+            output_curr_head += prev; // recall that prev is the number of LML chars in this interval
+        }
+    }
+
+    fn induced_sort_s_suffixes(&mut self) {
+        //     let mut n_parts = T::from(4).unwrap() * self.d;
+        //     let mut lo_char = T::one();
+        //     let mut hi_char;
+        //     // println!("sigma: {}|half_n: {}", self.sigma, self.n / 2 + 1);
+        //     if false
+        //     // self.sigma.to_usize().unwrap() <= self.n / 2 + 1 {
+        //     // e.g. when n = 9 we can use the first 5 slots as the counting array
+        //     //hi_char = self.sigma + T::one(); // lo <= c < hi, so hi = sigma + 1
+        //     //counting_sort(self, lo_char, hi_char, output_curr_head);
+        //     {
+        //     } else {
+        //         for i in T::one()..=n_parts {
+        //             hi_char = i * self.sigma / n_parts + T::one();
+        //             // println!("i: {}, lo: {}, hi: {}", i, lo_char, hi_char);
+        //             output_curr_head += counting_sort(self, lo_char, hi_char, output_curr_head);
+        //             lo_char = hi_char;
+        //         }
+        //     }
+        //     self.sa[self.n - n1] = self.n - 1; // sentinel as a special case
+        //
     }
 }
 
@@ -188,7 +273,7 @@ mod tests {
     fn test_step_1_rand() {
         let sigma = 500u32;
         for _ in 0..100 {
-            let mut s = random_uniform_vec(1, sigma, 10);
+            let mut s = random_uniform_vec(1, sigma, 9);
             s.push(0);
             //let s = vec![148u32, 467, 426, 464, 156, 290, 314, 338, 226, 235, 0];
             let mut sa = vec![0; s.len()];
@@ -196,13 +281,17 @@ mod tests {
             // let expected = SuffixArray::from_str_very_naive(&s).sa.clone();
             let mut solver = Li2016Ro::init(&s, &mut sa, sigma);
 
-            let (use_lms, n1) = solver.count_l_s_lms_lml();
+            let (use_lms, _nl, _ns, n1) = solver.count_l_s_lms_lml();
             if use_lms {
                 solver.sort_lms_chars(n1);
+                println!("LMS");
                 println!("{:?}", sa);
                 println!("{:?}\n", s);
             } else {
-                // println!("does not use lms")
+                solver.sort_lml_chars(n1);
+                println!("LML");
+                println!("{:?}", sa);
+                println!("{:?}\n", s);
             }
             // assert_eq!(&expected, &solver.sa);
         }
