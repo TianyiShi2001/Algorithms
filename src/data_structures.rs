@@ -1,5 +1,7 @@
 pub mod balanced_tree;
 pub mod bit;
+pub mod bitmap;
+pub mod bitvec;
 pub mod heaparray;
 pub mod kdtree;
 pub mod priority_queue;

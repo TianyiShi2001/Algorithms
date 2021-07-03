@@ -13,7 +13,7 @@
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=cY4HiiFHO1o&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=25)
 //! - [W. Fiset's video](https://www.youtube.com/watch?v=cY4HiiFHO1o&list=PLDV1Zeh2NRsDGO4--qE8yH72HFL1Km93P&index=25)
 
-use crate::data_structures::bit::Bit;
+use crate::data_structures::bit::BitOpts;
 use crate::graph::WeightedAdjacencyMatrix;
 
 pub struct TspSolver {}

@@ -1,6 +1,6 @@
 use num_traits::Unsigned;
 
-pub trait Bit: Unsigned {
+pub trait BitOpts: Unsigned {
     fn set_bit(&mut self, pos: usize);
     fn clear_bit(&mut self, pos: usize);
     fn get_bit(&self, pos: usize) -> bool;
@@ -12,7 +12,7 @@ pub trait Bit: Unsigned {
 
 macro_rules! impl_bit {
     ($type:ty) => {
-        impl Bit for $type {
+        impl BitOpts for $type {
             fn set_bit(&mut self, pos: usize) {
                 *self |= (1 << pos);
             }
