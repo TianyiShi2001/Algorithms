@@ -1,6 +1,6 @@
-use num_traits::Unsigned;
+use num_traits::{PrimInt, Unsigned};
 
-pub trait BitOpts: Unsigned {
+pub trait BitOpts: Unsigned + PrimInt {
     fn set_bit(&mut self, pos: usize);
     fn clear_bit(&mut self, pos: usize);
     fn get_bit(&self, pos: usize) -> bool;
