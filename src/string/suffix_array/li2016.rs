@@ -206,11 +206,9 @@ where
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = &mut self.s[i];
-            if *s_i < s_ip1 || (*s_i == s_ip1 && s_ip1_is_s) {
+            s_ip1_is_s = *s_i < s_ip1 || (*s_i == s_ip1 && s_ip1_is_s);
+            if s_ip1_is_s {
                 *s_i = T::from(self.sa[s_i.to_usize().unwrap()]).unwrap();
-                s_ip1_is_s = true;
-            } else {
-                s_ip1_is_s = false;
             }
             s_ip1 = *s_i;
         }
@@ -297,7 +295,7 @@ where
                 } else {
                     let j = s_i + *counter + 2;
                     if j < (*sa).len() {
-                        let x = &mut (*sa)[s_i + *counter + 2] as *mut usize;
+                        let x = &mut (*sa)[j] as *mut usize;
                         if *x == EMPTY {
                             *x = i;
                             *counter += 1;
@@ -349,8 +347,7 @@ where
             s_i = s_im1;
             s_i_is_s = s_im1_is_s;
         }
-        // sentinel is LMS character by definition, and it always uniquely occupies bucket 0
-        self.sa[0] = UNIQUE; // TODO: remove this? sentinel is dealt with later
+        self.sa[0] = self.n - 1; // sentinel as a special case
 
         let mut lms_char_count_excluding_sentinel = 0;
         let mut s_i_is_s = false;
@@ -374,7 +371,6 @@ where
                 s_i_is_s = s_im1_is_s;
                 i = i_minus_1;
             }
-            (*sa)[0] = UNIQUE;
         }
 
         // Remove `MULTI` and counters (some may remain because SA is not fully filled i.e. not always
@@ -397,7 +393,6 @@ where
             }
             i -= 1;
         }
-        self.sa[0] = self.n - 1; // sentinel as a special case
                                  // println!("End of step 2: {:?}", self.sa);
         lms_char_count_excluding_sentinel + 1
     }
@@ -554,8 +549,7 @@ where
 
                     i -= 1;
                     if i == 0 {
-                        // sentinel dealt with separately
-                        break 'outer;
+                        return;
                     }
                     sa_i = self.sa[i];
                     if self.s[sa_i].to_usize().unwrap() != tail {
@@ -634,9 +628,9 @@ where
         let mut j = 0;
         unsafe {
             for i in 0..end_ptr {
-                sa_i = &(*sa)[i];
-                if *sa_i != EMPTY {
-                    (*sa)[j] = *sa_i;
+                sa_i = (*sa)[i];
+                if sa_i != EMPTY {
+                    (*sa)[j] = sa_i;
                     j += 1;
                 }
             }
@@ -655,7 +649,8 @@ where
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = self.s[i];
-            if s_i > s_ip1 || (s_i == s_ip1 && s_ip1_is_l) {
+            s_ip1_is_l = s_i > s_ip1 || (s_i == s_ip1 && s_ip1_is_l);
+            if s_ip1_is_l {
                 // `s[i]` is L
                 let sa_si = &mut self.sa[s_i.to_usize().unwrap()];
                 if *sa_si == EMPTY {
@@ -663,9 +658,6 @@ where
                 } else if *sa_si == UNIQUE {
                     *sa_si = MULTI;
                 }
-                s_ip1_is_l = true;
-            } else {
-                s_ip1_is_l = false;
             }
             s_ip1 = s_i;
         }
@@ -751,7 +743,8 @@ where
         let mut s_i;
         for i in (0..self.n - 1).rev() {
             s_i = self.s[i];
-            if s_i < s_ip1 || (s_i == s_ip1 && s_ip1_is_s) {
+            s_ip1_is_s = s_i < s_ip1 || (s_i == s_ip1 && s_ip1_is_s);
+            if s_ip1_is_s {
                 // `s[i]` is S
                 let sa_si = &mut self.sa[s_i.to_usize().unwrap()];
                 if *sa_si == EMPTY {
@@ -759,9 +752,6 @@ where
                 } else if *sa_si == UNIQUE {
                     *sa_si = MULTI;
                 }
-                s_ip1_is_s = true;
-            } else {
-                s_ip1_is_s = false;
             }
             s_ip1 = s_i;
         }
@@ -793,11 +783,7 @@ where
                         {
                             let suspected_tail = s_j .to_usize().unwrap();
                             let sa_sj = self.sa[suspected_tail];
-                            if sa_sj == MULTI {
-                                true
-                            } else {
-                               suspected_tail < self.s[self.sa[suspected_tail + 1]] .to_usize().unwrap()
-                            }
+                            sa_sj == MULTI || suspected_tail < self.s[self.sa[suspected_tail + 1]] .to_usize().unwrap()
                         }
                         });
                 // println!("{:?}", self.sa);
@@ -893,18 +879,18 @@ mod tests {
     #[test]
     fn test_manual() {
         let mut s = vec![
-            1u8, 6, 4, 2, 7, 4, 5, 8, 6, 2, 2, 4, 5, 6, 3, 4, 1, 6, 4, 5, 6, 2, 1, 3, 4, 0,
+            9u8, 1, 10, 6, 4, 4, 4, 5, 3, 5, 2, 3, 10, 4, 3, 4, 10, 3, 1, 0
         ];
         let mut sa = vec![0; s.len()];
         let sc = s.clone();
         let expected = SuffixArray::from_str_very_naive(&sc);
         // println!("Expected: {:?}", expected.sa);
-        let mut solver = Li2016::init(&mut s, &mut sa, Some(8));
+        let mut solver = Li2016::init(&mut s, &mut sa, Some(10));
         solver.rename();
         // println!("After rename T: {:?}", solver.s);
         solver.sort_all_lms_chars();
         solver.induced_sort_all_suffixes();
-        // println!("Computed: {:?}", solver.sa);
+         println!("Computed: {:?}", solver.sa);
         assert_eq!(&expected.sa, &solver.sa);
     }
 
