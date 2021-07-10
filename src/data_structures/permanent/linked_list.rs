@@ -41,6 +41,7 @@ impl<T: Clone> PermanentList<T> {
     pub fn tail_latest(&self) -> &Link<T> {
         self.tail(self.heads.len() - 1)
     }
+    /// O(1)
     pub fn push_front(&mut self, elem: T) {
         let new_node = Node {
             elem,
@@ -48,29 +49,47 @@ impl<T: Clone> PermanentList<T> {
         };
         self.heads.push(Some(Arc::new(new_node)));
     }
+    /// O(n) because the tail is immutable i.e. needs
+    /// to copy the entire list with a different tail
+    pub fn push_back(&mut self, elem: T) {
+        let tail_node = Arc::new(Node { elem, next: None });
+        self.extend_back(Some(tail_node));
+    }
+    pub fn pop_front(&mut self) -> Option<T> {
+        let mut new_node = None;
+        let res = match self.latest() {
+            Some(node) => {
+                new_node = node.next.clone();
+                Some(node.elem.clone()) // TODO: not clone, return Option<&T>
+            }
+            None => None,
+        };
+        self.heads.push(new_node);
+        res
+    }
+    pub fn pop_back(&mut self) -> Option<T> {
+        let self_items = self.to_vec_latest();
+        let mut res = None;
+        let new_link = if self_items.is_empty() {
+            None
+        } else {
+            res = Some(self_items[self_items.len() - 1].clone());
+            Self::link_from_slice(&self_items[..self_items.len() - 1], true, None)
+        };
+        self.heads.push(new_link);
+        res
+    }
     pub fn extend_front(&mut self, other: &Link<T>) {
         let other = Iter {
             next: other.as_deref(),
         };
         let other_elems: Vec<&T> = other.collect();
-        let mut new = self.latest().clone();
-        for elem in other_elems.into_iter().rev() {
-            new = Some(Arc::new(Node {
-                elem: elem.clone(),
-                next: new,
-            }))
-        }
+        let new = Self::link_from_slice(&other_elems, true, self.latest().clone());
         self.heads.push(new);
     }
-    pub fn extend_back(&mut self, other: &Link<T>) {
+    pub fn extend_back(&mut self, other: Link<T>) {
         let self_elems: Vec<&T> = self.iter_latest().collect();
-        let mut new = other.clone();
-        for elem in self_elems.into_iter().rev() {
-            new = Some(Arc::new(Node {
-                elem: elem.clone(),
-                next: new,
-            }))
-        }
+        let new = Self::link_from_slice(self_elems.as_slice(), true, other);
         self.heads.push(new);
     }
     pub fn iter(&self, version: usize) -> Iter<'_, T> {
@@ -82,6 +101,27 @@ impl<T: Clone> PermanentList<T> {
         Iter {
             next: self.latest().as_deref(),
         }
+    }
+    pub fn to_vec_latest(&self) -> Vec<&T> {
+        self.iter_latest().collect()
+    }
+    pub fn to_cloned_vec_latest(&self) -> Vec<T> {
+        self.iter_latest().cloned().collect()
+    }
+    pub fn link_from_slice(slc: &[&T], rev: bool, tail: Link<T>) -> Link<T> {
+        let it: Box<dyn Iterator<Item = &&T>> = if rev {
+            Box::new(slc.into_iter().rev())
+        } else {
+            Box::new(slc.into_iter())
+        };
+        let mut link = tail;
+        for &e in it {
+            link = Some(Arc::new(Node {
+                elem: e.clone(),
+                next: link,
+            }));
+        }
+        link
     }
 }
 
@@ -128,9 +168,9 @@ mod test {
         };
         static ref LIST_726: PermanentList<i32> = {
             let mut list = PermanentList::new();
-            list.push_front(6);
             list.push_front(2);
             list.push_front(7);
+            list.push_back(6);
             list
         };
     }
@@ -162,6 +202,16 @@ mod test {
     }
 
     #[test]
+    fn pop() {
+        let mut list1 = LIST_835.clone();
+        let x = list1.pop_back();
+        assert_eq!(x, Some(5));
+        let x = list1.pop_front();
+        assert_eq!(x, Some(8));
+        assert_eq!(list1.to_cloned_vec_latest(), vec![3]);
+    }
+
+    #[test]
     fn extend() {
         let mut list1 = LIST_835.clone();
         let mut list2 = LIST_726.clone();
@@ -171,7 +221,7 @@ mod test {
             list1.iter_latest().cloned().collect::<Vec<_>>(),
             vec![7, 2, 6, 8, 3, 5]
         );
-        list2.extend_back(list1.latest());
+        list2.extend_back(list1.latest().clone());
         assert_eq!(list2.num_versions(), 5);
         assert_eq!(
             list2.iter_latest().cloned().collect::<Vec<_>>(),
