@@ -1,5 +1,5 @@
 use super::bit::BitOpts;
-use std::fmt::{Binary, Debug, Display};
+use std::fmt::{Binary, Display};
 
 pub struct BitVec<B: BitOpts> {
     inner: Vec<B>,
