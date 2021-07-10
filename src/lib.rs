@@ -1,6 +1,7 @@
 #![feature(binary_heap_into_iter_sorted)]
 #![feature(step_trait)]
 #![feature(trait_alias)]
+#![feature(slice_concat_trait)]
 pub mod _test_utils;
 pub mod data_structures;
 pub mod geometry;
