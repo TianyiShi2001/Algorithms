@@ -2,7 +2,7 @@ use std::fmt;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct PermanentList<T: Clone> {
+pub struct List<T: Clone> {
     heads: Vec<Link<T>>,
 }
 
@@ -16,7 +16,7 @@ pub struct Node<T: Clone> {
     next: Link<T>,
 }
 
-impl<T: Clone> PermanentList<T> {
+impl<T: Clone> List<T> {
     pub fn new() -> Self {
         Self { heads: vec![None] }
     }
@@ -140,7 +140,7 @@ impl<'a, T: Clone> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a, T: Clone + std::string::ToString> fmt::Display for PermanentList<T> {
+impl<'a, T: Clone + std::string::ToString> fmt::Display for List<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -159,15 +159,15 @@ mod test {
     use lazy_static::lazy_static;
 
     lazy_static! {
-        static ref LIST_835: PermanentList<i32> = {
-            let mut list = PermanentList::new();
+        static ref LIST_835: List<i32> = {
+            let mut list = List::new();
             list.push_front(5);
             list.push_front(3);
             list.push_front(8);
             list
         };
-        static ref LIST_726: PermanentList<i32> = {
-            let mut list = PermanentList::new();
+        static ref LIST_726: List<i32> = {
+            let mut list = List::new();
             list.push_front(2);
             list.push_front(7);
             list.push_back(6);

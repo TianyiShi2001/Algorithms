@@ -5,7 +5,7 @@ pub mod bitvec;
 pub mod heaparray;
 pub mod kdtree;
 pub mod linked_list;
-pub mod permanent;
+pub mod persistent;
 pub mod priority_queue;
 pub mod quadtree;
 pub mod queue;
