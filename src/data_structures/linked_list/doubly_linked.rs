@@ -5,7 +5,7 @@ pub struct List<T> {
     tail: Link<T>,
 }
 
-type Link<T> = Option<Rc<*mut Node<T>>>;
+type Link<T> = Option<*mut Node<T>>;
 
 struct Node<T> {
     elem: T,
@@ -14,14 +14,14 @@ struct Node<T> {
 }
 
 impl<T> Node<T> {
-    fn new(elem: T) -> Rc<*mut Self> {
+    fn new(elem: T) -> *mut Self {
+        // Heap allocation using `Box`
         let node = box Node {
             elem,
             prev: None,
             next: None,
         };
-        let node = Box::into_raw(node);
-        Rc::new(node)
+        Box::into_raw(node)
     }
 }
 
@@ -38,12 +38,12 @@ impl<T> List<T> {
         unsafe {
             match self.head.take() {
                 Some(old_head) => {
-                    (**old_head).prev = Some(new_head.clone());
-                    (**new_head).next = Some(old_head);
+                    (*old_head).prev = Some(new_head);
+                    (*new_head).next = Some(old_head);
                     self.head = Some(new_head);
                 }
                 None => {
-                    self.tail = Some(new_head.clone());
+                    self.tail = Some(new_head);
                     self.head = Some(new_head);
                 }
             }
@@ -55,12 +55,12 @@ impl<T> List<T> {
         unsafe {
             match self.tail.take() {
                 Some(old_tail) => {
-                    (**old_tail).next = Some(new_tail.clone());
-                    (**new_tail).prev = Some(old_tail);
+                    (*old_tail).next = Some(new_tail);
+                    (*new_tail).prev = Some(old_tail);
                     self.tail = Some(new_tail);
                 }
                 None => {
-                    self.head = Some(new_tail.clone());
+                    self.head = Some(new_tail);
                     self.tail = Some(new_tail);
                 }
             }
@@ -70,16 +70,20 @@ impl<T> List<T> {
     pub fn pop_back(&mut self) -> Option<T> {
         unsafe {
             self.tail.take().map(|old_tail| {
-                match (**old_tail).prev.take() {
+                match (*old_tail).prev.take() {
                     Some(new_tail) => {
-                        (**new_tail).next.take();
+                        (*new_tail).next.take();
+                        // i.e. converting the reference to the popped element to None
                         self.tail = Some(new_tail);
                     }
                     None => {
+                        // if the element being popped is the only element,
+                        // also empty the head.
                         self.head.take();
                     }
                 }
-                let old_tail = Box::from_raw(Rc::try_unwrap(old_tail).ok().unwrap());
+                // Reconstructing the `Box` allows the allocated heap to be properly freed.
+                let old_tail = Box::from_raw(old_tail);
                 Box::into_inner(old_tail).elem
             })
         }
@@ -87,39 +91,35 @@ impl<T> List<T> {
     pub fn pop_front(&mut self) -> Option<T> {
         unsafe {
             self.head.take().map(|old_head| {
-                match (**old_head).next.take() {
+                match (*old_head).next.take() {
                     Some(new_head) => {
-                        (**new_head).prev.take();
+                        (*new_head).prev.take();
                         self.head = Some(new_head);
                     }
                     None => {
                         self.tail.take();
                     }
                 }
-                let old_head = Box::from_raw(Rc::try_unwrap(old_head).ok().unwrap());
+                let old_head = Box::from_raw(old_head);
                 Box::into_inner(old_head).elem
             })
         }
     }
 
     pub fn peek_front(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| unsafe { &(***node).elem })
+        self.head.as_ref().map(|node| unsafe { &(**node).elem })
     }
 
     pub fn peek_back(&self) -> Option<&T> {
-        self.tail.as_ref().map(|node| unsafe { &(***node).elem })
+        self.tail.as_ref().map(|node| unsafe { &(**node).elem })
     }
 
     pub fn peek_back_mut(&mut self) -> Option<&mut T> {
-        self.tail
-            .as_ref()
-            .map(|node| unsafe { &mut (***node).elem })
+        self.tail.as_ref().map(|node| unsafe { &mut (**node).elem })
     }
 
     pub fn peek_front_mut(&mut self) -> Option<&mut T> {
-        self.head
-            .as_ref()
-            .map(|node| unsafe { &mut (***node).elem })
+        self.head.as_ref().map(|node| unsafe { &mut (**node).elem })
     }
 
     pub fn into_iter(self) -> IntoIter<T> {
@@ -129,6 +129,8 @@ impl<T> List<T> {
 
 impl<T> Drop for List<T> {
     fn drop(&mut self) {
+        // In the `pop_front` method each head is re-`Box`ed and thus
+        // its deallocation is automatically managed by `Box`
         while self.pop_front().is_some() {}
     }
 }
