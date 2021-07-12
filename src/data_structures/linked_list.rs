@@ -1,3 +1,5 @@
+pub mod doubly_linked;
+
 use std::rc::Rc;
 
 pub struct List<T> {
