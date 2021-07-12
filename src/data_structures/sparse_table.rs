@@ -24,7 +24,7 @@ where
 impl<T: Clone, F: Fn(T, T) -> T> SparseTable<T, F> {
     pub fn new(arr: &[T], f: F, overlap_friendly: bool) -> Self {
         let n = arr.len();
-        let log2 = Vec::log2(n + 1);
+        let log2 = Vec::mylog2(n + 1);
         let m = log2[n];
         let mut values = vec![vec![None; n]; m + 1];
         for (i, v) in arr.iter().enumerate() {
