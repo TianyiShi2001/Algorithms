@@ -4,6 +4,7 @@
 #![feature(slice_concat_trait)]
 #![feature(box_syntax)]
 #![feature(box_into_inner)]
+#![feature(int_log)]
 pub mod _test_utils;
 pub mod data_structures;
 pub mod geometry;

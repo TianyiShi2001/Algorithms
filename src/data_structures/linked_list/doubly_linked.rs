@@ -1,19 +1,21 @@
-use std::rc::Rc;
+use std::mem;
 
-pub struct List<T> {
+#[derive(Debug)]
+pub struct List<T: std::fmt::Debug> {
     head: Link<T>,
     tail: Link<T>,
 }
 
 type Link<T> = Option<*mut Node<T>>;
 
-struct Node<T> {
+#[derive(Debug)]
+struct Node<T: std::fmt::Debug> {
     elem: T,
     next: Link<T>,
     prev: Link<T>,
 }
 
-impl<T> Node<T> {
+impl<T: std::fmt::Debug> Node<T> {
     fn new(elem: T) -> *mut Self {
         // Heap allocation using `Box`
         let node = box Node {
@@ -25,7 +27,7 @@ impl<T> Node<T> {
     }
 }
 
-impl<T> List<T> {
+impl<T: std::fmt::Debug> List<T> {
     pub fn new() -> Self {
         List {
             head: None,
@@ -125,9 +127,68 @@ impl<T> List<T> {
     pub fn into_iter(self) -> IntoIter<T> {
         IntoIter(self)
     }
+
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter(&self.head, &self.tail)
+    }
+
+    pub fn into_vec(self) -> Vec<T> {
+        self.into_iter().collect()
+    }
+
+    pub fn from_vec(v: Vec<T>) -> Self {
+        let mut list = Self::new();
+        list.extend_front_from_vec(v);
+        list
+    }
+    pub fn extend_back(&mut self, other: Self) {
+        match self.tail {
+            None => *self = other,
+            Some(old_tail) => unsafe {
+                other.head.map(|node| (*node).prev = Some(old_tail));
+                (*old_tail).next = other.head;
+                self.tail = other.tail;
+                // The new, extended list is responsible for freeing the "other" part.
+                // If we retain `other` as-is, when it goes out of scope at the end of
+                // this block the entire content of the list will be freed. Thus, a
+                // simple work-around is to set `other.tail` and `other.head` to `None`
+                other.assume_empty();
+            },
+        }
+    }
+    pub fn extend_front(&mut self, other: Self) {
+        match self.head {
+            None => *self = other,
+            Some(old_head) => unsafe {
+                other.tail.map(|node| (*node).prev = Some(old_head));
+                (*old_head).prev = other.tail;
+                self.head = other.head;
+                other.assume_empty();
+            },
+        }
+    }
+    pub fn extend_front_from_vec(&mut self, mut v: Vec<T>) {
+        while let Some(elem) = v.pop() {
+            self.push_front(elem);
+        }
+    }
+    pub fn extend_back_from_vec(&mut self, mut v: Vec<T>) {
+        let mut right = Self::new();
+        while let Some(elem) = v.pop() {
+            right.push_front(elem);
+        }
+        self.extend_back(right);
+    }
+
+    /// Empty the head and tail without actually freeing
+    /// the content of the list
+    fn assume_empty(mut self) {
+        self.head = None;
+        self.tail = None;
+    }
 }
 
-impl<T> Drop for List<T> {
+impl<T: std::fmt::Debug> Drop for List<T> {
     fn drop(&mut self) {
         // In the `pop_front` method each head is re-`Box`ed and thus
         // its deallocation is automatically managed by `Box`
@@ -135,9 +196,9 @@ impl<T> Drop for List<T> {
     }
 }
 
-pub struct IntoIter<T>(List<T>);
+pub struct IntoIter<T: std::fmt::Debug>(List<T>);
 
-impl<T> Iterator for IntoIter<T> {
+impl<T: std::fmt::Debug> Iterator for IntoIter<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
@@ -145,9 +206,26 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-impl<T> DoubleEndedIterator for IntoIter<T> {
+impl<T: std::fmt::Debug> DoubleEndedIterator for IntoIter<T> {
     fn next_back(&mut self) -> Option<T> {
         self.0.pop_back()
+    }
+}
+
+pub struct Iter<'a, T: std::fmt::Debug>(&'a Link<T>, &'a Link<T>);
+
+impl<'a, T: std::fmt::Debug> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        let res = self.0.map(|node| unsafe {
+            self.0 = &(*node).next;
+            &(*node).elem
+        });
+        // if self.0 == self.1 {
+        //     self.0 = &None;
+        //     self.1 = &None;
+        // }
+        res
     }
 }
 
@@ -163,15 +241,14 @@ mod test {
         assert_eq!(list.pop_front(), None);
 
         // Populate list
-        list.push_front(1);
-        list.push_front(2);
-        list.push_front(3);
+        list.extend_front_from_vec(vec![3, 2, 1]);
 
         // Check normal removal
         assert_eq!(list.pop_front(), Some(3));
         assert_eq!(list.pop_front(), Some(2));
 
         // Push some more just to make sure nothing's corrupted
+        // list.extend_front_from_vec(vec![5, 4]);
         list.push_front(4);
         list.push_front(5);
 
@@ -189,17 +266,14 @@ mod test {
         assert_eq!(list.pop_back(), None);
 
         // Populate list
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.extend_back_from_vec(vec![1, 2, 3]);
 
         // Check normal removal
         assert_eq!(list.pop_back(), Some(3));
         assert_eq!(list.pop_back(), Some(2));
 
         // Push some more just to make sure nothing's corrupted
-        list.push_back(4);
-        list.push_back(5);
+        list.extend_back_from_vec(vec![4, 5]);
 
         // Check normal removal
         assert_eq!(list.pop_back(), Some(5));
@@ -218,28 +292,32 @@ mod test {
         assert!(list.peek_front_mut().is_none());
         assert!(list.peek_back_mut().is_none());
 
-        list.push_front(1);
-        list.push_front(2);
-        list.push_front(3);
+        list.extend_front_from_vec(vec![1, 2, 3]);
 
-        assert_eq!(&*list.peek_front().unwrap(), &3);
-        assert_eq!(&mut *list.peek_front_mut().unwrap(), &mut 3);
-        assert_eq!(&*list.peek_back().unwrap(), &1);
-        assert_eq!(&mut *list.peek_back_mut().unwrap(), &mut 1);
+        assert_eq!(&*list.peek_front().unwrap(), &1);
+        assert_eq!(&mut *list.peek_front_mut().unwrap(), &mut 1);
+        assert_eq!(&*list.peek_back().unwrap(), &3);
+        assert_eq!(&mut *list.peek_back_mut().unwrap(), &mut 3);
     }
 
     #[test]
     fn into_iter() {
-        let mut list = List::new();
-        list.push_front(1);
-        list.push_front(2);
-        list.push_front(3);
+        let list = List::from_vec(vec![1, 2, 3]);
 
         let mut iter = list.into_iter();
-        assert_eq!(iter.next(), Some(3));
-        assert_eq!(iter.next_back(), Some(1));
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next_back(), Some(3));
         assert_eq!(iter.next(), Some(2));
         assert_eq!(iter.next_back(), None);
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn iter() {
+        let list = List::from_vec(vec![1, 2, 3]);
+        assert_eq!(list.iter().collect::<Vec<_>>(), vec![&1, &2, &3]);
+        // let mut iter = list.iter();
+        // assert_eq!(iter.next(), Some(&1));
+        // assert_eq!(iter.next(), Some(&2));
     }
 }
